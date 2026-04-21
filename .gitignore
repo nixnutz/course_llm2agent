@@ -1,0 +1,5 @@
+.env
+.cursor/*.log
+**/.env.local
+**/__pycache__/
+.DS_Store

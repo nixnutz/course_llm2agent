@@ -1,0 +1,4 @@
+services:
+  ollama:
+    ports:
+      - "${HOST_BIND_IP}:${OLLAMA_HOST_PORT}:${OLLAMA_CONTAINER_PORT}"

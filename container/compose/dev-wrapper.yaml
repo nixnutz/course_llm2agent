@@ -1,0 +1,3 @@
+backend: compose
+service: dev
+workdir: /workspace/src

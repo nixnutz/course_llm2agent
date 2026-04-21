@@ -1,0 +1,165 @@
+# Synthetic spend: ~CPU / throughput proxy (not real USD). Slowest model = 10 per 1M
+# tokens (input+output); each ~2× higher tokens/s → half the price per 1M (10→5→2.5→1.25).
+# LiteLLM expects per-token rates: cost_per_token = (cost_per_1M) / 1_000_000.
+model_list:
+  # Chat / completion via Ollama's chat endpoint
+  - model_name: "ollama_chat/llama3.2:3b"
+    litellm_params:
+      model: "ollama_chat/llama3.2:3b"
+      api_base: "http://ollama:11434"
+      tags: ["ollama", "chat"]
+    model_info:
+      # ~4× throughput vs 12b tier → 2.5 / 1M
+      input_cost_per_token: 2.5e-6
+      output_cost_per_token: 2.5e-6
+
+  - model_name: "ollama_chat/deepseek-coder:6.7b"
+    litellm_params:
+      model: "ollama_chat/deepseek-coder:6.7b"
+      api_base: "http://ollama:11434"
+      tags: ["ollama", "chat"]
+    model_info:
+      # ~2× vs 12b → 5 / 1M
+      input_cost_per_token: 5e-6
+      output_cost_per_token: 5e-6
+
+  - model_name: "ollama_chat/qwen2.5-coder:7b"
+    litellm_params:
+      model: "ollama_chat/qwen2.5-coder:7b"
+      api_base: "http://ollama:11434"
+      tags: ["ollama", "chat"]
+    model_info:
+      input_cost_per_token: 5e-6
+      output_cost_per_token: 5e-6
+
+  - model_name: "ollama_chat/qwen2.5:1.5b"
+    litellm_params:
+      model: "ollama_chat/qwen2.5:1.5b"
+      api_base: "http://ollama:11434"
+      tags: ["ollama", "chat"]
+    model_info:
+      # ~8× vs 12b → 1.25 / 1M
+      input_cost_per_token: 1.25e-6
+      output_cost_per_token: 1.25e-6
+
+  - model_name: "ollama_chat/llama3.2:1b"
+    litellm_params:
+      model: "ollama_chat/llama3.2:1b"
+      api_base: "http://ollama:11434"
+      tags: ["ollama", "chat"]
+    model_info:
+      input_cost_per_token: 1.25e-6
+      output_cost_per_token: 1.25e-6
+
+  - model_name: "ollama_chat/llama3.1:8b"
+    litellm_params:
+      model: "ollama_chat/llama3.1:8b"
+      api_base: "http://ollama:11434"
+      tags: ["ollama", "chat"]
+    model_info:
+      input_cost_per_token: 5e-6
+      output_cost_per_token: 5e-6
+
+  - model_name: "ollama_chat/mistral:7b"
+    litellm_params:
+      model: "ollama_chat/mistral:7b"
+      api_base: "http://ollama:11434"
+      tags: ["ollama", "chat"]
+    model_info:
+      # Same rough CPU tier as other ~7b chat models → 5 / 1M
+      input_cost_per_token: 5e-6
+      output_cost_per_token: 5e-6
+
+  - model_name: "ollama_chat/mistral-nemo:12b"
+    litellm_params:
+      model: "ollama_chat/mistral-nemo:12b"
+      api_base: "http://ollama:11434"
+      tags: ["ollama", "chat"]
+    model_info:
+      # Slowest in this stack → 10 / 1M
+      input_cost_per_token: 1.0e-5
+      output_cost_per_token: 1.0e-5
+
+  # Embeddings
+  - model_name: "ollama/nomic-embed-text:latest"
+    litellm_params:
+      model: "ollama/nomic-embed-text:latest"
+      api_base: "http://ollama:11434"
+      tags: ["ollama", "embeddings"]
+    model_info:
+      # Small embedding model → same tier as 1b/1.5b chat (input tokens only)
+      input_cost_per_token: 1.25e-6
+
+  
+  # Gemini models
+  - model_name: gemini-2.5-flash-lite
+    litellm_params:
+      model: gemini/gemini-2.5-flash-lite
+      api_key: "os.environ/GEMINI_API_KEY"
+      rpm: 12 
+      tpm: 1000000
+
+
+  - model_name: gemini-2.5-pro
+    litellm_params:
+      model: gemini/gemini-2.5-pro
+      api_key: "os.environ/GEMINI_API_KEY"
+      rpm: 2   
+      tpm: 32000
+
+  # Groq models
+  - model_name: groq-llama-3.3-70b
+    litellm_params:
+      model: groq/llama-3.3-70b-versatile
+      api_key: "os.environ/GROQ_API_KEY"
+      rpm: 25
+      tpm: 10000
+  
+  - model_name: groq-llama-3.1-8b-instant
+    litellm_params:
+      model: groq/llama-3.1-8b-instant
+      api_key: "os.environ/GROQ_API_KEY"
+      rpm: 25
+      tpm: 5000
+
+  # Mistral models
+  - model_name: mistral-small
+    litellm_params:
+      model: mistral/mistral-small-latest
+      api_key: "os.environ/MISTRAL_API_KEY"
+      tpm: 700000 
+      rpm: 60 
+
+  - model_name: mistral-large-old
+    litellm_params:
+      model: mistral/mistral-large-2411
+      api_key: "os.environ/MISTRAL_API_KEY"
+      tpm: 600000
+      rpm: 60
+
+  - model_name: mistral-large
+    litellm_params:
+      model: mistral/mistral-large
+      api_key: "os.environ/MISTRAL_API_KEY"
+      tpm: 40000
+      rpm: 60
+
+
+litellm_settings:
+  # Emit JSON logs to stdout for easy "docker compose logs" tracing.
+  json_logs: true
+  drop_params: true
+  callbacks: ["arize_phoenix"]
+
+general_settings:
+  store_model_in_db: true
+  store_prompts_in_spend_logs: true
+  maximum_spend_logs_retention_period: "7d"
+  maximum_spend_logs_retention_interval: "1d"
+
+router_settings:
+  # Keep retries conservative to avoid retry storms on shared free-tier limits.
+  num_retries: 2
+  backoff_strategy: "exponential_backoff"
+  routing_strategy: "simple-shuffle" 
+  retry_after_429: true

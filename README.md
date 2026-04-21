@@ -7,7 +7,36 @@ I use it to capture:
 - experiments and mini-prototypes
 - prompts, ideas, and TODOs
 - mistakes, learnings, and follow-up questions
-# opencampus_llm2agent
+
+## Quickstart (5 minutes)
+
+For a local, reproducible agent-dev setup with LiteLLM + Ollama:
+
+```bash
+cd container/compose
+cp .env.example .env
+make certs-generate
+make up
+make smoke-chat
+```
+
+Open LiteLLM UI:
+
+```bash
+xdg-open "https://localhost:4000/ui"
+```
+
+If `smoke-chat` works, your local stack is ready for first agent experiments.
+
+## Workflow Notes
+
+Editor, Cursor, and agent-specific workflow conventions are documented in:
+
+- `docs/editor-and-agent-workflow.md`
+
+TL;DR:
+- Run code-related commands via `container/compose/scripts/dev-cmd.sh`.
+- Write all source code and all documentation in English.
 
 
 ## Original course description
