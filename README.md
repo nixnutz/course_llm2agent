@@ -13,12 +13,12 @@ I use it to capture:
 For a local, reproducible agent-dev setup with LiteLLM + Ollama:
 
 ```bash
-cd container/compose
-cp .env.example .env
-make certs-generate
+cp container/compose/.env.example container/compose/.env
 make up
 make smoke-chat
 ```
+
+Internal security note: from the `dev` container, backend services are reached via TLS through `caddy` (network-segmented compose setup).
 
 Open LiteLLM UI:
 
@@ -27,6 +27,10 @@ xdg-open "https://localhost:4000/ui"
 ```
 
 If `smoke-chat` works, your local stack is ready for first agent experiments.
+
+Builds and operational stack commands are available from the repository root via `Makefile`.
+Compose internals stay in `container/compose`.
+`make up` builds the dev runtime image automatically before starting compose.
 
 ## Workflow Notes
 

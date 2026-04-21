@@ -1,3 +1,5 @@
 .env
+.env.bak
+.env.back
 /.state/*
 !/.state/.gitignore

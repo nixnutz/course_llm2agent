@@ -1,12 +1,17 @@
 services:
   certs_init:
     image: golang:alpine
+    hostname: certs-init
     entrypoint:
       - /bin/sh
       - /init/init-local-certs.sh
     volumes:
       - ./.state/certs:/certs:z
       - ./scripts/init-local-certs.sh:/init/init-local-certs.sh:ro,z
+    environment:
+      CERT_HOSTS: "${CERT_HOSTS:-localhost 127.0.0.1 ::1 caddy litellm phoenix ollama postgres dev}"
+    networks:
+      - backend_core
     restart: "no"
     logging:
       driver: "json-file"
@@ -16,6 +21,7 @@ services:
 
   postgres:
     image: postgres:16-alpine
+    hostname: postgres
     environment:
       POSTGRES_DB: "${POSTGRES_DB_LITELLM}"
       POSTGRES_USER: "${POSTGRES_USER_LITELLM}"
@@ -24,6 +30,8 @@ services:
       - "${HOST_BIND_IP}:${POSTGRES_PORT}:5432"
     volumes:
       - ./.state/postgres_data:/var/lib/postgresql/data:z
+    networks:
+      - backend_core
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER_LITELLM} -d ${POSTGRES_DB_LITELLM}"]
       interval: "${HEALTHCHECK_INTERVAL_BOOT:-${HEALTHCHECK_INTERVAL}}"
@@ -40,6 +48,7 @@ services:
 
   postgres_init_identities:
     image: postgres:16-alpine
+    hostname: postgres-init-identities
     depends_on:
       postgres:
         condition: service_healthy
@@ -48,6 +57,8 @@ services:
       - /init/init-postgres-identities.sh
     volumes:
       - ./scripts/init-postgres-identities.sh:/init/init-postgres-identities.sh:ro,z
+    networks:
+      - backend_core
     restart: "no"
     logging:
       driver: "json-file"
@@ -69,10 +80,13 @@ services:
 
   ollama:
     image: ollama/ollama:latest
+    hostname: ollama
     init: true
     stop_signal: SIGTERM
     volumes:
       - ${OLLAMA_DATA_DIR}:/root/.ollama:z
+    networks:
+      - backend_core
     restart: unless-stopped
     stop_grace_period: 30s
     logging:
@@ -89,6 +103,7 @@ services:
 
   ollama_init_models:
     image: ollama/ollama:latest
+    hostname: ollama-init-models
     entrypoint: ["/bin/sh", "/init/init-ollama-models.sh"]
     depends_on:
       ollama:
@@ -96,6 +111,8 @@ services:
     volumes:
       - ${OLLAMA_DATA_DIR}:/root/.ollama:z
       - ./scripts/init-ollama-models.sh:/init/init-ollama-models.sh:ro,z
+    networks:
+      - backend_core
     restart: "no"
     logging:
       driver: "json-file"
@@ -114,6 +131,7 @@ services:
 
   litellm_keys_file_gate:
     image: alpine:3
+    hostname: litellm-keys-file-gate
     entrypoint:
       - /bin/sh
       - -lc
@@ -126,6 +144,8 @@ services:
     volumes:
       - ./scripts:/workspace/scripts:ro,z
       - ./.state/keys:/workspace/keys:rw,z
+    networks:
+      - backend_core
     working_dir: /workspace
     restart: "no"
     logging:
@@ -138,6 +158,7 @@ services:
 
   litellm:
     image: ghcr.io/berriai/litellm:main-stable
+    hostname: litellm
     platform: "${LITELLM_PLATFORM}"
     init: true
     stop_signal: SIGTERM
@@ -156,6 +177,8 @@ services:
         condition: service_started
     volumes:
       - ./config/litellm.yaml:/app/config.yaml:ro,z
+    networks:
+      - backend_core
     environment:
       DATABASE_URL: "${DATABASE_URL}"
       UI_USERNAME: "${UI_USERNAME}"
@@ -190,6 +213,7 @@ services:
 
   litellm_init_keys:
     image: alpine:3
+    hostname: litellm-init-keys
     entrypoint:
       - /bin/sh
       - -lc
@@ -200,6 +224,8 @@ services:
     volumes:
       - ./scripts:/workspace/scripts:ro,z
       - ./.state/keys:/workspace/keys:rw,z
+    networks:
+      - backend_core
     working_dir: /workspace
     restart: "no"
     logging:
@@ -216,6 +242,7 @@ services:
 
   caddy:
     image: caddy:2
+    hostname: caddy
     depends_on:
       certs_init:
         condition: service_completed_successfully
@@ -227,6 +254,9 @@ services:
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro,z
       - ./.state/certs:/certs:ro,z
+    networks:
+      - dev_edge
+      - backend_core
     environment:
       LITELLM_INTERNAL_PORT: "${LITELLM_INTERNAL_PORT}"
     restart: unless-stopped
@@ -239,6 +269,7 @@ services:
 
   phoenix:
     image: arizephoenix/phoenix:latest
+    hostname: phoenix
     ports:
       - "${HOST_BIND_IP}:${PHOENIX_OTLP_GRPC_PORT:-4317}:4317"
     environment:
@@ -246,6 +277,8 @@ services:
       PHOENIX_SQL_DATABASE_URL: "postgresql://${POSTGRES_USER_PHOENIX}:${POSTGRES_PASSWORD_PHOENIX}@postgres:${POSTGRES_PORT}/${POSTGRES_DB_PHOENIX}"
     volumes:
       - ./.state/phoenix_data:${PHOENIX_WORKING_DIR:-/mnt/data}:z
+    networks:
+      - backend_core
     depends_on:
       postgres:
         condition: service_healthy
@@ -260,11 +293,33 @@ services:
         max-file: "3"
 
   dev:
-    image: alpine:3
+    image: ${DEV_IMAGE_NAME:-course-llm-dev:v1}
+    hostname: dev
+    depends_on:
+      certs_init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      postgres_init_identities:
+        condition: service_completed_successfully
+      ollama_init_models:
+        condition: service_completed_successfully
+      litellm_keys_file_gate:
+        condition: service_completed_successfully
+      litellm:
+        condition: service_started
+      caddy:
+        condition: service_started
+      phoenix:
+        condition: service_started
     working_dir: /workspace/src
-    command: ["/bin/sh", "-lc", "apk add --no-cache python3 >/dev/null && sleep infinity"]
+    ports:
+      - "${HOST_BIND_IP}:${DEV_JUPYTER_PORT:-8888}:8888"
     volumes:
       - ../../src:/workspace/src:z
+      - ./.state/certs:/certs:ro,z
+    networks:
+      - dev_edge
     restart: unless-stopped
     stop_grace_period: 10s
     logging:
@@ -272,3 +327,9 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+networks:
+  dev_edge:
+    name: compose_dev_edge
+  backend_core:
+    name: compose_backend_core

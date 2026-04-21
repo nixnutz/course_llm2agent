@@ -18,6 +18,7 @@ CURL_TLS_FLAGS ?= -k
 
 help:
 	@echo "Available targets:"
+	@echo "  Note: service 'dev' uses \`$${DEV_IMAGE_NAME:-course-llm-dev:v1}\`; run \`make dev-image-build\` at repo root before \`make up\` when needed"
 	@echo "  make up                 Start stack with default secure setup"
 	@echo "  make down               Stop and remove compose resources"
 	@echo "  make ps                 Show compose service status"

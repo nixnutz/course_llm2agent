@@ -6,6 +6,7 @@ CERT_FILE="${CERT_FILE:-${CERT_DIR}/cert.pem}"
 KEY_FILE="${KEY_FILE:-${CERT_DIR}/key.pem}"
 CAROOT_DIR="${CAROOT_DIR:-${CERT_DIR}/.caroot}"
 MKCERT_BIN="/go/bin/mkcert"
+CERT_HOSTS="${CERT_HOSTS:-localhost 127.0.0.1 ::1}"
 
 if [ -s "${CERT_FILE}" ] && [ -s "${KEY_FILE}" ]; then
   echo "TLS certs already present at ${CERT_DIR}, skipping generation."
@@ -26,6 +27,6 @@ go install filippo.io/mkcert@latest
 CAROOT="${CAROOT_DIR}" "${MKCERT_BIN}" \
   -cert-file "${CERT_FILE}" \
   -key-file "${KEY_FILE}" \
-  localhost 127.0.0.1 ::1
+  ${CERT_HOSTS}
 
 echo "Generated ${CERT_FILE} and ${KEY_FILE}."

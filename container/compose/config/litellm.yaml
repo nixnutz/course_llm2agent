@@ -139,7 +139,7 @@ model_list:
 
   - model_name: mistral-large
     litellm_params:
-      model: mistral/mistral-large
+      model: mistral/mistral-large-latest
       api_key: "os.environ/MISTRAL_API_KEY"
       tpm: 40000
       rpm: 60

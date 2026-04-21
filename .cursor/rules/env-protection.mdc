@@ -1,0 +1,16 @@
+---
+description: Protect all .env files from unintended edits
+alwaysApply: true
+---
+
+# .env Protection Rule
+
+- Never modify any `.env` file in any directory unless the user explicitly asks for that specific `.env` change.
+- Treat all `.env` files as protected configuration files.
+- If a task would require changing `.env` values and no explicit request exists, stop and ask first.
+- Prefer updating `.env.example` or documentation when configuration guidance is needed.
+
+Examples of protected files include:
+- `.env`
+- `container/compose/.env`
+- any `**/.env` path in this repository
