@@ -42,6 +42,21 @@ TL;DR:
 - Run code-related commands via `container/compose/scripts/dev-cmd.sh`.
 - Write all source code and all documentation in English.
 
+## ADR Note (Experimental)
+
+ADR usage in this repository is experimental and currently treated as side learning.
+It is intentionally separate from the official OpenCampus.sh course scope and materials.
+Entry points:
+- `docs/auto-doc/adr/README.md` for ADR conventions and summary format.
+- `docs/auto-doc/adr/raw-log.md` for append-only decision collection during implementation.
+
+## User Value Log (Experimental)
+
+User value tracking is maintained as a lightweight, review-gated log.
+Entry points:
+- `docs/auto-doc/value/README.md` for process and format.
+- `docs/auto-doc/value/user-value-log.md` for review entries.
+
 
 ## Original course description
 

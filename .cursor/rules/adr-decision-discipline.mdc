@@ -1,0 +1,16 @@
+---
+description: ADR scope for implemented decisions only
+alwaysApply: true
+---
+
+# ADR Decision Discipline
+
+- Record ADRs only for decisions that are accepted and implemented.
+- Do not create ADR entries for proposals, drafts, backlogs, or abandoned worktree experiments.
+- If uncertain whether a decision is implemented and retained, ask the user before writing ADR content.
+- Use `Accepted` as the default status for new ADRs.
+- Use `Superseded` only when a later implemented decision replaces an earlier one.
+- Include this sentence in every ADR: `This decision is currently in effect in production/dev workflow.`
+- Keep ADRs short and focused (target: half a page, hard limit: one page).
+- Maintain a raw append-only decision log for collection; summarize only during review.
+- Track ADR maintenance overhead only as raw seconds (`OverheadSeconds: <number>`), without evaluation notes.

@@ -1,0 +1,10 @@
+---
+description: Enforce language conventions for code, docs, and plans
+alwaysApply: true
+---
+
+# Language Conventions
+
+- Write all code in English.
+- Write all technical documentation in English.
+- Keep these rules unless the user explicitly asks for a one-off exception.

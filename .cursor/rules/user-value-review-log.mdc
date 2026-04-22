@@ -1,0 +1,16 @@
+---
+description: Keep user-value reasoning lightweight and review-gated
+alwaysApply: true
+---
+
+# User Value Review Log
+
+- Treat user value tracking as a separate pillar from architecture and implementation ADRs.
+- Store the log in `docs/auto-doc/value/user-value-log.md`.
+- Maintain the short user-value log only during review preparation or review.
+- Present the user-value log in each review and request discussion/acceptance before finalizing entries.
+- Keep entries to one line using:
+  - `date | target user | user problem | delivered/expected outcome | evidence/signal | review status`
+- Prefer concrete user outcomes and observable signals over technical descriptions.
+- Keep process overhead low for small teams (1-3 people); avoid heavyweight workflow requirements.
+- Keep supporting documentation in sync in `docs/auto-doc/README.md` when the log format changes.

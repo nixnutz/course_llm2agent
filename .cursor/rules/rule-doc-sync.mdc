@@ -1,0 +1,10 @@
+---
+description: Keep rules and docs aligned when behavior changes
+alwaysApply: true
+---
+
+# Rule and Documentation Sync
+
+- When changing files in `.cursor/rules/`, update related documentation only if behavior or process changed.
+- Check at least `README.md` and `docs/auto-doc/README.md` for needed updates.
+- Keep sync actions minimal and focused on preventing drift between rules and documentation.
