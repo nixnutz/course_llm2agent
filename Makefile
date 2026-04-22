@@ -5,7 +5,7 @@
 	devcontainer-smoke devcontainer-smoke-wrapper devcontainer-smoke-clean \
 	keys-generate keys-overwrite keys-show keys-sync litellm-recreate ollama-expose \
 	phoenix-health smoke-chat smoke-embeddings state-init state-prune trust-certs-host \
-	dev-image-build dev-image-rebuild
+	dev-image-build dev-image-rebuild review-manual
 
 COMPOSE_DIR := container/compose
 DEV_IMAGE_NAME ?= course-llm-dev:v1
@@ -44,6 +44,9 @@ help:
 	@echo "Development Image (container/dev-image):"
 	@echo "  make dev-image-build          Build dev image with repository-root context"
 	@echo "  make dev-image-rebuild        Rebuild dev image without cache"
+	@echo ""
+	@echo "Review Workflow:"
+	@echo "  make review-manual            Show fixed manual review checklist and context"
 
 up:
 	$(MAKE) dev-image-build && $(MAKE) -C $(COMPOSE_DIR) up
@@ -59,3 +62,6 @@ dev-image-build:
 
 dev-image-rebuild:
 	docker build --no-cache -t $(DEV_IMAGE_NAME) -f container/dev-image/Dockerfile .
+
+review-manual:
+	./scripts/review-manual.sh
