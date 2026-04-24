@@ -20,3 +20,11 @@ This document captures editor, Cursor, and agent-specific conventions for this r
 - Agent behavior is enforced via `.cursor/rules/`.
 - `.cursor/rules/` is the normative source for agent behavior.
 - This document explains the workflow for humans; if there is any conflict, rules win.
+
+## Plan Creation ADR Check
+
+When creating or updating an implementation plan, always perform an explicit ADR update check:
+
+- `Does this change require ADR update?`
+- If yes: include concrete ADR follow-up tasks in the plan (raw-log append and/or new ADR file).
+- If no: add one short rationale line in the plan.

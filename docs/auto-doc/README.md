@@ -26,3 +26,5 @@ Goal: Continuously capture project context so reviews include not only the lates
 
 - Minimal overhead, high context value.
 - No prose: short, concrete, traceable entries.
+
+For ADR experiment limitations and required explicit request behavior, see `docs/internal/adr-experiment-notes.md`.

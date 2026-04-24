@@ -1,0 +1,10 @@
+---
+description: Keep ADR raw-log updates tail-only and append-only
+alwaysApply: true
+---
+
+# ADR Raw-Log Update Rule
+
+- For `docs/auto-doc/adr/raw-log.md`, use tail-only reads (last ~20 lines), not full-file reads.
+- Apply append-only updates; never rewrite or reformat existing raw-log entries.
+- If tail context is insufficient, ask before any full-file read.

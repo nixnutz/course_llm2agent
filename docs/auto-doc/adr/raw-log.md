@@ -24,3 +24,5 @@ Do not delete or rewrite past entries. Add new entries at the end only.
 2026-04-24 | compose | use healthcheck start_interval for startup probing and steady-state interval for runtime probing | container/compose/docker-compose.yml
 2026-04-24 | workflow | enforce Docker Engine >= 25.0.0 and Docker Compose >= 2.20.0 in make up preflight | container/compose/Makefile
 2026-04-24 | workflow | warn once to stderr when non-docker compose provider is detected because runtime is not tested | container/compose/Makefile
+2026-04-24 | workflow | enforce mandatory ADR relevance check on every plan via always-applied Cursor rule | .cursor/rules/adr-plan-check.mdc
+2026-04-24 | workflow | simplify ADR raw-log tail-only rule by removing duplicate checks and deferring cleanup to review | .cursor/rules/adr-raw-log-tail-only.mdc

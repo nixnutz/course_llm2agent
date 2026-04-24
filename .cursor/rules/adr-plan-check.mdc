@@ -1,0 +1,14 @@
+---
+description: Require ADR relevance check during plan creation
+alwaysApply: true
+---
+
+# ADR Check for Every Plan
+
+- For every newly created or updated implementation plan, explicitly check:
+  - `Does this change require ADR update?`
+- If the answer is **yes**:
+  - Add concrete ADR follow-up task(s) to the plan (`docs/auto-doc/adr/raw-log.md` and/or a new ADR file).
+- If the answer is **no**:
+  - Add one short rationale line in the plan that explains why no ADR update is needed.
+- Do not finalize a plan without one of these two outcomes (ADR task or no-ADR rationale).
