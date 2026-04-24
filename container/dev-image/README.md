@@ -9,7 +9,7 @@ It is also the runtime image for compose service `dev`.
 - Default interactive user is `dev` (non-root)
 - `sudo` is available for `dev` with `NOPASSWD`
 - `venv` support
-- Agent baseline dependencies from `src/requirements.txt`
+- Agent baseline dependencies from `src/requirements.in`
 - `ruff` available in container baseline
 - `ipykernel` available in container baseline
 - `jupyterlab` available in container baseline
@@ -86,11 +86,11 @@ pip install <package>
 ```
 
 This updates the runtime used by notebooks immediately.
-Promote stable dependencies later by adding them to `src/requirements.txt`.
+Promote stable dependencies later by adding them to `src/requirements.in`.
 
 ## Requirements Split
 
-- `src/requirements.txt`: baseline agent development dependencies (`ruff`, `ipykernel`, `jupyterlab`)
+- `src/requirements.in`: baseline agent development dependencies (`ruff`, `ipykernel`, `jupyterlab`)
 
 ## LiteLLM OpenAPI Config
 

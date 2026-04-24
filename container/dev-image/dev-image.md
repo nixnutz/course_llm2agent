@@ -8,7 +8,7 @@ Provide a minimal, reproducible Python runtime for this course agent project.
 
 1. Python latest GA target (to be pinned explicitly during implementation updates)
 2. `venv` available
-3. Baseline dependencies installed from `src/requirements.txt`
+3. Baseline dependencies installed from `src/requirements.in`
 4. `ruff` available in baseline
 5. `ipykernel` available in baseline for notebook integration
 6. `jupyterlab` available in baseline and started with dev runtime
@@ -45,10 +45,10 @@ For stricter setups, remove `sudo` or gate privileged operations through explici
 
 - No system-wide `pip install` into distro Python.
 - Dedicated venv at `/opt/venv`.
-- Baseline installs from `src/requirements.txt` during image build.
+- Baseline installs from `src/requirements.in` during image build.
 - Notebook integration uses baseline `ipykernel` and `jupyterlab`.
 - Exploratory package installs happen in `/workspace/src/.venv` for zero-friction iteration.
-- Promote durable dependencies to `src/requirements.txt` when experimentation stabilizes.
+- Promote durable dependencies to `src/requirements.in` when experimentation stabilizes.
 
 ## LiteLLM API Contract
 

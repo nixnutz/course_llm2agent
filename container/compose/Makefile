@@ -12,9 +12,11 @@ endif
 # 4) Single non-group targets (if any) at the end
 # This is primarily for readability/discoverability and avoids accidental order drift.
 
-.PHONY: help up down ps top logs logs-all logs-init-keys logs-init-models certs-generate devcontainer-smoke devcontainer-smoke-clean devcontainer-smoke-wrapper keys-generate keys-overwrite keys-show keys-sync litellm-recreate ollama-expose phoenix-health smoke-chat smoke-embeddings state-init state-prune trust-certs-host
+.PHONY: help preflight-up up up-no-preflight down ps top logs logs-all logs-init-keys logs-init-models certs-generate devcontainer-smoke devcontainer-smoke-clean devcontainer-smoke-wrapper keys-generate keys-overwrite keys-show keys-sync litellm-recreate ollama-expose phoenix-health smoke-chat smoke-embeddings state-init state-prune trust-certs-host
 
 CURL_TLS_FLAGS ?= -k
+MIN_DOCKER_ENGINE_VERSION ?= 25.0.0
+MIN_DOCKER_COMPOSE_VERSION ?= 2.20.0
 
 help:
 	@echo "Available targets:"
@@ -41,7 +43,45 @@ help:
 	@echo "  make smoke-chat         Run authenticated chat completion smoke test"
 	@echo "  make smoke-embeddings   Run authenticated embeddings smoke test"
 
-up:
+preflight-up:
+	@set -eu; \
+	provider="docker"; \
+	if [ -n "$${DOCKER_HOST:-}" ] && printf '%s' "$${DOCKER_HOST}" | tr '[:upper:]' '[:lower:]' | grep -q 'podman'; then \
+		provider="podman"; \
+	fi; \
+	server_platform="$$(docker version --format '{{.Server.Platform.Name}}' 2>/dev/null || true)"; \
+	if [ -n "$${server_platform}" ] && printf '%s' "$${server_platform}" | tr '[:upper:]' '[:lower:]' | grep -q 'podman'; then \
+		provider="podman"; \
+	fi; \
+	if [ "$${provider}" != "docker" ]; then \
+		echo "WARNING: non-docker compose provider detected; this setup is not tested." >&2; \
+		exit 0; \
+	fi; \
+	engine_version="$$(docker version --format '{{.Server.Version}}' 2>/dev/null || true)"; \
+	if [ -z "$${engine_version}" ]; then \
+		echo "ERROR: Docker server version not available. Is Docker running?" >&2; \
+		exit 1; \
+	fi; \
+	min_engine="$(MIN_DOCKER_ENGINE_VERSION)"; \
+	if [ "$$(printf '%s\n%s\n' "$${min_engine}" "$${engine_version}" | sort -V | head -n1)" != "$${min_engine}" ]; then \
+		echo "ERROR: Docker Engine >= $${min_engine} required (found $${engine_version})." >&2; \
+		exit 1; \
+	fi; \
+	compose_version_raw="$$(docker compose version --short 2>/dev/null || true)"; \
+	compose_version="$${compose_version_raw#v}"; \
+	if [ -z "$${compose_version}" ]; then \
+		echo "ERROR: Docker Compose version not available. Is docker compose installed?" >&2; \
+		exit 1; \
+	fi; \
+	min_compose="$(MIN_DOCKER_COMPOSE_VERSION)"; \
+	if [ "$$(printf '%s\n%s\n' "$${min_compose}" "$${compose_version}" | sort -V | head -n1)" != "$${min_compose}" ]; then \
+		echo "ERROR: Docker Compose >= $${min_compose} required (found $${compose_version})." >&2; \
+		exit 1; \
+	fi
+
+up: preflight-up up-no-preflight
+
+up-no-preflight:
 	$(MAKE) state-init && $(MAKE) certs-generate && docker compose up -d
 
 down:

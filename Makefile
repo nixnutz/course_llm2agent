@@ -49,7 +49,7 @@ help:
 	@echo "  make review-manual            Show fixed manual review checklist and context"
 
 up:
-	$(MAKE) dev-image-build && $(MAKE) -C $(COMPOSE_DIR) up
+	$(MAKE) -C $(COMPOSE_DIR) preflight-up && $(MAKE) dev-image-build && $(MAKE) -C $(COMPOSE_DIR) up-no-preflight
 
 down ps top logs logs-all logs-init-keys logs-init-models certs-generate \
 devcontainer-smoke devcontainer-smoke-wrapper devcontainer-smoke-clean \

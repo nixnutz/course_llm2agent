@@ -18,7 +18,7 @@ RUN apt-get update \
         nano \
     && rm -rf /var/lib/apt/lists/*
 
-COPY src/requirements.txt /tmp/requirements.txt
+COPY src/requirements.in /tmp/requirements.in
 COPY container/dev-image/scripts/bootstrap-project-venv.sh /usr/local/bin/bootstrap-project-venv.sh
 COPY container/dev-image/scripts/import-local-ca.sh /usr/local/bin/import-local-ca.sh
 COPY container/dev-image/scripts/keepalive.sh /usr/local/bin/keepalive.sh
@@ -26,7 +26,7 @@ COPY container/dev-image/scripts/start-notebook.sh /usr/local/bin/start-notebook
 
 RUN python3 -m venv "${VIRTUAL_ENV}" \
     && "${VIRTUAL_ENV}/bin/pip" install --no-cache-dir --upgrade pip \
-    && "${VIRTUAL_ENV}/bin/pip" install --no-cache-dir -r /tmp/requirements.txt \
+    && "${VIRTUAL_ENV}/bin/pip" install --no-cache-dir -r /tmp/requirements.in \
     && groupadd --gid 1000 dev \
     && useradd --uid 1000 --gid 1000 --create-home --shell /bin/bash dev \
     && echo "dev ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/dev \
@@ -34,7 +34,7 @@ RUN python3 -m venv "${VIRTUAL_ENV}" \
     && mkdir -p /workspace \
     && chown -R dev:dev /workspace \
     && chmod +x /usr/local/bin/bootstrap-project-venv.sh /usr/local/bin/import-local-ca.sh /usr/local/bin/keepalive.sh /usr/local/bin/start-notebook.sh \
-    && rm -f /tmp/requirements.txt
+    && rm -f /tmp/requirements.in
 
 WORKDIR /workspace
 USER dev

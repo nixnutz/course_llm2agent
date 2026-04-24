@@ -32,6 +32,16 @@ model_list:
       input_cost_per_token: 5e-6
       output_cost_per_token: 5e-6
 
+  - model_name: "ollama_chat/qwen3.5:0.8b"
+    litellm_params:
+      model: "ollama_chat/qwen3.5:0.8b"
+      api_base: "http://ollama:11434"
+      tags: ["ollama", "chat"]
+    model_info:
+      # ~8× vs 12b → 1.25 / 1M
+      input_cost_per_token: 0.7e-6
+      output_cost_per_token: 0.7e-6
+
   - model_name: "ollama_chat/qwen2.5:1.5b"
     litellm_params:
       model: "ollama_chat/qwen2.5:1.5b"
@@ -88,6 +98,15 @@ model_list:
       tags: ["ollama", "embeddings"]
     model_info:
       # Small embedding model → same tier as 1b/1.5b chat (input tokens only)
+      input_cost_per_token: 1.25e-6
+
+  - model_name: "ollama/qllama/bge-small-en-v1.5:q4_k_m"
+    litellm_params:
+      model: "ollama/qllama/bge-small-en-v1.5:q4_k_m"
+      api_base: "http://ollama:11434"
+      tags: ["ollama", "embeddings"]
+    model_info:
+      # Quantized small embedding model, similar lightweight tier.
       input_cost_per_token: 1.25e-6
 
   
