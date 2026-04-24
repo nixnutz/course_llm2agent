@@ -17,8 +17,10 @@ Apply overload guardrails for local Ollama models only:
 - Set `LITELLM_DEFAULT_TIMEOUT=420` in local compose env.
 - Set `OLLAMA_MAX_QUEUE=2` to reduce request backlog growth.
 - Set `OLLAMA_MAX_LOADED_MODELS=1` to reduce multi-model memory churn and improve admission predictability.
+- Set `OLLAMA_KEEP_ALIVE=1m` to reduce idle runner retention after aborted/disconnected clients.
 - Set `max_retries: 0` on local Ollama model entries in LiteLLM config.
 - Keep router-level retries available for non-Ollama providers (`num_retries: 2`).
+- Adopt a soft streaming policy for local Ollama chat usage: streaming is recommended, non-streaming remains supported.
 
 This decision is currently in effect in production/dev workflow.
 
@@ -26,4 +28,5 @@ This decision is currently in effect in production/dev workflow.
 
 - Local Ollama traffic fails faster under overload instead of building long retry/queue cascades.
 - Cloud provider behavior remains unchanged and can be tuned independently.
-- Client-disconnect cancellation remains best-effort and is tracked as a follow-up hardening area.
+- Client-disconnect cancellation remains best-effort and is evaluated primarily via operational logs during testing.
+- Client compatibility is preserved for synchronous/non-streaming API consumers while giving a recommended streaming path for better cancel behavior.

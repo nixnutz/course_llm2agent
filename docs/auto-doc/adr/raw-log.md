@@ -28,4 +28,7 @@ Do not delete or rewrite past entries. Add new entries at the end only.
 2026-04-24 | workflow | simplify ADR raw-log tail-only rule by removing duplicate checks and deferring cleanup to review | .cursor/rules/adr-raw-log-tail-only.mdc
 2026-04-24 | compose | apply ollama-only overload guardrails (timeout budget, retry suppression, queue cap) to stabilize local proxy under client churn | container/compose/config/litellm.yaml
 2026-04-24 | compose | tighten phase-2 local admission controls by limiting queue depth and loaded models for ollama runtime stability | container/compose/.env
+2026-04-24 | compose | add phase-3 abort-path controls and observability hooks (keep_alive reduction plus abort smoke checks) | container/compose/scripts/smoke-chat-abort.sh
+2026-04-24 | compose | add phase-4 soft streaming policy docs and split smoke checks for streaming vs non-streaming abort behavior | container/compose/README.md
+2026-04-24 | compose | remove additional abort/streaming smoke targets to keep local workflow lightweight; rely on manual log-based verification | container/compose/Makefile
 2026-04-24 | workflow | treat portable runtime control surfaces as ADR-relevant and use hybrid raw-log + ADR contract documentation | .cursor/rules/adr-plan-check.mdc

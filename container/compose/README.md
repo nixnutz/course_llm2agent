@@ -160,13 +160,13 @@ This project uses explicit Ollama runtime controls to reduce local CPU churn and
 - `OLLAMA_NUM_PARALLEL` (default `1`): limits concurrent generations per server process.
 - `OLLAMA_MAX_QUEUE` (default `2`): caps queued requests before backpressure is visible.
 - `OLLAMA_MAX_LOADED_MODELS` (default `1` in env examples): bounds simultaneously loaded models.
+- `OLLAMA_KEEP_ALIVE` (default `1m` in local `.env`): unloads idle runners sooner to reduce post-abort residue.
 
 Tradeoff for CPU-only machines: lower values are calmer and more stable, but can reduce burst throughput.
 
 Intentional non-changes in this step:
 
 - `OLLAMA_MODELS` is unchanged (no model list reduction here).
-- `OLLAMA_KEEP_ALIVE` is unchanged in this tuning step.
 
 Focused runtime log checks:
 
@@ -214,11 +214,22 @@ Cloud provider models keep their own provider-specific behavior.
 - Ollama models are configured with `max_retries: 0` in LiteLLM model config to prevent retry cascades.
 - Ollama runtime queue pressure is limited via `OLLAMA_MAX_QUEUE=2`.
 - Loaded model churn is bounded via `OLLAMA_MAX_LOADED_MODELS=1` for stricter local admission control.
+- Idle runner lifetime is shortened with `OLLAMA_KEEP_ALIVE=1m` to reduce lingering load after aborted clients.
 - Local proxy timeout budget is `LITELLM_DEFAULT_TIMEOUT=420` seconds for experimentation.
 
 Known limitation: if a client disconnects abruptly, upstream cancellation may still be best-effort depending on
 LiteLLM/Ollama internals; this setup focuses on bounding overload impact (queue + retries), not guaranteeing
 instant cancellation in every path.
+
+Streaming policy (soft; both API modes supported):
+
+- non-streaming stays supported (`stream=false` calls are valid)
+- streaming is recommended for local `ollama_chat/*` workloads
+- reason: better early disconnect propagation in client timeout/abort scenarios
+- reason: lower chance of long-lived zombie inference after client exits
+- trade-off (agents): more chunk/event handling in client loop
+- trade-off (agents): parser must detect message/block boundaries robustly
+- trade-off (agents): partial/intermediate fragments need output hygiene
 
 Model examples currently configured:
 - Ollama chat: `ollama_chat/llama3.2:3b`, `ollama_chat/deepseek-coder:6.7b`, `ollama_chat/qwen2.5-coder:7b`,

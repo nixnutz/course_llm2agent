@@ -3,6 +3,37 @@
 # LiteLLM expects per-token rates: cost_per_token = (cost_per_1M) / 1_000_000.
 model_list:
   # Chat / completion via Ollama's chat endpoint
+  - model_name: "ollama_chat/deepseek-coder:6.7b"
+    litellm_params:
+      model: "ollama_chat/deepseek-coder:6.7b"
+      api_base: "http://ollama:11434"
+      max_retries: 0
+      tags: ["ollama", "chat"]
+    model_info:
+      # ~2× vs 12b → 5 / 1M
+      input_cost_per_token: 5e-6
+      output_cost_per_token: 5e-6
+
+  - model_name: "ollama_chat/llama3.1:8b"
+    litellm_params:
+      model: "ollama_chat/llama3.1:8b"
+      api_base: "http://ollama:11434"
+      max_retries: 0
+      tags: ["ollama", "chat"]
+    model_info:
+      input_cost_per_token: 5e-6
+      output_cost_per_token: 5e-6
+
+  - model_name: "ollama_chat/llama3.2:1b"
+    litellm_params:
+      model: "ollama_chat/llama3.2:1b"
+      api_base: "http://ollama:11434"
+      max_retries: 0
+      tags: ["ollama", "chat"]
+    model_info:
+      input_cost_per_token: 1.25e-6
+      output_cost_per_token: 1.25e-6
+
   - model_name: "ollama_chat/llama3.2:3b"
     litellm_params:
       model: "ollama_chat/llama3.2:3b"
@@ -14,14 +45,25 @@ model_list:
       input_cost_per_token: 2.5e-6
       output_cost_per_token: 2.5e-6
 
-  - model_name: "ollama_chat/deepseek-coder:6.7b"
+  - model_name: "ollama_chat/mistral-nemo:12b"
     litellm_params:
-      model: "ollama_chat/deepseek-coder:6.7b"
+      model: "ollama_chat/mistral-nemo:12b"
       api_base: "http://ollama:11434"
       max_retries: 0
       tags: ["ollama", "chat"]
     model_info:
-      # ~2× vs 12b → 5 / 1M
+      # Slowest in this stack → 10 / 1M
+      input_cost_per_token: 1.0e-5
+      output_cost_per_token: 1.0e-5
+
+  - model_name: "ollama_chat/mistral:7b"
+    litellm_params:
+      model: "ollama_chat/mistral:7b"
+      api_base: "http://ollama:11434"
+      max_retries: 0
+      tags: ["ollama", "chat"]
+    model_info:
+      # Same rough CPU tier as other ~7b chat models → 5 / 1M
       input_cost_per_token: 5e-6
       output_cost_per_token: 5e-6
 
@@ -34,6 +76,17 @@ model_list:
     model_info:
       input_cost_per_token: 5e-6
       output_cost_per_token: 5e-6
+
+  - model_name: "ollama_chat/qwen2.5:1.5b"
+    litellm_params:
+      model: "ollama_chat/qwen2.5:1.5b"
+      api_base: "http://ollama:11434"
+      max_retries: 0
+      tags: ["ollama", "chat"]
+    model_info:
+      # ~8× vs 12b → 1.25 / 1M
+      input_cost_per_token: 1.25e-6
+      output_cost_per_token: 1.25e-6
 
   - model_name: "ollama_chat/qwen3.5:0.8b"
     litellm_params:
@@ -48,58 +101,17 @@ model_list:
       input_cost_per_token: 0.7e-6
       output_cost_per_token: 0.7e-6
 
-  - model_name: "ollama_chat/qwen2.5:1.5b"
+  - model_name: "ollama_chat_stream/llama3.2:3b"
     litellm_params:
-      model: "ollama_chat/qwen2.5:1.5b"
+      model: "ollama_chat/llama3.2:3b"
       api_base: "http://ollama:11434"
       max_retries: 0
-      tags: ["ollama", "chat"]
+      stream: true
+      tags: ["ollama", "chat", "stream-test"]
     model_info:
-      # ~8× vs 12b → 1.25 / 1M
-      input_cost_per_token: 1.25e-6
-      output_cost_per_token: 1.25e-6
-
-  - model_name: "ollama_chat/llama3.2:1b"
-    litellm_params:
-      model: "ollama_chat/llama3.2:1b"
-      api_base: "http://ollama:11434"
-      max_retries: 0
-      tags: ["ollama", "chat"]
-    model_info:
-      input_cost_per_token: 1.25e-6
-      output_cost_per_token: 1.25e-6
-
-  - model_name: "ollama_chat/llama3.1:8b"
-    litellm_params:
-      model: "ollama_chat/llama3.1:8b"
-      api_base: "http://ollama:11434"
-      max_retries: 0
-      tags: ["ollama", "chat"]
-    model_info:
-      input_cost_per_token: 5e-6
-      output_cost_per_token: 5e-6
-
-  - model_name: "ollama_chat/mistral:7b"
-    litellm_params:
-      model: "ollama_chat/mistral:7b"
-      api_base: "http://ollama:11434"
-      max_retries: 0
-      tags: ["ollama", "chat"]
-    model_info:
-      # Same rough CPU tier as other ~7b chat models → 5 / 1M
-      input_cost_per_token: 5e-6
-      output_cost_per_token: 5e-6
-
-  - model_name: "ollama_chat/mistral-nemo:12b"
-    litellm_params:
-      model: "ollama_chat/mistral-nemo:12b"
-      api_base: "http://ollama:11434"
-      max_retries: 0
-      tags: ["ollama", "chat"]
-    model_info:
-      # Slowest in this stack → 10 / 1M
-      input_cost_per_token: 1.0e-5
-      output_cost_per_token: 1.0e-5
+      # Same model, test alias with streaming default enabled.
+      input_cost_per_token: 2.5e-6
+      output_cost_per_token: 2.5e-6
 
   # Embeddings
   - model_name: "ollama/nomic-embed-text:latest"
@@ -140,13 +152,6 @@ model_list:
       tpm: 32000
 
   # Groq models
-  - model_name: groq-llama-3.3-70b
-    litellm_params:
-      model: groq/llama-3.3-70b-versatile
-      api_key: "os.environ/GROQ_API_KEY"
-      rpm: 25
-      tpm: 10000
-  
   - model_name: groq-llama-3.1-8b-instant
     litellm_params:
       model: groq/llama-3.1-8b-instant
@@ -154,12 +159,19 @@ model_list:
       rpm: 25
       tpm: 5000
 
-  # Mistral models
-  - model_name: mistral-small
+  - model_name: groq-llama-3.3-70b
     litellm_params:
-      model: mistral/mistral-small-latest
+      model: groq/llama-3.3-70b-versatile
+      api_key: "os.environ/GROQ_API_KEY"
+      rpm: 25
+      tpm: 10000
+
+  # Mistral models
+  - model_name: mistral-large
+    litellm_params:
+      model: mistral/mistral-large-latest
       api_key: "os.environ/MISTRAL_API_KEY"
-      tpm: 700000 
+      tpm: 40000
       rpm: 60 
 
   - model_name: mistral-large-old
@@ -169,11 +181,11 @@ model_list:
       tpm: 600000
       rpm: 60
 
-  - model_name: mistral-large
+  - model_name: mistral-small
     litellm_params:
-      model: mistral/mistral-large-latest
+      model: mistral/mistral-small-latest
       api_key: "os.environ/MISTRAL_API_KEY"
-      tpm: 40000
+      tpm: 700000 
       rpm: 60
 
 
