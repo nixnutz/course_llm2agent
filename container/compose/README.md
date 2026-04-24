@@ -158,8 +158,8 @@ This project uses explicit Ollama runtime controls to reduce local CPU churn and
 
 - `OLLAMA_DEBUG` (default `0`): enables verbose `ollama serve` logs when set to `1`.
 - `OLLAMA_NUM_PARALLEL` (default `1`): limits concurrent generations per server process.
-- `OLLAMA_MAX_QUEUE` (default `3`): caps queued requests before backpressure is visible.
-- `OLLAMA_MAX_LOADED_MODELS` (default `2` in env examples): bounds simultaneously loaded models.
+- `OLLAMA_MAX_QUEUE` (default `2`): caps queued requests before backpressure is visible.
+- `OLLAMA_MAX_LOADED_MODELS` (default `1` in env examples): bounds simultaneously loaded models.
 
 Tradeoff for CPU-only machines: lower values are calmer and more stable, but can reduce burst throughput.
 
@@ -212,7 +212,8 @@ This project applies overload protection **only to local Ollama models** as an e
 Cloud provider models keep their own provider-specific behavior.
 
 - Ollama models are configured with `max_retries: 0` in LiteLLM model config to prevent retry cascades.
-- Ollama runtime queue pressure is limited via `OLLAMA_MAX_QUEUE=3`.
+- Ollama runtime queue pressure is limited via `OLLAMA_MAX_QUEUE=2`.
+- Loaded model churn is bounded via `OLLAMA_MAX_LOADED_MODELS=1` for stricter local admission control.
 - Local proxy timeout budget is `LITELLM_DEFAULT_TIMEOUT=420` seconds for experimentation.
 
 Known limitation: if a client disconnects abruptly, upstream cancellation may still be best-effort depending on

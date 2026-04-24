@@ -15,7 +15,8 @@ workload profile.
 Apply overload guardrails for local Ollama models only:
 
 - Set `LITELLM_DEFAULT_TIMEOUT=420` in local compose env.
-- Set `OLLAMA_MAX_QUEUE=3` to reduce request backlog growth.
+- Set `OLLAMA_MAX_QUEUE=2` to reduce request backlog growth.
+- Set `OLLAMA_MAX_LOADED_MODELS=1` to reduce multi-model memory churn and improve admission predictability.
 - Set `max_retries: 0` on local Ollama model entries in LiteLLM config.
 - Keep router-level retries available for non-Ollama providers (`num_retries: 2`).
 
