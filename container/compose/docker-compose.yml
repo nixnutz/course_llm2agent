@@ -33,7 +33,7 @@ services:
     networks:
       - backend_core
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER_LITELLM} -d ${POSTGRES_DB_LITELLM}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER_LITELLM} -d ${POSTGRES_DB_LITELLM}" ]
       interval: "${HEALTHCHECK_INTERVAL_BOOT:-${HEALTHCHECK_INTERVAL}}"
       timeout: 5s
       retries: 60
@@ -95,17 +95,22 @@ services:
         max-size: "10m"
         max-file: "3"
     healthcheck:
-      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1"]
+      test: [ "CMD-SHELL", "ollama list >/dev/null 2>&1" ]
       interval: "${HEALTHCHECK_INTERVAL}"
       start_interval: "${HEALTHCHECK_INTERVAL_BOOT:-3s}"
       timeout: 5s
       retries: 60
       start_period: 30s
+    environment:
+      OLLAMA_DEBUG: "${OLLAMA_DEBUG:-0}"
+      OLLAMA_NUM_PARALLEL: "${OLLAMA_NUM_PARALLEL:-1}"
+      OLLAMA_MAX_QUEUE: "${OLLAMA_MAX_QUEUE:-8}"
+      OLLAMA_MAX_LOADED_MODELS: "${OLLAMA_MAX_LOADED_MODELS:-0}"
 
   ollama_init_models:
     image: ollama/ollama:latest
     hostname: ollama-init-models
-    entrypoint: ["/bin/sh", "/init/init-ollama-models.sh"]
+    entrypoint: [ "/bin/sh", "/init/init-ollama-models.sh" ]
     depends_on:
       ollama:
         condition: service_healthy
@@ -122,6 +127,7 @@ services:
         max-file: "3"
     environment:
       # Make the ollama CLI talk to the "ollama" service container.
+      OLLAMA_DEBUG: "${OLLAMA_DEBUG:-0}"
       OLLAMA_HOST: "${OLLAMA_HOST}"
       OLLAMA_MODELS: "${OLLAMA_MODELS}"
       OLLAMA_INIT_MODE: "${OLLAMA_INIT_MODE}"
@@ -129,6 +135,7 @@ services:
       OLLAMA_RUN_OPTIONS: "${OLLAMA_RUN_OPTIONS}"
       OLLAMA_RUN_PROMPT: "${OLLAMA_RUN_PROMPT}"
       OLLAMA_RETRY_MAX_ATTEMPTS: "${OLLAMA_RETRY_MAX_ATTEMPTS:-0}"
+      OLLAMA_MAX_LOADED_MODELS: "${OLLAMA_MAX_LOADED_MODELS:-0}"
 
   litellm_keys_file_gate:
     image: alpine:3
@@ -199,7 +206,7 @@ services:
     restart: unless-stopped
     stop_grace_period: 30s
     healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:${LITELLM_INTERNAL_PORT}/health/readiness', timeout=2)\""]
+      test: [ "CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:${LITELLM_INTERNAL_PORT}/health/readiness', timeout=2)\"" ]
       interval: "${HEALTHCHECK_INTERVAL}"
       start_interval: "${HEALTHCHECK_INTERVAL_BOOT:-3s}"
       timeout: 5s
@@ -210,7 +217,7 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-    command: ["--config", "/app/config.yaml", "--port", "${LITELLM_INTERNAL_PORT}", "--request_timeout", "${LITELLM_DEFAULT_TIMEOUT}"]
+    command: [ "--config", "/app/config.yaml", "--port", "${LITELLM_INTERNAL_PORT}", "--request_timeout", "${LITELLM_DEFAULT_TIMEOUT}" ]
 
   litellm_init_keys:
     image: alpine:3

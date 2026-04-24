@@ -151,6 +151,31 @@ For debug/smoke runs you can set `OLLAMA_INIT_MODE=run`, which executes
 `OLLAMA_RETRY_MAX_ATTEMPTS` controls per-model retry budget during init (`0` = unlimited retries).
 To keep first startup fast, defaults are intentionally minimal (`nomic-embed-text:latest` + `llama3.2:3b`).
 You can add more models later in `.env` (`OLLAMA_MODELS`) if needed.
+
+### Ollama Runtime Tuning (CPU-friendly defaults)
+
+This project uses explicit Ollama runtime controls to reduce local CPU churn and model swap pressure:
+
+- `OLLAMA_DEBUG` (default `0`): enables verbose `ollama serve` logs when set to `1`.
+- `OLLAMA_NUM_PARALLEL` (default `1`): limits concurrent generations per server process.
+- `OLLAMA_MAX_QUEUE` (default `8`): caps queued requests before backpressure is visible.
+- `OLLAMA_MAX_LOADED_MODELS` (default `2` in env examples): bounds simultaneously loaded models.
+
+Tradeoff for CPU-only machines: lower values are calmer and more stable, but can reduce burst throughput.
+
+Intentional non-changes in this step:
+
+- `OLLAMA_MODELS` is unchanged (no model list reduction here).
+- `OLLAMA_KEEP_ALIVE` is unchanged in this tuning step.
+
+Focused runtime log checks:
+
+```bash
+docker compose logs -f --tail=300 ollama
+docker compose logs -f --tail=300 litellm
+```
+
+With `OLLAMA_DEBUG=1`, verify `ollama` logs contain debug-level server details during requests.
 LiteLLM Admin UI is enabled at `https://localhost:${LITELLM_PORT:-4000}/ui` using
 `UI_USERNAME` / `UI_PASSWORD` and requires the local Postgres service.
 `LITELLM_DEFAULT_TIMEOUT` is applied via LiteLLM CLI `--request_timeout` (seconds) as the proxy default timeout.
