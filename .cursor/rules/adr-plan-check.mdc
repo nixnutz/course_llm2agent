@@ -7,8 +7,13 @@ alwaysApply: true
 
 - For every newly created or updated implementation plan, explicitly check:
   - `Does this change require ADR update?`
+- Treat changes as ADR-relevant when they define or change a portable runtime control surface, even if the code diff is "runtime settings only".
+- A runtime control surface includes centrally managed operational knobs (for example debug, queue, concurrency, max loaded models, timeout budgets) that operators are expected to carry across orchestrators (Compose, Kubernetes, etc.).
 - If the answer is **yes**:
   - Add concrete ADR follow-up task(s) to the plan (`docs/auto-doc/adr/raw-log.md` and/or a new ADR file).
+- Hybrid default:
+  - Always append one short `raw-log` entry for ADR-relevant changes.
+  - Add a dedicated ADR file when the change establishes or updates a stable contract/invariant (not just a temporary local tweak).
 - If the answer is **no**:
   - Add one short rationale line in the plan that explains why no ADR update is needed.
 - Do not finalize a plan without one of these two outcomes (ADR task or no-ADR rationale).

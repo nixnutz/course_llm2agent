@@ -14,6 +14,9 @@ Goal: Continuously capture project context so reviews include not only the lates
 - Implementation/decision tracking active:
   - Raw log: `docs/auto-doc/adr/raw-log.md`
   - Summarized ADRs: `docs/auto-doc/adr/`
+  - Current operational decisions:
+    - `docs/auto-doc/adr/0004-local-ollama-overload-guardrails.md`
+    - `docs/auto-doc/adr/0005-define-ollama-runtime-control-surface.md`
 - Architecture/invariants track (`b`) is currently inactive because no clear need has appeared so far.
 
 ## Use in Review

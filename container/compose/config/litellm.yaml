@@ -7,6 +7,7 @@ model_list:
     litellm_params:
       model: "ollama_chat/llama3.2:3b"
       api_base: "http://ollama:11434"
+      max_retries: 0
       tags: ["ollama", "chat"]
     model_info:
       # ~4× throughput vs 12b tier → 2.5 / 1M
@@ -17,6 +18,7 @@ model_list:
     litellm_params:
       model: "ollama_chat/deepseek-coder:6.7b"
       api_base: "http://ollama:11434"
+      max_retries: 0
       tags: ["ollama", "chat"]
     model_info:
       # ~2× vs 12b → 5 / 1M
@@ -27,6 +29,7 @@ model_list:
     litellm_params:
       model: "ollama_chat/qwen2.5-coder:7b"
       api_base: "http://ollama:11434"
+      max_retries: 0
       tags: ["ollama", "chat"]
     model_info:
       input_cost_per_token: 5e-6
@@ -36,6 +39,9 @@ model_list:
     litellm_params:
       model: "ollama_chat/qwen3.5:0.8b"
       api_base: "http://ollama:11434"
+      # 0.8 is tiny, and it tends to fail to stop generation early
+      max_retries: 0
+      max_tokens: 512
       tags: ["ollama", "chat"]
     model_info:
       # ~8× vs 12b → 1.25 / 1M
@@ -46,6 +52,7 @@ model_list:
     litellm_params:
       model: "ollama_chat/qwen2.5:1.5b"
       api_base: "http://ollama:11434"
+      max_retries: 0
       tags: ["ollama", "chat"]
     model_info:
       # ~8× vs 12b → 1.25 / 1M
@@ -56,6 +63,7 @@ model_list:
     litellm_params:
       model: "ollama_chat/llama3.2:1b"
       api_base: "http://ollama:11434"
+      max_retries: 0
       tags: ["ollama", "chat"]
     model_info:
       input_cost_per_token: 1.25e-6
@@ -65,6 +73,7 @@ model_list:
     litellm_params:
       model: "ollama_chat/llama3.1:8b"
       api_base: "http://ollama:11434"
+      max_retries: 0
       tags: ["ollama", "chat"]
     model_info:
       input_cost_per_token: 5e-6
@@ -74,6 +83,7 @@ model_list:
     litellm_params:
       model: "ollama_chat/mistral:7b"
       api_base: "http://ollama:11434"
+      max_retries: 0
       tags: ["ollama", "chat"]
     model_info:
       # Same rough CPU tier as other ~7b chat models → 5 / 1M
@@ -84,6 +94,7 @@ model_list:
     litellm_params:
       model: "ollama_chat/mistral-nemo:12b"
       api_base: "http://ollama:11434"
+      max_retries: 0
       tags: ["ollama", "chat"]
     model_info:
       # Slowest in this stack → 10 / 1M
@@ -95,6 +106,7 @@ model_list:
     litellm_params:
       model: "ollama/nomic-embed-text:latest"
       api_base: "http://ollama:11434"
+      max_retries: 0
       tags: ["ollama", "embeddings"]
     model_info:
       # Small embedding model → same tier as 1b/1.5b chat (input tokens only)
@@ -104,6 +116,7 @@ model_list:
     litellm_params:
       model: "ollama/qllama/bge-small-en-v1.5:q4_k_m"
       api_base: "http://ollama:11434"
+      max_retries: 0
       tags: ["ollama", "embeddings"]
     model_info:
       # Quantized small embedding model, similar lightweight tier.
@@ -179,6 +192,4 @@ general_settings:
 router_settings:
   # Keep retries conservative to avoid retry storms on shared free-tier limits.
   num_retries: 2
-  backoff_strategy: "exponential_backoff"
   routing_strategy: "simple-shuffle" 
-  retry_after_429: true

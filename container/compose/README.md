@@ -97,7 +97,7 @@ OLLAMA_CONTAINER_PORT=11434
 OLLAMA_HOST_PORT=11435
 LITELLM_PORT=4000
 LITELLM_INTERNAL_PORT=4000
-LITELLM_DEFAULT_TIMEOUT=600
+LITELLM_DEFAULT_TIMEOUT=420
 LITELLM_MASTER_KEY=frozenlips
 OLLAMA_HOST=http://ollama:${OLLAMA_CONTAINER_PORT}
 OLLAMA_MODELS=nomic-embed-text:latest llama3.2:3b
@@ -158,7 +158,7 @@ This project uses explicit Ollama runtime controls to reduce local CPU churn and
 
 - `OLLAMA_DEBUG` (default `0`): enables verbose `ollama serve` logs when set to `1`.
 - `OLLAMA_NUM_PARALLEL` (default `1`): limits concurrent generations per server process.
-- `OLLAMA_MAX_QUEUE` (default `8`): caps queued requests before backpressure is visible.
+- `OLLAMA_MAX_QUEUE` (default `3`): caps queued requests before backpressure is visible.
 - `OLLAMA_MAX_LOADED_MODELS` (default `2` in env examples): bounds simultaneously loaded models.
 
 Tradeoff for CPU-only machines: lower values are calmer and more stable, but can reduce burst throughput.
@@ -179,6 +179,8 @@ With `OLLAMA_DEBUG=1`, verify `ollama` logs contain debug-level server details d
 LiteLLM Admin UI is enabled at `https://localhost:${LITELLM_PORT:-4000}/ui` using
 `UI_USERNAME` / `UI_PASSWORD` and requires the local Postgres service.
 `LITELLM_DEFAULT_TIMEOUT` is applied via LiteLLM CLI `--request_timeout` (seconds) as the proxy default timeout.
+In this local setup it is intentionally set to `420` seconds for long-running experiments, while queue/retry controls prevent
+runaway request buildup.
 `LITELLM_MASTER_KEY` is read from `.env` (single source of truth for the admin key), enables API key auth
 for OpenAI-style `/v1` calls (`Authorization: Bearer <key>`), and is required for LiteLLM key management endpoints.
 This repository uses `frozenlips` as a deliberately insecure local dev default; change it for any shared/non-local setup.
@@ -194,7 +196,7 @@ You can also verify availability/entitlements in your Google AI Studio web accou
 Gemini requests in this setup are rate-limited/throttled in LiteLLM config to align with free-tier limits (state: 04/2026):
 - `gemini-2.5-flash-lite`: `rpm: 12`, `tpm: 1000000`
 - `gemini-2.5-pro`: `rpm: 2`, `tpm: 32000`
-- router retry behavior: `num_retries: 2`, `backoff_strategy: exponential_backoff`, `retry_after_429: true`
+- router retry behavior: `num_retries: 2`
 
 Gemini overload strategy in this setup: retries are intentionally conservative so overload fails fast instead of creating
 large retry cascades under multi-client contention. This protects shared free-tier capacity and keeps latency more predictable.
@@ -203,6 +205,19 @@ Important: these are global provider/key limits. They apply across all connected
 (CLI tools, apps, and agent frameworks). If one client consumes the budget, others will be throttled/retried as well.
 Fair-use recommendation: keep `gemini-2.5-pro` for interactive/high-value requests and route background/batch/agent traffic
 preferably to `gemini-2.5-flash-lite` to reduce contention on shared free-tier limits.
+
+### Overload Protection (Ollama-only example scope)
+
+This project applies overload protection **only to local Ollama models** as an explicit example scope.
+Cloud provider models keep their own provider-specific behavior.
+
+- Ollama models are configured with `max_retries: 0` in LiteLLM model config to prevent retry cascades.
+- Ollama runtime queue pressure is limited via `OLLAMA_MAX_QUEUE=3`.
+- Local proxy timeout budget is `LITELLM_DEFAULT_TIMEOUT=420` seconds for experimentation.
+
+Known limitation: if a client disconnects abruptly, upstream cancellation may still be best-effort depending on
+LiteLLM/Ollama internals; this setup focuses on bounding overload impact (queue + retries), not guaranteeing
+instant cancellation in every path.
 
 Model examples currently configured:
 - Ollama chat: `ollama_chat/llama3.2:3b`, `ollama_chat/deepseek-coder:6.7b`, `ollama_chat/qwen2.5-coder:7b`,

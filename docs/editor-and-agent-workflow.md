@@ -28,3 +28,10 @@ When creating or updating an implementation plan, always perform an explicit ADR
 - `Does this change require ADR update?`
 - If yes: include concrete ADR follow-up tasks in the plan (raw-log append and/or new ADR file).
 - If no: add one short rationale line in the plan.
+
+Treat a change as ADR-relevant when it defines or changes a portable runtime control surface, even if the diff only touches runtime settings. Typical examples are centrally managed operational knobs (debug, queue, concurrency, max loaded models, timeout budgets) that should remain controllable across orchestrators (Compose, Kubernetes).
+
+Use the hybrid ADR workflow by default:
+
+- Always add one short `docs/auto-doc/adr/raw-log.md` entry for ADR-relevant changes.
+- Add a dedicated ADR file when a stable contract/invariant is introduced or changed.
