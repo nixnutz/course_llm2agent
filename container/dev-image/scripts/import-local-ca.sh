@@ -1,5 +1,8 @@
 #!/bin/sh
 set -eu
+# Purpose: import local compose CA into the dev container trust store.
+# Called by: keepalive.sh at container startup.
+# Notes: no-op if CA file is missing; keeps startup resilient.
 
 CA_SOURCE="${DEV_LOCAL_CA_SOURCE:-/certs/.caroot/rootCA.pem}"
 CA_TARGET="${DEV_LOCAL_CA_TARGET:-/usr/local/share/ca-certificates/dev-local-root-ca.crt}"

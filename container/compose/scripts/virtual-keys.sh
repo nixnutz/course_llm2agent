@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# Purpose: manage reserved local virtual keys and sync them to LiteLLM.
+# Called by: Make targets and init wrappers for key lifecycle operations.
+# Notes: supports create/overwrite/ensure-file/sync modes via first argument.
 
 MODE="${1:-}"
 if [ -z "${MODE}" ]; then

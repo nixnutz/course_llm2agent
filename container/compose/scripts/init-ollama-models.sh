@@ -1,5 +1,8 @@
 #!/bin/sh
 set -eu
+# Purpose: preload or validate configured Ollama models at stack startup.
+# Called by: one-shot container service "ollama_init_models".
+# Notes: behavior is controlled by OLLAMA_INIT_MODE and related env vars.
 
 MODELS_DEFAULT="nomic-embed-text:latest llama3.2:3b"
 MODELS="${OLLAMA_MODELS:-$MODELS_DEFAULT}"

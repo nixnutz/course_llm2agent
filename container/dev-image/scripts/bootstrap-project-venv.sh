@@ -1,5 +1,8 @@
 #!/bin/sh
 set -eu
+# Purpose: prepare and refresh the writable project venv in /workspace/src.
+# Called by: keepalive.sh before notebook startup.
+# Notes: ensures notebook deps exist and registers the default ipykernel.
 
 PROJECT_DIR="${PROJECT_DIR:-/workspace/src}"
 PROJECT_VENV="${PROJECT_VENV:-${PROJECT_DIR}/.venv}"

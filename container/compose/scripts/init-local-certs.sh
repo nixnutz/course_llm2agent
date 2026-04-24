@@ -1,5 +1,8 @@
 #!/bin/sh
 set -eu
+# Purpose: create local TLS cert/key material for compose services.
+# Called by: one-shot container service "certs_init" during startup.
+# Notes: idempotent; skips generation when cert/key already exist.
 
 CERT_DIR="${CERT_DIR:-/certs}"
 CERT_FILE="${CERT_FILE:-${CERT_DIR}/cert.pem}"

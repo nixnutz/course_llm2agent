@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# Purpose: open or execute a stateful shell session in compose service "dev".
+# Called by: host users during interactive diagnostics/development.
+# Notes: supports interactive shell or --cmd mode and emits a policy header.
 
 CONFIG_FILE="${DEV_WRAPPER_CONFIG:-dev-wrapper.yaml}"
 

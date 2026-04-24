@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# Purpose: validate and normalize local virtual key JSON for reserved names.
+# Called by: one-shot container service "litellm_keys_file_gate".
+# Notes: ensures file shape and reserved entries before LiteLLM key sync.
 
 KEYS_FILE="${KEYS_FILE:-.state/keys/keys.local.json}"
 

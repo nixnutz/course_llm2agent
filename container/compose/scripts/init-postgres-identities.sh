@@ -1,5 +1,8 @@
 #!/bin/sh
 set -eu
+# Purpose: ensure Postgres roles/databases for LiteLLM and Phoenix exist.
+# Called by: one-shot container service "postgres_init_identities".
+# Notes: idempotent setup using admin credentials from environment.
 
 : "${POSTGRES_HOST:?POSTGRES_HOST is required}"
 : "${POSTGRES_PORT:?POSTGRES_PORT is required}"

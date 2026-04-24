@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# Purpose: run one-shot commands inside compose service "dev".
+# Called by: host users/tools for non-interactive dev-container execution.
+# Notes: reads dev-wrapper.yaml and emits a policy header for traceability.
 
 CONFIG_FILE="${DEV_WRAPPER_CONFIG:-dev-wrapper.yaml}"
 

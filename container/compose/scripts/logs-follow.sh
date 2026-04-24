@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
+# Purpose: follow all compose logs, then focus on litellm once healthy.
+# Called by: `make logs` for startup-to-steady-state log workflow.
+# Notes: auto-switches stream to keep operational logs readable.
 
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 ROOT_DIR="$(CDPATH= cd -- "${SCRIPT_DIR}/.." && pwd)"

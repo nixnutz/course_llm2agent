@@ -1,5 +1,8 @@
 #!/bin/sh
 set -eu
+# Purpose: container entrypoint that keeps dev runtime alive.
+# Called by: Docker CMD in the dev image.
+# Notes: runs startup bootstraps, launches notebook, and handles signals.
 
 running=true
 notebook_pid=""

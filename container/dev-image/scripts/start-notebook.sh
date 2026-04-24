@@ -1,5 +1,8 @@
 #!/bin/sh
 set -eu
+# Purpose: start JupyterLab inside the dev image runtime.
+# Called by: keepalive.sh during container startup.
+# Notes: prefers project venv kernel/runtime and falls back to base venv.
 
 PROJECT_VENV="${PROJECT_VENV:-/workspace/src/.venv}"
 BASE_VENV="${VIRTUAL_ENV:-/opt/venv}"
