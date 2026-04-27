@@ -19,7 +19,8 @@ Return results in this exact section order:
 1. Findings (by severity: High, Medium, Low)
 2. Open questions / assumptions
 3. Auto-doc decision
-4. Commit readiness gate
+4. Documentation status gate
+5. Commit readiness gate
 
 If there are no issues, explicitly say: "No issues found."
 
@@ -52,14 +53,17 @@ Use AskQuestion for these user choices.
 Always include an explicit decision for both logs:
 
 - ADR raw log: `add` | `skip (trivial)` | `update existing`
+- ADR file: `add` | `skip (trivial)` | `update existing`
 - User value log: `add` | `skip (trivial)` | `update existing`
 
 When proposing `skip (trivial)`, include one short justification, e.g.:
 "Change is a local notebook playground tweak with no durable architectural or user-value impact."
 
+Hard gate: the review is not complete until all three decisions are explicit.
+
 ## If Auto-Doc Is Not Skipped
 
-Propose exactly one candidate line for each file:
+Propose exactly one candidate line for each log file:
 
 - `docs/auto-doc/adr/raw-log.md`
 - `docs/auto-doc/value/user-value-log.md`
@@ -67,6 +71,23 @@ Propose exactly one candidate line for each file:
 Keep entries concise and concrete.
 
 For post-commit mode, aggregate auto-doc decision across selected commit range/group.
+
+If ADR file decision is `add` or `update existing`, include:
+- target file path under `docs/auto-doc/adr/`
+- one-sentence ADR intent summary
+
+## Documentation Status Gate (Mandatory)
+
+Return:
+
+- `raw_log_status: done|pending|n/a`
+- `adr_file_status: done|pending|n/a`
+- `user_value_log_status: done|pending|n/a`
+
+Rules:
+- `done`: decision made and required edit/candidate provided
+- `pending`: review identified required follow-up not yet prepared
+- `n/a`: explicitly skipped as trivial with justification
 
 ## Commit Readiness Gate (Mandatory)
 
@@ -77,5 +98,7 @@ Return:
 - `ready_to_commit: yes/no`
 
 Use `doc_decisions_made: yes` even when both logs are intentionally skipped as trivial.
+
+Set `doc_decisions_made: no` if any of the three auto-doc decisions is missing or any documentation status is `pending`.
 
 When review is post-commit only (clean working tree), `ready_to_commit` may be `n/a`.

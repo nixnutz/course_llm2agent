@@ -8,5 +8,11 @@ Use this structure in your local (gitignored) `docs/internal/review-status.md`.
 - last_reviewed_at: <iso-datetime>
 - last_review_context: review-w-auto-doc
 - last_action: reviewed | skipped_pending
+- raw_log_decision: add | update_existing | skip_trivial
+- adr_file_decision: add | update_existing | skip_trivial
+- user_value_log_decision: add | update_existing | skip_trivial
+- raw_log_status: done | pending | n/a
+- adr_file_status: done | pending | n/a
+- user_value_log_status: done | pending | n/a
 - notes: <optional short note>
 ```

@@ -165,9 +165,64 @@ services:
     environment:
       KEYS_FILE: "/workspace/keys/keys.local.json"
 
-  litellm:
+  litellm_clean:
     image: ghcr.io/berriai/litellm:main-stable
-    hostname: litellm
+    hostname: litellm-clean
+    platform: "${LITELLM_PLATFORM}"
+    init: true
+    stop_signal: SIGTERM
+    depends_on:
+      certs_init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      postgres_init_identities:
+        condition: service_completed_successfully
+      ollama_init_models:
+        condition: service_completed_successfully
+      litellm_keys_file_gate:
+        condition: service_completed_successfully
+      phoenix:
+        condition: service_started
+    volumes:
+      - ./config/litellm.yaml:/app/config.yaml:ro,z
+    networks:
+      - backend_core
+    environment:
+      DATABASE_URL: "${DATABASE_URL}"
+      UI_USERNAME: "${UI_USERNAME}"
+      UI_PASSWORD: "${UI_PASSWORD}"
+      ROOT_REDIRECT_URL: "/ui"
+      FORWARDED_ALLOW_IPS: "*"
+      JSON_LOGS: "${JSON_LOGS}"
+      OLLAMA_API_BASE: "${OLLAMA_API_BASE_CLEAN}"
+      LITELLM_DEFAULT_TIMEOUT: "${LITELLM_DEFAULT_TIMEOUT}"
+      LITELLM_MASTER_KEY: "${LITELLM_MASTER_KEY}"
+      GEMINI_API_KEY: "${GEMINI_API_KEY}"
+      GROQ_API_KEY: "${GROQ_API_KEY}"
+      MISTRAL_API_KEY: "${MISTRAL_API_KEY}"
+      PHOENIX_COLLECTOR_HTTP_ENDPOINT: "${PHOENIX_COLLECTOR_HTTP_ENDPOINT:-}"
+      PHOENIX_PROJECT_NAME: "${PHOENIX_PROJECT_NAME_CLEAN:-${PHOENIX_PROJECT_NAME:-}}"
+      PHOENIX_API_KEY: "${PHOENIX_API_KEY:-}"
+    restart: unless-stopped
+    stop_grace_period: 30s
+    healthcheck:
+      test: [ "CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:${LITELLM_INTERNAL_PORT}/health/readiness', timeout=2)\"" ]
+      interval: "${HEALTHCHECK_INTERVAL}"
+      start_interval: "${HEALTHCHECK_INTERVAL_BOOT:-3s}"
+      timeout: 5s
+      retries: 60
+      start_period: 90s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    command: [ "--config", "/app/config.yaml", "--port", "${LITELLM_INTERNAL_PORT}", "--request_timeout", "${LITELLM_DEFAULT_TIMEOUT}" ]
+
+  litellm_chaos:
+    image: ghcr.io/berriai/litellm:main-stable
+    hostname: litellm-chaos
     platform: "${LITELLM_PLATFORM}"
     init: true
     stop_signal: SIGTERM
@@ -197,14 +252,14 @@ services:
       ROOT_REDIRECT_URL: "/ui"
       FORWARDED_ALLOW_IPS: "*"
       JSON_LOGS: "${JSON_LOGS}"
-      OLLAMA_API_BASE: "${OLLAMA_API_BASE}"
+      OLLAMA_API_BASE: "${OLLAMA_API_BASE_CHAOS}"
       LITELLM_DEFAULT_TIMEOUT: "${LITELLM_DEFAULT_TIMEOUT}"
       LITELLM_MASTER_KEY: "${LITELLM_MASTER_KEY}"
       GEMINI_API_KEY: "${GEMINI_API_KEY}"
       GROQ_API_KEY: "${GROQ_API_KEY}"
       MISTRAL_API_KEY: "${MISTRAL_API_KEY}"
       PHOENIX_COLLECTOR_HTTP_ENDPOINT: "${PHOENIX_COLLECTOR_HTTP_ENDPOINT:-}"
-      PHOENIX_PROJECT_NAME: "${PHOENIX_PROJECT_NAME:-}"
+      PHOENIX_PROJECT_NAME: "${PHOENIX_PROJECT_NAME_CHAOS:-${PHOENIX_PROJECT_NAME:-}}"
       PHOENIX_API_KEY: "${PHOENIX_API_KEY:-}"
     restart: unless-stopped
     stop_grace_period: 30s
@@ -245,7 +300,7 @@ services:
     depends_on:
       toxiproxy:
         condition: service_started
-      litellm:
+      litellm_chaos:
         condition: service_healthy
     entrypoint:
       - /bin/sh
@@ -266,6 +321,7 @@ services:
       TOXIPROXY_EDGE_LISTEN: "${TOXIPROXY_EDGE_LISTEN:-11111}"
       TOXIPROXY_OLLAMA_LISTEN: "${TOXIPROXY_OLLAMA_LISTEN:-11112}"
       LITELLM_INTERNAL_PORT: "${LITELLM_INTERNAL_PORT}"
+      LITELLM_CHAOS_HOST: "litellm_chaos"
       OLLAMA_CONTAINER_PORT: "${OLLAMA_CONTAINER_PORT:-11434}"
 
   litellm_init_keys:
@@ -276,7 +332,7 @@ services:
       - -lc
       - apk add --no-cache bash curl jq python3 >/dev/null && /workspace/scripts/init-virtual-keys.sh
     depends_on:
-      litellm:
+      litellm_clean:
         condition: service_healthy
     volumes:
       - ./scripts:/workspace/scripts:ro,z
@@ -291,7 +347,7 @@ services:
         max-size: "10m"
         max-file: "3"
     environment:
-      LITELLM_HOST: "litellm"
+      LITELLM_HOST: "litellm_clean"
       LITELLM_PORT: "${LITELLM_INTERNAL_PORT}"
       LITELLM_MASTER_KEY: "${LITELLM_MASTER_KEY}"
       KEYS_INIT_MODE: "${KEYS_INIT_MODE:-required}"
@@ -303,7 +359,7 @@ services:
     depends_on:
       certs_init:
         condition: service_completed_successfully
-      litellm:
+      litellm_clean:
         condition: service_healthy
       toxiproxy_bootstrap:
         condition: service_completed_successfully
@@ -367,7 +423,7 @@ services:
         condition: service_completed_successfully
       litellm_keys_file_gate:
         condition: service_completed_successfully
-      litellm:
+      litellm_clean:
         condition: service_started
       toxiproxy_bootstrap:
         condition: service_completed_successfully

@@ -2,7 +2,7 @@
 	tls /certs/cert.pem /certs/key.pem
 
 	# Keep internal service topology private; terminate TLS at the edge.
-	reverse_proxy litellm:{$LITELLM_INTERNAL_PORT} {
+	reverse_proxy litellm_clean:{$LITELLM_INTERNAL_PORT} {
 		# Make external scheme/host/port explicit for upstream redirect/url generation.
 		header_up X-Forwarded-Proto {scheme}
 		header_up X-Forwarded-Host {host}

@@ -25,7 +25,7 @@ help:
 	@echo "  make down               Stop and remove compose resources"
 	@echo "  make ps                 Show compose service status"
 	@echo "  make top                Show running container processes"
-	@echo "  make logs               Follow all logs until litellm is healthy, then litellm-only"
+	@echo "  make logs               Follow all logs until litellm_clean is healthy, then clean logs"
 	@echo "  make logs-all           Follow logs for all compose services"
 	@echo "  make logs-init-keys     Follow one-shot virtual key init logs"
 	@echo "  make logs-init-models   Follow one-shot model init logs"
@@ -37,7 +37,7 @@ help:
 	@echo "  make keys-overwrite     Recreate all virtual keys (dev/stage/prod/user1/user2)"
 	@echo "  make keys-show          Show locally saved virtual keys"
 	@echo "  make keys-sync          Sync ${KEYS_LOCAL_FILE} into LiteLLM"
-	@echo "  make litellm-recreate   Recreate LiteLLM service"
+	@echo "  make litellm-recreate   Recreate both LiteLLM services"
 	@echo "  make ollama-expose      Expose Ollama API port for a running setup (recreates ollama)"
 	@echo "  make phoenix-health     Check local Phoenix UI TLS endpoint"
 	@echo "  make smoke-chat         Run authenticated chat completion smoke test"
@@ -131,7 +131,7 @@ keys-sync:
 	./scripts/virtual-keys.sh sync-from-file
 
 litellm-recreate:
-	docker compose up -d --force-recreate litellm
+	docker compose up -d --force-recreate litellm_clean litellm_chaos
 
 ollama-expose:
 	docker compose -f docker-compose.yml -f docker-compose.ollama-expose.yml up -d --no-deps --force-recreate ollama

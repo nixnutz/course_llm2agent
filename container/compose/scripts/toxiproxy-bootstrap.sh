@@ -8,6 +8,7 @@ TOXIPROXY_URL="${TOXIPROXY_URL:-http://localhost:8474}"
 TOXIPROXY_EDGE_LISTEN="${TOXIPROXY_EDGE_LISTEN:-11111}"
 TOXIPROXY_OLLAMA_LISTEN="${TOXIPROXY_OLLAMA_LISTEN:-11112}"
 LITELLM_INTERNAL_PORT="${LITELLM_INTERNAL_PORT:-4000}"
+LITELLM_CHAOS_HOST="${LITELLM_CHAOS_HOST:-litellm_chaos}"
 OLLAMA_CONTAINER_PORT="${OLLAMA_CONTAINER_PORT:-11434}"
 
 wait_for_admin() {
@@ -30,7 +31,7 @@ payload="$(cat <<EOF
   {
     "name": "edge_chaos",
     "listen": "0.0.0.0:${TOXIPROXY_EDGE_LISTEN}",
-    "upstream": "litellm:${LITELLM_INTERNAL_PORT}",
+    "upstream": "${LITELLM_CHAOS_HOST}:${LITELLM_INTERNAL_PORT}",
     "enabled": true
   },
   {
