@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "hooks": {
+    "postToolUse": [
+      {
+        "command": ".cursor/hooks/adr_guardrails.py",
+        "matcher": "Write|Edit|MultiEdit|ApplyPatch|Delete|Create",
+        "timeout": 10
+      }
+    ]
+  }
+}

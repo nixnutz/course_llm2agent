@@ -32,3 +32,5 @@ Do not delete or rewrite past entries. Add new entries at the end only.
 2026-04-24 | compose | add phase-4 soft streaming policy docs and split smoke checks for streaming vs non-streaming abort behavior | container/compose/README.md
 2026-04-24 | compose | remove additional abort/streaming smoke targets to keep local workflow lightweight; rely on manual log-based verification | container/compose/Makefile
 2026-04-24 | workflow | treat portable runtime control surfaces as ADR-relevant and use hybrid raw-log + ADR contract documentation | .cursor/rules/adr-plan-check.mdc
+2026-04-27 | workflow | add local branch-scoped post-commit review tracking via gitignored review-status file and command pre-selection flow | .cursor/commands/review-w-auto-doc.md
+2026-04-27 | workflow | add warn-only ADR hook guardrails for raw-log append-only/format and ADR required field checks | .cursor/hooks.json

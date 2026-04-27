@@ -24,6 +24,16 @@ Goal: Continuously capture project context so reviews include not only the lates
 - Before review: collect and condense relevant log entries.
 - In review: provide the compact timeline as context (not only the latest state).
 - After review: feed open points/decisions back into ongoing logging.
+- Optional post-commit review tracking can use local branch status in `docs/internal/review-status.md` (local-only, gitignored).
+
+## Rules vs Hooks (ADR guardrails)
+
+- Rules decide semantics: whether ADR/raw-log updates are needed.
+- Hooks enforce mechanics (warn-only): append-only raw-log, raw-log line format, ADR required fields/sentence.
+- Hook files:
+  - `.cursor/hooks.json`
+  - `.cursor/hooks/adr_guardrails.py`
+- Rollout mode: warn-only first; promote selected checks to blocking only after team validation.
 
 ## Principle
 
