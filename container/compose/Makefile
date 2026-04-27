@@ -12,7 +12,7 @@ endif
 # 4) Single non-group targets (if any) at the end
 # This is primarily for readability/discoverability and avoids accidental order drift.
 
-.PHONY: help preflight-up up up-no-preflight down ps top logs logs-all logs-init-keys logs-init-models certs-generate devcontainer-smoke devcontainer-smoke-clean devcontainer-smoke-wrapper keys-generate keys-overwrite keys-show keys-sync litellm-recreate ollama-expose phoenix-health smoke-chat smoke-embeddings state-init state-prune trust-certs-host
+.PHONY: help preflight-up up up-no-preflight down ps top logs logs-all logs-init-keys logs-init-models certs-generate devcontainer-smoke devcontainer-smoke-clean devcontainer-smoke-wrapper keys-generate keys-overwrite keys-show keys-sync litellm-recreate ollama-expose phoenix-health smoke-chat smoke-embeddings state-init state-prune toxiproxy-bootstrap toxiproxy-reset trust-certs-host
 
 CURL_TLS_FLAGS ?= -k
 MIN_DOCKER_ENGINE_VERSION ?= 25.0.0
@@ -42,6 +42,8 @@ help:
 	@echo "  make phoenix-health     Check local Phoenix UI TLS endpoint"
 	@echo "  make smoke-chat         Run authenticated chat completion smoke test"
 	@echo "  make smoke-embeddings   Run authenticated embeddings smoke test"
+	@echo "  make toxiproxy-bootstrap Ensure edge/provider proxies exist in Toxiproxy"
+	@echo "  make toxiproxy-reset    Remove toxics and re-enable all proxies"
 
 preflight-up:
 	@set -eu; \
@@ -148,6 +150,18 @@ smoke-embeddings:
 		-H "Content-Type: application/json" \
 		-H "Authorization: Bearer $(LITELLM_MASTER_KEY)" \
 		-d '{"model":"ollama/nomic-embed-text:latest","input":"litellm + ollama MVP"}'
+
+toxiproxy-bootstrap:
+	TOXIPROXY_URL="http://localhost:$${TOXIPROXY_ADMIN_PORT:-8474}" \
+	TOXIPROXY_EDGE_LISTEN="$${TOXIPROXY_EDGE_LISTEN:-11111}" \
+	TOXIPROXY_OLLAMA_LISTEN="$${TOXIPROXY_OLLAMA_LISTEN:-11112}" \
+	LITELLM_INTERNAL_PORT="$${LITELLM_INTERNAL_PORT:-4000}" \
+	OLLAMA_CONTAINER_PORT="$${OLLAMA_CONTAINER_PORT:-11434}" \
+	bash ./scripts/toxiproxy-bootstrap.sh
+
+toxiproxy-reset:
+	TOXIPROXY_URL="http://localhost:$${TOXIPROXY_ADMIN_PORT:-8474}" \
+	bash ./scripts/toxiproxy-reset.sh
 
 state-init:
 	@mkdir -p ".state" ".state/postgres_data" ".state/ollama_data" ".state/certs" ".state/.tmp" ".state/keys" ".state/phoenix_data"

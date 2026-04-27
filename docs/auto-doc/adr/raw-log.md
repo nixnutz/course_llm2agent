@@ -34,3 +34,6 @@ Do not delete or rewrite past entries. Add new entries at the end only.
 2026-04-24 | workflow | treat portable runtime control surfaces as ADR-relevant and use hybrid raw-log + ADR contract documentation | .cursor/rules/adr-plan-check.mdc
 2026-04-27 | workflow | add local branch-scoped post-commit review tracking via gitignored review-status file and command pre-selection flow | .cursor/commands/review-w-auto-doc.md
 2026-04-27 | workflow | add warn-only ADR hook guardrails for raw-log append-only/format and ADR required field checks | .cursor/hooks.json
+2026-04-27 | compose | stage 1 implemented toxiproxy-based chaos plumbing with dedicated TLS ingress on port 4001 and bootstrap-managed edge/provider proxy endpoints | container/compose/docker-compose.yml
+2026-04-27 | compose | stage 1 switched LiteLLM Ollama api_base to environment-driven routing to support provider-chaos injection via toxiproxy without per-test yaml edits | container/compose/config/litellm.yaml
+2026-04-27 | workflow | stage 1 added toxiproxy helper scripts and make targets for bootstrap toxic management and reset in local dev/test workflows | container/compose/Makefile

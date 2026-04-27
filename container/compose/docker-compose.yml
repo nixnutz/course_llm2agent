@@ -184,6 +184,8 @@ services:
         condition: service_completed_successfully
       phoenix:
         condition: service_started
+      toxiproxy:
+        condition: service_started
     volumes:
       - ./config/litellm.yaml:/app/config.yaml:ro,z
     networks:
@@ -219,6 +221,52 @@ services:
         max-size: "10m"
         max-file: "3"
     command: [ "--config", "/app/config.yaml", "--port", "${LITELLM_INTERNAL_PORT}", "--request_timeout", "${LITELLM_DEFAULT_TIMEOUT}" ]
+
+  toxiproxy:
+    image: ghcr.io/shopify/toxiproxy:latest
+    hostname: toxiproxy
+    command: [ "-host=0.0.0.0" ]
+    ports:
+      - "${HOST_BIND_IP}:${TOXIPROXY_ADMIN_PORT:-8474}:8474"
+    networks:
+      - backend_core
+      - dev_edge
+    restart: unless-stopped
+    stop_grace_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  toxiproxy_bootstrap:
+    image: alpine:3
+    hostname: toxiproxy-bootstrap
+    depends_on:
+      toxiproxy:
+        condition: service_started
+      litellm:
+        condition: service_healthy
+    entrypoint:
+      - /bin/sh
+      - -lc
+      - apk add --no-cache bash curl >/dev/null && bash /workspace/scripts/toxiproxy-bootstrap.sh
+    volumes:
+      - ./scripts:/workspace/scripts:ro,z
+    networks:
+      - backend_core
+    restart: "no"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      TOXIPROXY_URL: "http://toxiproxy:8474"
+      TOXIPROXY_EDGE_LISTEN: "${TOXIPROXY_EDGE_LISTEN:-11111}"
+      TOXIPROXY_OLLAMA_LISTEN: "${TOXIPROXY_OLLAMA_LISTEN:-11112}"
+      LITELLM_INTERNAL_PORT: "${LITELLM_INTERNAL_PORT}"
+      OLLAMA_CONTAINER_PORT: "${OLLAMA_CONTAINER_PORT:-11434}"
 
   litellm_init_keys:
     image: alpine:3
@@ -257,8 +305,11 @@ services:
         condition: service_completed_successfully
       litellm:
         condition: service_healthy
+      toxiproxy_bootstrap:
+        condition: service_completed_successfully
     ports:
       - "${HOST_BIND_IP}:${LITELLM_PORT}:4000"
+      - "${HOST_BIND_IP}:${LITELLM_CHAOS_PORT:-4001}:4001"
       - "${HOST_BIND_IP}:${PHOENIX_UI_TLS_PORT:-6006}:6006"
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro,z
@@ -268,6 +319,7 @@ services:
       - backend_core
     environment:
       LITELLM_INTERNAL_PORT: "${LITELLM_INTERNAL_PORT}"
+      TOXIPROXY_EDGE_LISTEN: "${TOXIPROXY_EDGE_LISTEN:-11111}"
     restart: unless-stopped
     stop_grace_period: 30s
     logging:
@@ -317,6 +369,8 @@ services:
         condition: service_completed_successfully
       litellm:
         condition: service_started
+      toxiproxy_bootstrap:
+        condition: service_completed_successfully
       caddy:
         condition: service_started
       phoenix:
