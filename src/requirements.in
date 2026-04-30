@@ -2,3 +2,7 @@ ruff
 ipykernel
 jupyterlab
 openai
+langchain[openai]
+langgraph
+deepagents
+numpy

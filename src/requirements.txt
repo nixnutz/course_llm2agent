@@ -1,4 +1,0 @@
-ruff
-ipykernel
-jupyterlab
-openai

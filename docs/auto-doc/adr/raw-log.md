@@ -40,3 +40,6 @@ Do not delete or rewrite past entries. Add new entries at the end only.
 2026-04-27 | compose | stage 2 implemented split LiteLLM services for fixed clean and chaos channels with caddy 4000 routed to litellm_clean and caddy 4001 routed via edge_chaos to litellm_chaos | container/compose/docker-compose.yml
 2026-04-27 | compose | stage 2 set per-service ollama routing and phoenix project names so clean uses direct ollama and chaos uses toxiproxy provider path with isolated tracing labels | container/compose/.env
 2026-04-27 | workflow | strengthen review-w-auto-doc output contract with explicit raw-log and adr-file status gates to prevent doc loss after context switches | .cursor/commands/review-w-auto-doc.md
+2026-04-27 | compose | switch postgres services to pgvector image and enable vector extension idempotently for litellm and phoenix databases during identity init | container/compose/scripts/init-postgres-identities.sh
+2026-04-27 | workflow | reorganize compose make help output into explicit grouped sections to improve command discoverability and naming consistency | container/compose/Makefile
+2026-04-27 | workflow | keep dev image rebuild and dev container restart as separate root make operations and remove ambiguous combined target | Makefile

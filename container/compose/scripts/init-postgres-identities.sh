@@ -29,6 +29,17 @@ psql_base() {
     -v ON_ERROR_STOP=1 "$@"
 }
 
+psql_db() {
+  db_name="$1"
+  shift
+  psql \
+    -h "${POSTGRES_HOST}" \
+    -p "${POSTGRES_PORT}" \
+    -U "${POSTGRES_ADMIN_USER}" \
+    -d "${db_name}" \
+    -v ON_ERROR_STOP=1 "$@"
+}
+
 ensure_role() {
   role_name="$1"
   role_password="$2"
@@ -62,6 +73,11 @@ GRANT ALL PRIVILEGES ON DATABASE "${db_name}" TO "${owner_name}";
 SQL
 }
 
+ensure_vector_extension() {
+  db_name="$1"
+  psql_db "${db_name}" -c "CREATE EXTENSION IF NOT EXISTS vector;"
+}
+
 echo "Ensuring dedicated Postgres roles/databases for LiteLLM and Phoenix..."
 
 ensure_role "${LITELLM_USER}" "${LITELLM_PASSWORD}"
@@ -72,5 +88,8 @@ ensure_db "${PHOENIX_DB}" "${PHOENIX_USER}"
 
 grant_db_owner "${LITELLM_DB}" "${LITELLM_USER}"
 grant_db_owner "${PHOENIX_DB}" "${PHOENIX_USER}"
+
+ensure_vector_extension "${LITELLM_DB}"
+ensure_vector_extension "${PHOENIX_DB}"
 
 echo "Postgres identities/databases are ready."

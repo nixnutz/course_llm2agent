@@ -4,7 +4,7 @@ Developer setup with local TLS-by-default at the edge. `ollama` hosts models, `l
 
 ## What is where?
 
-- `docker-compose.yml`: main local stack (LiteLLM, Ollama, Postgres, Phoenix, Caddy, helper init containers)
+- `docker-compose.yml`: main local stack (LiteLLM, Ollama, Postgres+pgvector, Phoenix, Caddy, helper init containers)
 - `docker-compose.ollama-expose.yml`: optional override to publish Ollama API to host
 - `Makefile`: primary day-to-day commands (`up`, `logs`, `smoke-*`, key management)
 - `.env.example`: template for local environment values
@@ -135,6 +135,7 @@ Model data is persisted on the host in `./.state/ollama_data` (configurable via 
 Phoenix trace data is persisted in `./.state/phoenix_data`.
 Phoenix SQL metadata is stored in the same Postgres server as LiteLLM, but with a dedicated
 database/user pair (`POSTGRES_DB_PHOENIX`, `POSTGRES_USER_PHOENIX`).
+The Postgres service runs with pgvector and creates `vector` extension idempotently in LiteLLM and Phoenix databases during `postgres_init_identities`.
 LiteLLM and Phoenix are intentionally separated at config level; you can still map both to one SQL user manually if desired.
 Published ports are bound to `HOST_BIND_IP` (default `127.0.0.1` for localhost-only access).
 Set `HOST_BIND_IP=0.0.0.0` only if you explicitly want LAN access.
@@ -378,6 +379,14 @@ make state-prune
 make up
 ```
 
+- For pgvector rollouts in this local setup, `.state/postgres_data` is considered disposable.
+  When switching Postgres image families (for example Alpine -> pgvector image), reset DB state and recreate:
+
+```bash
+make state-prune
+make up
+```
+
 - Re-run model preload one-shot container manually when needed:
 
 ```bash
@@ -478,10 +487,10 @@ make smoke-embeddings
 Devcontainer wrapper smoke tests:
 
 ```bash
-make devcontainer-smoke
+make dev-container-smoke
 # or:
-make devcontainer-smoke-wrapper
-make devcontainer-smoke-clean
+make dev-container-smoke-wrapper
+make dev-container-smoke-clean
 ```
 
 ## Note on RAM usage

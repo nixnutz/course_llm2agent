@@ -12,7 +12,7 @@ endif
 # 4) Single non-group targets (if any) at the end
 # This is primarily for readability/discoverability and avoids accidental order drift.
 
-.PHONY: help preflight-up up up-no-preflight down ps top logs logs-all logs-init-keys logs-init-models certs-generate devcontainer-smoke devcontainer-smoke-clean devcontainer-smoke-wrapper keys-generate keys-overwrite keys-show keys-sync litellm-recreate ollama-expose phoenix-health smoke-chat smoke-embeddings state-init state-prune toxiproxy-bootstrap toxiproxy-reset trust-certs-host
+.PHONY: help preflight-up up up-no-preflight down ps top logs logs-all logs-init-keys logs-init-models certs-generate dev-container-smoke dev-container-smoke-clean dev-container-smoke-wrapper devcontainer-smoke devcontainer-smoke-clean devcontainer-smoke-wrapper keys-generate keys-overwrite keys-show keys-sync litellm-recreate ollama-expose phoenix-health smoke-chat smoke-embeddings state-init state-prune toxiproxy-bootstrap toxiproxy-reset trust-certs-host
 
 CURL_TLS_FLAGS ?= -k
 MIN_DOCKER_ENGINE_VERSION ?= 25.0.0
@@ -21,29 +21,46 @@ MIN_DOCKER_COMPOSE_VERSION ?= 2.20.0
 help:
 	@echo "Available targets:"
 	@echo "  Note: service 'dev' uses \`$${DEV_IMAGE_NAME:-course-llm-dev:v1}\`; run \`make dev-image-build\` at repo root before \`make up\` when needed"
-	@echo "  make up                 Start stack with default secure setup"
-	@echo "  make down               Stop and remove compose resources"
-	@echo "  make ps                 Show compose service status"
-	@echo "  make top                Show running container processes"
-	@echo "  make logs               Follow all logs until litellm_clean is healthy, then clean logs"
-	@echo "  make logs-all           Follow logs for all compose services"
-	@echo "  make logs-init-keys     Follow one-shot virtual key init logs"
-	@echo "  make logs-init-models   Follow one-shot model init logs"
-	@echo "  make certs-generate     Generate local TLS certs via one-shot container"
-	@echo "  make devcontainer-smoke Run dev wrapper smoke tests"
-	@echo "  make devcontainer-smoke-wrapper Alias for devcontainer-smoke"
-	@echo "  make devcontainer-smoke-clean Remove smoke test temp artifacts"
-	@echo "  make keys-generate      Create missing virtual keys (dev/stage/prod/user1/user2)"
-	@echo "  make keys-overwrite     Recreate all virtual keys (dev/stage/prod/user1/user2)"
-	@echo "  make keys-show          Show locally saved virtual keys"
-	@echo "  make keys-sync          Sync ${KEYS_LOCAL_FILE} into LiteLLM"
-	@echo "  make litellm-recreate   Recreate both LiteLLM services"
-	@echo "  make ollama-expose      Expose Ollama API port for a running setup (recreates ollama)"
-	@echo "  make phoenix-health     Check local Phoenix UI TLS endpoint"
-	@echo "  make smoke-chat         Run authenticated chat completion smoke test"
-	@echo "  make smoke-embeddings   Run authenticated embeddings smoke test"
-	@echo "  make toxiproxy-bootstrap Ensure edge/provider proxies exist in Toxiproxy"
-	@echo "  make toxiproxy-reset    Remove toxics and re-enable all proxies"
+	@echo ""
+	@echo "  Core Runtime:"
+	@echo "    make up                    Start stack with default secure setup"
+	@echo "    make down                  Stop and remove compose resources"
+	@echo "    make ps                    Show compose service status"
+	@echo "    make top                   Show running container processes"
+	@echo ""
+	@echo "  Logs:"
+	@echo "    make logs                  Follow all logs until litellm_clean is healthy, then clean logs"
+	@echo "    make logs-all              Follow logs for all compose services"
+	@echo "    make logs-init-keys        Follow one-shot virtual key init logs"
+	@echo "    make logs-init-models      Follow one-shot model init logs"
+	@echo ""
+	@echo "  Dev Container:"
+	@echo "    make dev-container-smoke         Run dev wrapper smoke tests"
+	@echo "    make dev-container-smoke-wrapper Alias for dev-container-smoke"
+	@echo "    make dev-container-smoke-clean   Remove smoke test temp artifacts"
+	@echo ""
+	@echo "  Keys & Services:"
+	@echo "    make keys-generate         Create missing virtual keys (dev/stage/prod/user1/user2)"
+	@echo "    make keys-overwrite        Recreate all virtual keys (dev/stage/prod/user1/user2)"
+	@echo "    make keys-show             Show locally saved virtual keys"
+	@echo "    make keys-sync             Sync ${KEYS_LOCAL_FILE} into LiteLLM"
+	@echo "    make litellm-recreate      Recreate both LiteLLM services"
+	@echo "    make ollama-expose         Expose Ollama API port for a running setup (recreates ollama)"
+	@echo ""
+	@echo "  Health / Smoke:"
+	@echo "    make certs-generate        Generate local TLS certs via one-shot container"
+	@echo "    make phoenix-health        Check local Phoenix UI TLS endpoint"
+	@echo "    make smoke-chat            Run authenticated chat completion smoke test"
+	@echo "    make smoke-embeddings      Run authenticated embeddings smoke test"
+	@echo ""
+	@echo "  Toxiproxy:"
+	@echo "    make toxiproxy-bootstrap   Ensure edge/provider proxies exist in Toxiproxy"
+	@echo "    make toxiproxy-reset       Remove toxics and re-enable all proxies"
+	@echo ""
+	@echo "  State:"
+	@echo "    make state-init            Ensure compose state folders/files exist"
+	@echo "    make state-prune           Remove compose state contents"
+	@echo "    make trust-certs-host      Trust generated local certs on host"
 
 preflight-up:
 	@set -eu; \
@@ -110,13 +127,18 @@ logs-init-models:
 certs-generate:
 	$(MAKE) state-init && docker compose up --no-deps --force-recreate certs_init
 
-devcontainer-smoke:
+dev-container-smoke:
 	./tests/smoke/devcontainer_smoke_test/run.sh
 
-devcontainer-smoke-wrapper: devcontainer-smoke
+dev-container-smoke-wrapper: dev-container-smoke
 
-devcontainer-smoke-clean:
+dev-container-smoke-clean:
 	rm -f "../../src/.tmp_devcontainer_smoke"
+
+# Backward-compatible aliases (deprecated naming).
+devcontainer-smoke: dev-container-smoke
+devcontainer-smoke-wrapper: dev-container-smoke-wrapper
+devcontainer-smoke-clean: dev-container-smoke-clean
 
 keys-generate:
 	./scripts/virtual-keys.sh create

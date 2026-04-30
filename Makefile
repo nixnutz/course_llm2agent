@@ -2,10 +2,11 @@
 
 .PHONY: help \
 	up down ps top logs logs-all logs-init-keys logs-init-models certs-generate \
+	dev-container-smoke dev-container-smoke-wrapper dev-container-smoke-clean \
 	devcontainer-smoke devcontainer-smoke-wrapper devcontainer-smoke-clean \
 	keys-generate keys-overwrite keys-show keys-sync litellm-recreate ollama-expose \
 	phoenix-health smoke-chat smoke-embeddings state-init state-prune trust-certs-host \
-	dev-image-build dev-image-rebuild review-manual
+	dev-image-build dev-image-rebuild dev-container-restart review-manual
 
 COMPOSE_DIR := container/compose
 DEV_IMAGE_NAME ?= course-llm-dev:v1
@@ -37,13 +38,16 @@ help:
 	@echo "  make trust-certs-host         Trust generated local certs on host"
 	@echo ""
 	@echo "Development Environment (delegated to container/compose):"
-	@echo "  make devcontainer-smoke       Run dev wrapper smoke tests"
-	@echo "  make devcontainer-smoke-wrapper Alias for devcontainer-smoke"
-	@echo "  make devcontainer-smoke-clean Remove dev smoke temp artifacts"
+	@echo "  make dev-container-smoke      Run dev wrapper smoke tests"
+	@echo "  make dev-container-smoke-wrapper Alias for dev-container-smoke"
+	@echo "  make dev-container-smoke-clean Remove dev smoke temp artifacts"
 	@echo ""
 	@echo "Development Image (container/dev-image):"
 	@echo "  make dev-image-build          Build dev image with repository-root context"
 	@echo "  make dev-image-rebuild        Rebuild dev image without cache"
+	@echo ""
+	@echo "Development Container Lifecycle:"
+	@echo "  make dev-container-restart    Recreate dev container (no image build)"
 	@echo ""
 	@echo "Review Workflow:"
 	@echo "  make review-manual            Show fixed manual review checklist and context"
@@ -52,16 +56,24 @@ up:
 	$(MAKE) -C $(COMPOSE_DIR) preflight-up && $(MAKE) dev-image-build && $(MAKE) -C $(COMPOSE_DIR) up-no-preflight
 
 down ps top logs logs-all logs-init-keys logs-init-models certs-generate \
-devcontainer-smoke devcontainer-smoke-wrapper devcontainer-smoke-clean \
+dev-container-smoke dev-container-smoke-wrapper dev-container-smoke-clean \
 keys-generate keys-overwrite keys-show keys-sync litellm-recreate ollama-expose \
 phoenix-health smoke-chat smoke-embeddings state-init state-prune trust-certs-host:
 	$(MAKE) -C $(COMPOSE_DIR) $@
+
+# Backward-compatible aliases (deprecated naming).
+devcontainer-smoke: dev-container-smoke
+devcontainer-smoke-wrapper: dev-container-smoke-wrapper
+devcontainer-smoke-clean: dev-container-smoke-clean
 
 dev-image-build:
 	docker build -t $(DEV_IMAGE_NAME) -f container/dev-image/Dockerfile .
 
 dev-image-rebuild:
 	docker build --no-cache -t $(DEV_IMAGE_NAME) -f container/dev-image/Dockerfile .
+
+dev-container-restart:
+	cd $(COMPOSE_DIR) && docker compose up -d --no-deps --force-recreate dev
 
 review-manual:
 	./scripts/review-manual.sh
