@@ -23,6 +23,19 @@ fi
 if ! "/usr/local/bin/bootstrap-project-venv.sh"; then
   echo "WARN: project venv bootstrap failed; falling back to base runtime" >&2
 fi
+
+if [ -x "${DEV_SECRETS_EXPORTER:-/workspace/compose-scripts/export-dev-secrets-env.sh}" ]; then
+  if ! "${DEV_SECRETS_EXPORTER:-/workspace/compose-scripts/export-dev-secrets-env.sh}"; then
+    echo "WARN: dev secrets export failed; notebook env variables may be missing" >&2
+  fi
+  if [ -f "${DEV_SECRETS_ENV_FILE:-/tmp/dev-secrets.env.sh}" ]; then
+    # shellcheck disable=SC1090
+    . "${DEV_SECRETS_ENV_FILE:-/tmp/dev-secrets.env.sh}"
+  fi
+else
+  echo "WARN: dev secrets exporter not found; skipping JSON->env injection" >&2
+fi
+
 "/usr/local/bin/start-notebook.sh" &
 notebook_pid="$!"
 

@@ -437,8 +437,17 @@ services:
     volumes:
       - ../../src:/workspace/src:z
       - ./.state/certs:/certs:ro,z
+      - ./scripts:/workspace/compose-scripts:ro,z
+      - ./.state/keys:/workspace/compose-state/keys:ro,z
     networks:
       - dev_edge
+    environment:
+      KEYS_FILE: "/workspace/compose-state/keys/keys.local.json"
+      DEV_SECRETS_EXPORTER: "/workspace/compose-scripts/export-dev-secrets-env.sh"
+      DEV_SECRETS_ENV_FILE: "/tmp/dev-secrets.env.sh"
+      DEV_KEYS_STRICT: "${DEV_KEYS_STRICT:-1}"
+      MODEL_BASE_URL_CLEAN: "${MODEL_BASE_URL_CLEAN}"
+      MODEL_BASE_URL_CHAOS: "${MODEL_BASE_URL_CHAOS}"
     restart: unless-stopped
     stop_grace_period: 10s
     logging:

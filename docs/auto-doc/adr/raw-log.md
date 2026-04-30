@@ -43,3 +43,6 @@ Do not delete or rewrite past entries. Add new entries at the end only.
 2026-04-27 | compose | switch postgres services to pgvector image and enable vector extension idempotently for litellm and phoenix databases during identity init | container/compose/scripts/init-postgres-identities.sh
 2026-04-27 | workflow | reorganize compose make help output into explicit grouped sections to improve command discoverability and naming consistency | container/compose/Makefile
 2026-04-27 | workflow | keep dev image rebuild and dev container restart as separate root make operations and remove ambiguous combined target | Makefile
+2026-04-30 | workflow | inject notebook API keys from .state keys.local.json into dev container env at startup and switch assorted notebooks to os.getenv-based API_KEY usage with restart-on-rotation semantics | container/compose/scripts/export-dev-secrets-env.sh
+2026-04-30 | workflow | replace hardcoded notebook caddy endpoints with generic MODEL_BASE_URL_CLEAN and MODEL_BASE_URL_CHAOS env contract exposed to dev runtime | container/compose/.env
+2026-04-30 | workflow | enforce strict pseudo-user key naming by exporting and consuming only MODEL_API_KEY_<PSEUDO_USER> variables without API_KEY or LITELLM_API_KEY aliases | container/compose/scripts/export-dev-secrets-env.sh
