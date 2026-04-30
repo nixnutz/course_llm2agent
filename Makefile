@@ -6,7 +6,7 @@
 	devcontainer-smoke devcontainer-smoke-wrapper devcontainer-smoke-clean \
 	keys-generate keys-overwrite keys-show keys-sync litellm-recreate ollama-expose \
 	phoenix-health smoke-chat smoke-embeddings state-init state-prune trust-certs-host \
-	dev-image-build dev-image-rebuild dev-container-restart review-manual
+	dev-image-build dev-image-rebuild dev-image-reset-project-venv dev-container-restart review-manual
 
 COMPOSE_DIR := container/compose
 DEV_IMAGE_NAME ?= course-llm-dev:v1
@@ -70,7 +70,16 @@ dev-image-build:
 	docker build -t $(DEV_IMAGE_NAME) -f container/dev-image/Dockerfile .
 
 dev-image-rebuild:
+	$(MAKE) dev-image-reset-project-venv
 	docker build --no-cache -t $(DEV_IMAGE_NAME) -f container/dev-image/Dockerfile .
+
+dev-image-reset-project-venv:
+	@if [ -d "src/.venv" ]; then \
+		echo "Removing project venv at src/.venv to force fresh post-rebuild environment."; \
+		rm -rf "src/.venv"; \
+	else \
+		echo "No project venv at src/.venv; nothing to reset."; \
+	fi
 
 dev-container-restart:
 	cd $(COMPOSE_DIR) && docker compose up -d --no-deps --force-recreate dev
