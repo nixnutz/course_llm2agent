@@ -156,7 +156,7 @@ LITELLM_INTERNAL_PORT=4000
 LITELLM_DEFAULT_TIMEOUT=420
 LITELLM_MASTER_KEY=frozenlips
 OLLAMA_HOST=http://ollama:${OLLAMA_CONTAINER_PORT}
-OLLAMA_MODELS=nomic-embed-text:latest llama3.2:3b
+OLLAMA_MODELS=nomic-embed-text:latest llama3.2:3b deepseek-r1:7b
 OLLAMA_INIT_MODE=pull_missing
 OLLAMA_PULL_OPTIONS=
 OLLAMA_RUN_OPTIONS=
@@ -213,7 +213,7 @@ For debug/smoke runs you can set `OLLAMA_INIT_MODE=run`, which executes
 `OLLAMA_RUN_OPTIONS` is used for `run`.
 `OLLAMA_PULL_OPTIONS` is used for `pull` and `pull_missing`.
 `OLLAMA_RETRY_MAX_ATTEMPTS` controls per-model retry budget during init (`0` = unlimited retries).
-To keep first startup fast, defaults are intentionally minimal (`nomic-embed-text:latest` + `llama3.2:3b`).
+Defaults include `nomic-embed-text:latest`, `llama3.2:3b`, and `deepseek-r1:7b` (local reasoning / Thinking); first startup pulls a larger model set.
 You can add more models later in `.env` (`OLLAMA_MODELS`) if needed.
 
 ### Ollama Runtime Tuning (CPU-friendly defaults)
@@ -228,9 +228,7 @@ This project uses explicit Ollama runtime controls to reduce local CPU churn and
 
 Tradeoff for CPU-only machines: lower values are calmer and more stable, but can reduce burst throughput.
 
-Intentional non-changes in this step:
-
-- `OLLAMA_MODELS` is unchanged (no model list reduction here).
+Runtime tuning here does not change which models are listed in `OLLAMA_MODELS`; that list lives in `.env.example` / your `.env`.
 
 Focused runtime log checks:
 

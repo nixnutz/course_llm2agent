@@ -14,6 +14,17 @@ model_list:
       input_cost_per_token: 5e-6
       output_cost_per_token: 5e-6
 
+  - model_name: "ollama_chat/deepseek-r1:7b"
+    litellm_params:
+      model: "ollama_chat/deepseek-r1:7b"
+      api_base: "os.environ/OLLAMA_API_BASE"
+      max_retries: 0
+      tags: ["ollama", "chat", "reasoning"]
+    model_info:
+      # Same rough tier as other ~7b chat models → 5 / 1M
+      input_cost_per_token: 5e-6
+      output_cost_per_token: 5e-6
+
   - model_name: "ollama_chat/llama3.1:8b"
     litellm_params:
       model: "ollama_chat/llama3.1:8b"
@@ -192,6 +203,8 @@ model_list:
 litellm_settings:
   # Emit JSON logs to stdout for easy "docker compose logs" tracing.
   json_logs: true
+  # true: strip unsupported OpenAI-style params (better compatibility with SDKs/notebooks).
+  # false surfaces mis-sent params but breaks clients that always send fields Ollama rejects.
   drop_params: true
   callbacks: ["arize_phoenix"]
 
