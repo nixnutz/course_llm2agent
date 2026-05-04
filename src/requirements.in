@@ -6,3 +6,6 @@ langchain[openai]
 langgraph
 deepagents
 numpy
+psycopg2-binary
+pgvector
+streamlit
