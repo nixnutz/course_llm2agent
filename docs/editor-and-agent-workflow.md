@@ -6,8 +6,8 @@ This document captures editor, Cursor, and agent-specific conventions for this r
 
 - Cursor runs on the host machine.
 - Source code is mounted into the running `dev` container.
-- Code-related commands should run through `container/compose/scripts/dev-cmd.sh`.
-- Use `container/compose/scripts/dev-session.sh` only for explicit interactive diagnostics.
+- Code-related commands should run through `container/compose/scripts/dev/cmd.sh`.
+- Use `container/compose/scripts/dev/session.sh` only for explicit interactive diagnostics.
 - Do not rely on shell state between `dev-cmd` calls.
 
 ## Scope and Language

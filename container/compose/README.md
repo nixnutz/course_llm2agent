@@ -4,16 +4,34 @@ Developer setup with local TLS-by-default at the edge. `ollama` hosts models, `l
 
 ## What is where?
 
+The directory layout follows a purpose-centric split with per-service subfolders:
+
 - `docker-compose.yml`: main local stack (LiteLLM, Ollama, Postgres+pgvector, Phoenix, Caddy, helper init containers)
 - `docker-compose.ollama-expose.yml`: optional override to publish Ollama API to host
 - `Makefile`: primary day-to-day commands (`up`, `logs`, `smoke-*`, key management)
 - `.env.example`: template for local environment values
-- `config/litellm.yaml`: LiteLLM model/provider/router configuration
-- `scripts/`: helper scripts for init, key sync, logs, wrapper commands
+- `config/<service>/`: read-only config files mounted into running services
+  - `config/caddy/Caddyfile`: local TLS edge/proxy config for LiteLLM UI and Phoenix UI
+  - `config/litellm/litellm.yaml`: LiteLLM model/provider/router configuration
+- `init/<service>/`: one-shot init artifacts (SQL + scripts) consumed by init containers or Postgres' `/docker-entrypoint-initdb.d/`
+  - `init/postgres/01-extensions.sql`: enables `vector` extension on first cluster init
+  - `init/postgres/role-bootstrap.sh`: idempotent role/DB setup (runs every `up`)
+  - `init/certs/local.sh`, `init/ollama/models.sh`, `init/keys/{virtual,validate}.sh`, `init/toxiproxy/bootstrap.sh`
+- `scripts/<service>/`: host-side and `dev`-runtime helpers (Makefile callees)
+  - `scripts/dev/{cmd,session,export-secrets-env}.sh`: devcontainer wrapper + secrets export
+  - `scripts/keys/virtual-keys.sh`: virtual key management CLI (`make keys-*`)
+  - `scripts/stack/logs-follow.sh`: cross-cutting compose log follower (`make logs`)
+  - `scripts/toxiproxy/{reset,toxic}.sh`: chaos toggles
 - `tests/smoke/devcontainer_smoke_test/run.sh`: smoke test for devcontainer wrapper behavior
-- `caddy/Caddyfile`: local TLS edge/proxy config for LiteLLM UI and Phoenix UI
 - `.state/`: local persisted runtime data (gitignored)
 - `dev-wrapper.yaml`: source of truth for devcontainer wrapper command/session contract
+
+### Postgres init split
+
+Two complementary mechanisms cooperate on Postgres setup:
+
+1. **Official `/docker-entrypoint-initdb.d/` hook** (`init/postgres/01-extensions.sql`). Runs **once** when the data volume is empty (e.g. after `make state-prune`). Used here to enable the `vector` extension on the default DB. Idempotent (`CREATE EXTENSION IF NOT EXISTS`).
+2. **Init container `postgres_init_identities`** (`init/postgres/role-bootstrap.sh`). Runs on **every** `compose up`. Creates LiteLLM/Phoenix roles and databases idempotently and re-applies `vector` per DB. Use this for anything that should keep working after the SQL file is changed without wiping `.state/postgres_data/`.
 
 ## Quickstart (happy path)
 
@@ -72,7 +90,7 @@ The `dev` container imports this CA into its own trust store at startup (contain
 For notebooks in `src/assorted`, the `dev` container now injects API keys into environment variables at startup:
 
 - Source of truth: `./.state/keys/keys.local.json`
-- Runtime exporter: `./scripts/export-dev-secrets-env.sh`
+- Runtime exporter: `./scripts/dev/export-secrets-env.sh`
 - Injection point: `dev` container startup before Jupyter is launched
 - Restart behavior: key rotation requires restarting the `dev` container (for example `make dev-container-restart`)
 
@@ -100,8 +118,8 @@ Strictness can be tuned with `DEV_KEYS_STRICT` (`1` default, fail on missing req
 
 This repository includes a compose-first wrapper experiment for command/session semantics on service `dev`.
 
-- `./scripts/dev-cmd.sh`: one-shot execution in `dev` (state between calls is undefined)
-- `./scripts/dev-session.sh`: interactive/stateful session in `dev`
+- `./scripts/dev/cmd.sh`: one-shot execution in `dev` (state between calls is undefined)
+- `./scripts/dev/session.sh`: interactive/stateful session in `dev`
 - Wrapper config source of truth: `./dev-wrapper.yaml`
 - Policy header is emitted by wrappers for traceability:
   - `mode=dev-cmd|dev-session`
@@ -117,13 +135,16 @@ HOST_BIND_IP=127.0.0.1
 HEALTHCHECK_INTERVAL=120s
 HEALTHCHECK_INTERVAL_BOOT=3s
 POSTGRES_PORT=5432
-POSTGRES_DB_LITELLM=litellm
-POSTGRES_USER_LITELLM=litellm
-POSTGRES_PASSWORD_LITELLM=litellm_dev_password
-POSTGRES_DB_PHOENIX=phoenix
-POSTGRES_USER_PHOENIX=phoenix
-POSTGRES_PASSWORD_PHOENIX=phoenix_dev_password
-DATABASE_URL=postgresql://${POSTGRES_USER_LITELLM}:${POSTGRES_PASSWORD_LITELLM}@postgres:${POSTGRES_PORT}/${POSTGRES_DB_LITELLM}
+POSTGRES_LITELLM_DB=litellm
+POSTGRES_LITELLM_USER=litellm
+POSTGRES_LITELLM_PASSWORD=litellm_dev_password
+POSTGRES_PHOENIX_DB=phoenix
+POSTGRES_PHOENIX_USER=phoenix
+POSTGRES_PHOENIX_PASSWORD=phoenix_dev_password
+POSTGRES_TOOLBERT_DB=toolbert
+POSTGRES_TOOLBERT_USER=toolbert
+POSTGRES_TOOLBERT_PASSWORD=toolbert_dev_password
+DATABASE_URL=postgresql://${POSTGRES_LITELLM_USER}:${POSTGRES_LITELLM_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_LITELLM_DB}
 UI_USERNAME=admin
 UI_PASSWORD=admin
 LITELLM_PLATFORM=linux/amd64
@@ -163,7 +184,7 @@ TOXIPROXY_OLLAMA_LISTEN=11112
 Model data is persisted on the host in `./.state/ollama_data` (configurable via `OLLAMA_DATA_DIR`).
 Phoenix trace data is persisted in `./.state/phoenix_data`.
 Phoenix SQL metadata is stored in the same Postgres server as LiteLLM, but with a dedicated
-database/user pair (`POSTGRES_DB_PHOENIX`, `POSTGRES_USER_PHOENIX`).
+database/user pair (`POSTGRES_PHOENIX_DB`, `POSTGRES_PHOENIX_USER`).
 The Postgres service runs with pgvector and creates `vector` extension idempotently in LiteLLM and Phoenix databases during `postgres_init_identities`.
 LiteLLM and Phoenix are intentionally separated at config level; you can still map both to one SQL user manually if desired.
 Published ports are bound to `HOST_BIND_IP` (default `127.0.0.1` for localhost-only access).
@@ -182,7 +203,7 @@ This keeps startup probes fast while preserving a quieter steady-state cadence f
 If you want quieter steady-state checks at the expense of slower startup detection, set `HEALTHCHECK_INTERVAL_BOOT` closer to `HEALTHCHECK_INTERVAL`.
 On SELinux-enabled hosts, the bind mount uses `:z` relabeling in Compose so Ollama can write to `/root/.ollama`.
 The LiteLLM config bind mount also uses `:z` so `/app/config.yaml` is readable on SELinux hosts.
-Model initialization is handled by `./scripts/init-ollama-models.sh`, mounted into `ollama_init_models`.
+Model initialization is handled by `./init/ollama/models.sh`, mounted into `ollama_init_models`.
 In this MVP, successful model init is a hard prerequisite: `litellm_clean` and `litellm_chaos` start only after
 `ollama_init_models` completed successfully.
 By default (`OLLAMA_INIT_MODE=pull_missing`), models are only pulled if missing from local Ollama storage.
@@ -229,7 +250,7 @@ runaway request buildup.
 for OpenAI-style `/v1` calls (`Authorization: Bearer <key>`), and is required for LiteLLM key management endpoints.
 This repository uses `frozenlips` as a deliberately insecure local dev default; change it for any shared/non-local setup.
 Gemini usage in this setup is intended for the Google AI Studio free tier (state: 04/2026).
-Available Gemini models can change over time; if a configured model alias stops working, update `config/litellm.yaml`.
+Available Gemini models can change over time; if a configured model alias stops working, update `config/litellm/litellm.yaml`.
 You can list currently available models via API:
 
 ```bash
@@ -362,7 +383,7 @@ Virtual key init logs:
 make logs-init-keys
 ```
 
-JSON logs are enabled via `JSON_LOGS=true` (container env) and `litellm_settings.json_logs: true` in `config/litellm.yaml`.
+JSON logs are enabled via `JSON_LOGS=true` (container env) and `litellm_settings.json_logs: true` in `config/litellm/litellm.yaml`.
 Docker log rotation is enabled for all services via Compose (`max-size: 10m`, `max-file: 3`).
 Use `make phoenix-health` for a quick local endpoint check.
 Phoenix UI is served via Caddy TLS on `https://localhost:${PHOENIX_UI_TLS_PORT:-6006}`.
@@ -374,7 +395,7 @@ Phoenix is complementary to LiteLLM logs in this setup:
 - LiteLLM logs: operational request/response and proxy behavior (`make logs`).
 - Phoenix traces: application or agent execution traces via OTEL/OpenInference.
 
-The LiteLLM proxy callback to Phoenix is enabled in `config/litellm.yaml` via
+The LiteLLM proxy callback to Phoenix is enabled in `config/litellm/litellm.yaml` via
 `litellm_settings.callbacks: ["arize_phoenix"]`.
 For this callback, the LiteLLM container must receive:
 - `PHOENIX_COLLECTOR_HTTP_ENDPOINT` (self-hosted in this compose: `http://phoenix:6006/v1/traces`)

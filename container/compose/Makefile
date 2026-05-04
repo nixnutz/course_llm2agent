@@ -113,7 +113,7 @@ top:
 	docker compose top
 
 logs:
-	./scripts/logs-follow.sh
+	./scripts/stack/logs-follow.sh
 
 logs-all:
 	docker compose logs -f
@@ -141,16 +141,16 @@ devcontainer-smoke-wrapper: dev-container-smoke-wrapper
 devcontainer-smoke-clean: dev-container-smoke-clean
 
 keys-generate:
-	./scripts/virtual-keys.sh create
+	./scripts/keys/virtual-keys.sh create
 
 keys-overwrite:
-	./scripts/virtual-keys.sh overwrite
+	./scripts/keys/virtual-keys.sh overwrite
 
 keys-show:
 	@if [ -f "${KEYS_LOCAL_FILE}" ]; then jq -r '.keys[] | "- \(.name): \(.token)"' "${KEYS_LOCAL_FILE}"; else echo "No ${KEYS_LOCAL_FILE} found. Run make keys-generate first."; fi
 
 keys-sync:
-	./scripts/virtual-keys.sh sync-from-file
+	./scripts/keys/virtual-keys.sh sync-from-file
 
 litellm-recreate:
 	docker compose up -d --force-recreate litellm_clean litellm_chaos
@@ -179,11 +179,11 @@ toxiproxy-bootstrap:
 	TOXIPROXY_OLLAMA_LISTEN="$${TOXIPROXY_OLLAMA_LISTEN:-11112}" \
 	LITELLM_INTERNAL_PORT="$${LITELLM_INTERNAL_PORT:-4000}" \
 	OLLAMA_CONTAINER_PORT="$${OLLAMA_CONTAINER_PORT:-11434}" \
-	bash ./scripts/toxiproxy-bootstrap.sh
+	bash ./init/toxiproxy/bootstrap.sh
 
 toxiproxy-reset:
 	TOXIPROXY_URL="http://localhost:$${TOXIPROXY_ADMIN_PORT:-8474}" \
-	bash ./scripts/toxiproxy-reset.sh
+	bash ./scripts/toxiproxy/reset.sh
 
 state-init:
 	@mkdir -p ".state" ".state/postgres_data" ".state/ollama_data" ".state/certs" ".state/.tmp" ".state/keys" ".state/phoenix_data"

@@ -7,4 +7,8 @@ set -euo pipefail
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 cd "${SCRIPT_DIR}"
 
-./virtual-keys.sh sync-init
+if [ -x "/workspace/virtual-keys.sh" ]; then
+  /workspace/virtual-keys.sh sync-init
+else
+  ./virtual-keys.sh sync-init
+fi

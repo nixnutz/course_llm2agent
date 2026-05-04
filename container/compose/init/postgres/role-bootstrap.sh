@@ -18,6 +18,11 @@ set -eu
 : "${PHOENIX_USER:?PHOENIX_USER is required}"
 : "${PHOENIX_PASSWORD:?PHOENIX_PASSWORD is required}"
 
+# Dedicated teaching/demo RAG database.
+TOOLBERT_DB="${TOOLBERT_DB:-toolbert}"
+TOOLBERT_USER="${TOOLBERT_USER:-toolbert}"
+TOOLBERT_PASSWORD="${TOOLBERT_PASSWORD:-toolbert_dev_password}"
+
 export PGPASSWORD="${POSTGRES_ADMIN_PASSWORD}"
 
 psql_base() {
@@ -78,18 +83,41 @@ ensure_vector_extension() {
   psql_db "${db_name}" -c "CREATE EXTENSION IF NOT EXISTS vector;"
 }
 
-echo "Ensuring dedicated Postgres roles/databases for LiteLLM and Phoenix..."
+ensure_toolbert_rag_objects() {
+  psql_db "${TOOLBERT_DB}" <<SQL
+CREATE SCHEMA IF NOT EXISTS toolbert;
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE TABLE IF NOT EXISTS toolbert.documents (
+    id BIGSERIAL PRIMARY KEY,
+    source TEXT,
+    content TEXT NOT NULL,
+    embedding VECTOR(768) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER SCHEMA toolbert OWNER TO "${TOOLBERT_USER}";
+ALTER TABLE toolbert.documents OWNER TO "${TOOLBERT_USER}";
+GRANT USAGE, CREATE ON SCHEMA toolbert TO "${TOOLBERT_USER}";
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA toolbert TO "${TOOLBERT_USER}";
+SQL
+}
+
+echo "Ensuring dedicated Postgres roles/databases for LiteLLM, Phoenix, and Toolbert..."
 
 ensure_role "${LITELLM_USER}" "${LITELLM_PASSWORD}"
 ensure_role "${PHOENIX_USER}" "${PHOENIX_PASSWORD}"
+ensure_role "${TOOLBERT_USER}" "${TOOLBERT_PASSWORD}"
 
 ensure_db "${LITELLM_DB}" "${LITELLM_USER}"
 ensure_db "${PHOENIX_DB}" "${PHOENIX_USER}"
+ensure_db "${TOOLBERT_DB}" "${TOOLBERT_USER}"
 
 grant_db_owner "${LITELLM_DB}" "${LITELLM_USER}"
 grant_db_owner "${PHOENIX_DB}" "${PHOENIX_USER}"
+grant_db_owner "${TOOLBERT_DB}" "${TOOLBERT_USER}"
 
 ensure_vector_extension "${LITELLM_DB}"
 ensure_vector_extension "${PHOENIX_DB}"
+ensure_vector_extension "${TOOLBERT_DB}"
+ensure_toolbert_rag_objects
 
 echo "Postgres identities/databases are ready."

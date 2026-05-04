@@ -5,7 +5,7 @@ set -euo pipefail
 # Notes: auto-switches stream to keep operational logs readable.
 
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
-ROOT_DIR="$(CDPATH= cd -- "${SCRIPT_DIR}/.." && pwd)"
+ROOT_DIR="$(CDPATH= cd -- "${SCRIPT_DIR}/../.." && pwd)"
 cd "${ROOT_DIR}"
 
 LOG_PID=""

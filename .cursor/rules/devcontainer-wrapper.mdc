@@ -6,8 +6,8 @@ alwaysApply: true
 # Devcontainer Wrapper Contract
 
 - This rule is normative for agent behavior in this repository.
-- For code-related commands, execute via `container/compose/scripts/dev-cmd.sh`.
-- Use `container/compose/scripts/dev-session.sh` only for explicit interactive diagnostics.
+- For code-related commands, execute via `container/compose/scripts/dev/cmd.sh`.
+- Use `container/compose/scripts/dev/session.sh` only for explicit interactive diagnostics.
 - Treat `dev-cmd` calls as stateless between invocations.
 - Preserve wrapper policy header output (`mode`, `backend`, `service`) in logs.
 - Treat the `dev` compose service as the execution target for development tooling.

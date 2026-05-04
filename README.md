@@ -39,7 +39,7 @@ Editor, Cursor, and agent-specific workflow conventions are documented in:
 - `docs/editor-and-agent-workflow.md`
 
 TL;DR:
-- Run code-related commands via `container/compose/scripts/dev-cmd.sh`.
+- Run code-related commands via `container/compose/scripts/dev/cmd.sh`.
 - Write all source code and all documentation in English.
 
 ## ADR Note (Experimental)

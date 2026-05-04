@@ -4,10 +4,10 @@ services:
     hostname: certs-init
     entrypoint:
       - /bin/sh
-      - /init/init-local-certs.sh
+      - /init/local.sh
     volumes:
       - ./.state/certs:/certs:z
-      - ./scripts/init-local-certs.sh:/init/init-local-certs.sh:ro,z
+      - ./init/certs/local.sh:/init/local.sh:ro,z
     environment:
       CERT_HOSTS: "${CERT_HOSTS:-localhost 127.0.0.1 ::1 caddy litellm phoenix ollama postgres dev}"
     networks:
@@ -23,17 +23,19 @@ services:
     image: pgvector/pgvector:pg16
     hostname: postgres
     environment:
-      POSTGRES_DB: "${POSTGRES_DB_LITELLM}"
-      POSTGRES_USER: "${POSTGRES_USER_LITELLM}"
-      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD_LITELLM}"
+      POSTGRES_DB: "${POSTGRES_LITELLM_DB}"
+      POSTGRES_USER: "${POSTGRES_LITELLM_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_LITELLM_PASSWORD}"
     ports:
       - "${HOST_BIND_IP}:${POSTGRES_PORT}:5432"
     volumes:
       - ./.state/postgres_data:/var/lib/postgresql/data:z
+      - ./init/postgres/01-extensions.sql:/docker-entrypoint-initdb.d/01-extensions.sql:ro,z
     networks:
       - backend_core
+      - dev_edge
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER_LITELLM} -d ${POSTGRES_DB_LITELLM}" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_LITELLM_USER} -d ${POSTGRES_LITELLM_DB}" ]
       interval: "${HEALTHCHECK_INTERVAL_BOOT:-${HEALTHCHECK_INTERVAL}}"
       timeout: 5s
       retries: 60
@@ -54,9 +56,9 @@ services:
         condition: service_healthy
     entrypoint:
       - /bin/sh
-      - /init/init-postgres-identities.sh
+      - /init/role-bootstrap.sh
     volumes:
-      - ./scripts/init-postgres-identities.sh:/init/init-postgres-identities.sh:ro,z
+      - ./init/postgres/role-bootstrap.sh:/init/role-bootstrap.sh:ro,z
     networks:
       - backend_core
     restart: "no"
@@ -68,15 +70,18 @@ services:
     environment:
       POSTGRES_HOST: "postgres"
       POSTGRES_PORT: "${POSTGRES_PORT}"
-      POSTGRES_ADMIN_DB: "${POSTGRES_DB_LITELLM}"
-      POSTGRES_ADMIN_USER: "${POSTGRES_USER_LITELLM}"
-      POSTGRES_ADMIN_PASSWORD: "${POSTGRES_PASSWORD_LITELLM}"
-      LITELLM_DB: "${POSTGRES_DB_LITELLM}"
-      LITELLM_USER: "${POSTGRES_USER_LITELLM}"
-      LITELLM_PASSWORD: "${POSTGRES_PASSWORD_LITELLM}"
-      PHOENIX_DB: "${POSTGRES_DB_PHOENIX}"
-      PHOENIX_USER: "${POSTGRES_USER_PHOENIX}"
-      PHOENIX_PASSWORD: "${POSTGRES_PASSWORD_PHOENIX}"
+      POSTGRES_ADMIN_DB: "${POSTGRES_LITELLM_DB}"
+      POSTGRES_ADMIN_USER: "${POSTGRES_LITELLM_USER}"
+      POSTGRES_ADMIN_PASSWORD: "${POSTGRES_LITELLM_PASSWORD}"
+      LITELLM_DB: "${POSTGRES_LITELLM_DB}"
+      LITELLM_USER: "${POSTGRES_LITELLM_USER}"
+      LITELLM_PASSWORD: "${POSTGRES_LITELLM_PASSWORD}"
+      PHOENIX_DB: "${POSTGRES_PHOENIX_DB}"
+      PHOENIX_USER: "${POSTGRES_PHOENIX_USER}"
+      PHOENIX_PASSWORD: "${POSTGRES_PHOENIX_PASSWORD}"
+      TOOLBERT_DB: "${POSTGRES_TOOLBERT_DB}"
+      TOOLBERT_USER: "${POSTGRES_TOOLBERT_USER}"
+      TOOLBERT_PASSWORD: "${POSTGRES_TOOLBERT_PASSWORD}"
 
   ollama:
     image: ollama/ollama:latest
@@ -111,13 +116,13 @@ services:
   ollama_init_models:
     image: ollama/ollama:latest
     hostname: ollama-init-models
-    entrypoint: [ "/bin/sh", "/init/init-ollama-models.sh" ]
+    entrypoint: [ "/bin/sh", "/init/models.sh" ]
     depends_on:
       ollama:
         condition: service_healthy
     volumes:
       - ${OLLAMA_DATA_DIR}:/root/.ollama:z
-      - ./scripts/init-ollama-models.sh:/init/init-ollama-models.sh:ro,z
+      - ./init/ollama/models.sh:/init/models.sh:ro,z
     networks:
       - backend_core
     restart: "no"
@@ -144,14 +149,14 @@ services:
     entrypoint:
       - /bin/sh
       - -lc
-      - apk add --no-cache bash python3 >/dev/null && /workspace/scripts/validate-keys-local-json.sh
+      - apk add --no-cache bash python3 >/dev/null && /workspace/init-keys/validate.sh
     depends_on:
       postgres:
         condition: service_healthy
       ollama_init_models:
         condition: service_completed_successfully
     volumes:
-      - ./scripts:/workspace/scripts:ro,z
+      - ./init/keys:/workspace/init-keys:ro,z
       - ./.state/keys:/workspace/keys:rw,z
     networks:
       - backend_core
@@ -185,7 +190,7 @@ services:
       phoenix:
         condition: service_started
     volumes:
-      - ./config/litellm.yaml:/app/config.yaml:ro,z
+      - ./config/litellm/litellm.yaml:/app/config.yaml:ro,z
     networks:
       - backend_core
     environment:
@@ -242,7 +247,7 @@ services:
       toxiproxy:
         condition: service_started
     volumes:
-      - ./config/litellm.yaml:/app/config.yaml:ro,z
+      - ./config/litellm/litellm.yaml:/app/config.yaml:ro,z
     networks:
       - backend_core
     environment:
@@ -305,9 +310,9 @@ services:
     entrypoint:
       - /bin/sh
       - -lc
-      - apk add --no-cache bash curl >/dev/null && bash /workspace/scripts/toxiproxy-bootstrap.sh
+      - apk add --no-cache bash curl >/dev/null && bash /workspace/init-toxiproxy/bootstrap.sh
     volumes:
-      - ./scripts:/workspace/scripts:ro,z
+      - ./init/toxiproxy:/workspace/init-toxiproxy:ro,z
     networks:
       - backend_core
     restart: "no"
@@ -330,12 +335,13 @@ services:
     entrypoint:
       - /bin/sh
       - -lc
-      - apk add --no-cache bash curl jq python3 >/dev/null && /workspace/scripts/init-virtual-keys.sh
+      - apk add --no-cache bash curl jq python3 >/dev/null && /workspace/init-keys/virtual.sh
     depends_on:
       litellm_clean:
         condition: service_healthy
     volumes:
-      - ./scripts:/workspace/scripts:ro,z
+      - ./init/keys:/workspace/init-keys:ro,z
+      - ./scripts/keys/virtual-keys.sh:/workspace/virtual-keys.sh:ro,z
       - ./.state/keys:/workspace/keys:rw,z
     networks:
       - backend_core
@@ -368,7 +374,7 @@ services:
       - "${HOST_BIND_IP}:${LITELLM_CHAOS_PORT:-4001}:4001"
       - "${HOST_BIND_IP}:${PHOENIX_UI_TLS_PORT:-6006}:6006"
     volumes:
-      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro,z
+      - ./config/caddy/Caddyfile:/etc/caddy/Caddyfile:ro,z
       - ./.state/certs:/certs:ro,z
     networks:
       - dev_edge
@@ -391,7 +397,7 @@ services:
       - "${HOST_BIND_IP}:${PHOENIX_OTLP_GRPC_PORT:-4317}:4317"
     environment:
       PHOENIX_WORKING_DIR: "${PHOENIX_WORKING_DIR:-/mnt/data}"
-      PHOENIX_SQL_DATABASE_URL: "postgresql://${POSTGRES_USER_PHOENIX}:${POSTGRES_PASSWORD_PHOENIX}@postgres:${POSTGRES_PORT}/${POSTGRES_DB_PHOENIX}"
+      PHOENIX_SQL_DATABASE_URL: "postgresql://${POSTGRES_PHOENIX_USER}:${POSTGRES_PHOENIX_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_PHOENIX_DB}"
     volumes:
       - ./.state/phoenix_data:${PHOENIX_WORKING_DIR:-/mnt/data}:z
     networks:
@@ -443,11 +449,16 @@ services:
       - dev_edge
     environment:
       KEYS_FILE: "/workspace/compose-state/keys/keys.local.json"
-      DEV_SECRETS_EXPORTER: "/workspace/compose-scripts/export-dev-secrets-env.sh"
+      DEV_SECRETS_EXPORTER: "/workspace/compose-scripts/dev/export-secrets-env.sh"
       DEV_SECRETS_ENV_FILE: "/tmp/dev-secrets.env.sh"
       DEV_KEYS_STRICT: "${DEV_KEYS_STRICT:-1}"
       MODEL_BASE_URL_CLEAN: "${MODEL_BASE_URL_CLEAN}"
       MODEL_BASE_URL_CHAOS: "${MODEL_BASE_URL_CHAOS}"
+      POSTGRES_HOST: "postgres"
+      POSTGRES_PORT: "${POSTGRES_PORT}"
+      POSTGRES_TOOLBERT_DB: "${POSTGRES_TOOLBERT_DB}"
+      POSTGRES_TOOLBERT_USER: "${POSTGRES_TOOLBERT_USER}"
+      POSTGRES_TOOLBERT_PASSWORD: "${POSTGRES_TOOLBERT_PASSWORD}"
     restart: unless-stopped
     stop_grace_period: 10s
     logging:

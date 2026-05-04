@@ -47,3 +47,4 @@ Do not delete or rewrite past entries. Add new entries at the end only.
 2026-04-30 | workflow | replace hardcoded notebook caddy endpoints with generic MODEL_BASE_URL_CLEAN and MODEL_BASE_URL_CHAOS env contract exposed to dev runtime | container/compose/.env
 2026-04-30 | workflow | enforce strict pseudo-user key naming by exporting and consuming only MODEL_API_KEY_<PSEUDO_USER> variables without API_KEY or LITELLM_API_KEY aliases | container/compose/scripts/export-dev-secrets-env.sh
 2026-04-30 | workflow | add FIFO-capped review skip memory contract and command integration to suppress accepted recurring findings/questions/assumptions with applied skip count reporting | .cursor/commands/review-w-auto-doc.md
+2026-05-04 | compose | reorganize directory into purpose-centric layout (config/<svc>, init/<svc>, scripts/<svc>) and add postgres docker-entrypoint-initdb.d hook for vector extension | container/compose/init/postgres/01-extensions.sql
