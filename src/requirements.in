@@ -1,4 +1,5 @@
 ruff
+pylint
 ipykernel
 jupyterlab
 openai
@@ -9,3 +10,5 @@ numpy
 psycopg2-binary
 pgvector
 streamlit
+Ipython
+pydantic>=2.13
