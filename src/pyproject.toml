@@ -1,0 +1,13 @@
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+# Import sorting (isort-compatible), aligned with pylint import-order expectations.
+extend-select = ["I"]
+
+[tool.ruff.lint.isort]
+# stdlib -> third party -> first party/local (e.g. from .base import ...)
+combine-as-imports = true
+force-sort-within-sections = true
+known-first-party = ["src", "reducer"]

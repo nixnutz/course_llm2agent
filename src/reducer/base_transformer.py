@@ -1,0 +1,107 @@
+"""Transform-hook reducer template — policy on messages entering graph state.
+
+Course example of ``BaseReducer`` with **only** ``on_transform_message`` overridden.
+``BaseReducer`` allows ``on_read_message`` and/or ``on_transform_message`` in one
+subclass; ``BaseReducerReader`` covers observe-only (see ``base_reader``).
+
+Use this template when the defense line should **change** what nodes see in
+``state.messages`` (redaction, stripping fields, canonicalization). Nodes still
+emit messages as usual; the reducer runs on every merge before the next node reads
+the channel.
+
+Hook (this class)
+-----------------
+* ``on_transform_message`` — demo logging; appends ``message.copy()`` to the
+  per-thread vault before edits. The course demo replaces ``Hi`` with ``Moin`` on
+  ``HumanMessage`` and appends the transformed copy again. Returns the message
+  LangGraph should merge (prefer ``model_copy``, not in-place mutation).
+
+Vault access (notebook)
+-----------------------
+Vaults live on the **reducer instance**, keyed by ``thread_id``. They are **not**
+cleared when ``reducer_session`` exits (caller-owned lifecycle; see package
+``__init__.py``).
+
+Inside a session::
+
+    with reducer_session("Chat-A", factory=make_transformer) as session:
+        session.invoke(graph, session.state(MyState, [HumanMessage(...)]))
+        vault = session.reducer.get_vault_for_thread(session.thread_id)
+        for key, original in vault.get():
+            ...
+
+After the ``with``, the same vault is still reachable if you kept
+``session.reducer`` (or a shared instance from a singleton factory). Drop data
+with ``reducer.reset_for_thread("Chat-A")``.
+
+Each ``reducer_session(..., factory=make_transformer)`` without sharing builds a
+**new** transformer → separate vault storage. Reuse one instance (singleton
+factory) to collect across notebook cells under different ``thread_id`` keys.
+
+Wiring
+------
+Use ``reducer_session`` + ``session_message_reducer`` on the state class — not a
+notebook-global ``build_reducer_transformer()`` closure (that binds one instance
+at import time).
+
+Example::
+
+    def make_transformer(get_thread_id):
+        return BaseReducerTransformer(get_thread_id=get_thread_id)
+
+    class MyState(BaseModel):
+        messages: Annotated[list[BaseMessage], session_message_reducer] = Field(...)
+
+    with reducer_session("Chat-A", factory=make_transformer) as session:
+        reply = session.invoke(
+            graph, session.state(MyState, [HumanMessage(content="hello")])
+        )
+"""
+
+from typing import Callable
+
+from langchain_core.messages import BaseMessage, HumanMessage
+
+from .base import BaseReducer
+
+
+class BaseReducerTransformer(BaseReducer):
+    """Course template: ``on_transform_message`` only; vault before/after demo transform."""
+
+    def on_transform_message(self, thread_id: str, message: BaseMessage) -> BaseMessage:
+        if hasattr(message, "content") and isinstance(message.content, str):
+            print(
+                f"REDUCER (thread={thread_id}): transforming message content: {message.content}"
+            )
+
+            vault = self.get_vault_for_thread(thread_id)
+            key = str(message.id) if hasattr(message, "id") else ""
+            vault.append(key, message.copy())
+        
+            if isinstance(message, HumanMessage) and "Hi" in message.content:
+                # Don't do in-place modifications on the message object, create a new one instead
+                new_content = message.content.replace("Hi", "Moin")
+                message = message.model_copy(update={"content": new_content})
+                print(f"REDUCER (thread={thread_id}): replaced 'Hi' with 'Moin': {message.content}")
+                vault.append(key, message.copy())
+
+            
+        else:
+            print(
+                f"REDUCER (thread={thread_id}): transforming message without content: {message}"
+            )
+        return message
+
+
+def build_reducer_transformer(get_thread_id: Callable[[], str]):
+    """Return a LangGraph ``message_reducer(left, right)`` closure (legacy).
+
+    Prefer ``reducer_session(..., factory=make_transformer)`` and
+    ``session_message_reducer`` so the active reducer comes from session context.
+    """
+    transformer = BaseReducerTransformer(get_thread_id=get_thread_id)
+
+    def message_reducer(left, right):
+        return transformer(left, right)
+
+    return message_reducer
