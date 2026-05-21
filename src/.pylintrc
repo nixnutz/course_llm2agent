@@ -1,0 +1,48 @@
+[MASTER]
+ignore-patterns=^\.venv/.*,^build/.*,^dist/.*,.*\.ipynb$
+
+[MESSAGES CONTROL]
+# Balanced explore profile: keep E/F/W and most R; trim doc/naming/micro-style only.
+disable=
+    missing-module-docstring,
+    missing-class-docstring,
+    missing-function-docstring,
+    invalid-name,
+    too-few-public-methods,
+    duplicate-code,
+    fixme,
+    wrong-import-order,
+    ungrouped-imports,
+    consider-using-f-string,
+    consider-using-with,
+    consider-using-dict-comprehension,
+    consider-using-set-comprehension,
+    consider-using-generator,
+    consider-using-enumerate,
+    consider-using-in,
+    consider-using-max-builtin,
+    consider-using-min-builtin,
+    consider-using-sys-exit,
+    consider-using-from-import,
+    redefined-outer-name,
+    global-statement,
+    line-too-long
+
+[REPORTS]
+reports=no
+score=yes
+
+[FORMAT]
+max-line-length=100
+
+[DESIGN]
+max-args=12
+max-locals=25
+max-returns=8
+max-branches=20
+max-statements=80
+max-public-methods=30
+max-attributes=15
+
+[BASIC]
+good-names=i,j,k,ex,Run,_,df,db,id,msg,ctx,api,llm
