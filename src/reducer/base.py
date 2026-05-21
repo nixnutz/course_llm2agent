@@ -33,7 +33,7 @@ config).
 Vault
 -----
 ``_vaults[thread_id]`` lazily creates a ``BaseVault`` per conversation id.
-Hooks call ``_get_vault_for_thread`` to ``append`` originals outside graph state
+Hooks call ``get_vault_for_thread`` to ``append`` originals outside graph state
 (see ``base_reader`` / ``base_transformer``). Data survives across
 ``reducer_session`` blocks if the caller reuses the same ``BaseReducer`` and
 ``thread_id``. Call ``reset_for_thread(thread_id)`` when that conversation's

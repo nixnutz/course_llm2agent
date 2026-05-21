@@ -40,9 +40,9 @@ factory) to collect across notebook cells under different ``thread_id`` keys.
 
 Wiring
 ------
-Use ``reducer_session`` + ``session_message_reducer`` on the state class — not a
-notebook-global ``build_reducer_transformer()`` closure (that binds one instance
-at import time).
+Use ``reducer_session`` + ``session_message_reducer`` on the state class, with a
+``factory`` that returns a **new** reducer per session (not a single instance
+bound at notebook import time).
 
 Example::
 
@@ -57,8 +57,6 @@ Example::
             graph, session.state(MyState, [HumanMessage(content="hello")])
         )
 """
-
-from typing import Callable
 
 from langchain_core.messages import BaseMessage, HumanMessage
 
@@ -91,17 +89,3 @@ class BaseReducerTransformer(BaseReducer):
                 f"REDUCER (thread={thread_id}): transforming message without content: {message}"
             )
         return message
-
-
-def build_reducer_transformer(get_thread_id: Callable[[], str]):
-    """Return a LangGraph ``message_reducer(left, right)`` closure (legacy).
-
-    Prefer ``reducer_session(..., factory=make_transformer)`` and
-    ``session_message_reducer`` so the active reducer comes from session context.
-    """
-    transformer = BaseReducerTransformer(get_thread_id=get_thread_id)
-
-    def message_reducer(left, right):
-        return transformer(left, right)
-
-    return message_reducer

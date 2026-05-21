@@ -8,7 +8,7 @@ Storing secrets in graph state would expose them to every node; the vault keeps
 data on the ``BaseReducer`` instance, outside LangGraph's ``messages`` channel.
 
 One ``BaseVault`` exists per ``thread_id`` (conversation id). Obtain it via
-``BaseReducer._get_vault_for_thread(thread_id)``. Entries persist until the
+``BaseReducer.get_vault_for_thread(thread_id)``. Entries persist until the
 caller runs ``reset_for_thread(thread_id)`` — including across multiple
 ``reducer_session`` blocks when the same reducer instance is reused.
 
@@ -21,7 +21,7 @@ There is no keyed lookup or overwrite: repeated ``append`` calls with the same
 
 Example (transform hook sketch)::
 
-    vault = self._get_vault_for_thread(thread_id)
+    vault = self.get_vault_for_thread(thread_id)
     vault.append(str(message.id), message.copy())
     message.content = redacted_content
     return message
