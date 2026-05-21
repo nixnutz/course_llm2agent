@@ -12,7 +12,7 @@ endif
 # 4) Single non-group targets (if any) at the end
 # This is primarily for readability/discoverability and avoids accidental order drift.
 
-.PHONY: help preflight-up up up-no-preflight down ps top logs logs-all logs-init-keys logs-init-models certs-generate dev-container-smoke dev-container-smoke-clean dev-container-smoke-wrapper devcontainer-smoke devcontainer-smoke-clean devcontainer-smoke-wrapper keys-generate keys-overwrite keys-show keys-sync litellm-recreate ollama-expose phoenix-health smoke-chat smoke-embeddings state-init state-prune toxiproxy-bootstrap toxiproxy-reset trust-certs-host
+.PHONY: help preflight-up up up-no-preflight down ps top logs logs-all logs-init-keys logs-init-models certs-generate dev-container-smoke dev-container-smoke-clean dev-container-smoke-wrapper devcontainer-smoke devcontainer-smoke-clean devcontainer-smoke-wrapper keys-generate keys-overwrite keys-show keys-sync litellm-recreate ollama-expose phoenix-health smoke-chat smoke-embeddings state-init state-prune streamlit-run toxiproxy-bootstrap toxiproxy-reset trust-certs-host
 
 CURL_TLS_FLAGS ?= -k
 MIN_DOCKER_ENGINE_VERSION ?= 25.0.0
@@ -52,6 +52,10 @@ help:
 	@echo "    make phoenix-health        Check local Phoenix UI TLS endpoint"
 	@echo "    make smoke-chat            Run authenticated chat completion smoke test"
 	@echo "    make smoke-embeddings      Run authenticated embeddings smoke test"
+	@echo ""
+	@echo "  Streamlit:"
+	@echo "    make streamlit-run          Run a Streamlit app inside the dev container"
+	@echo "                                Vars: STREAMLIT_FILE STREAMLIT_ADDRESS STREAMLIT_PORT"
 	@echo ""
 	@echo "  Toxiproxy:"
 	@echo "    make toxiproxy-bootstrap   Ensure edge/provider proxies exist in Toxiproxy"
@@ -195,6 +199,18 @@ state-prune:
 	docker compose down
 	@mkdir -p ".state"
 	@find ".state" -mindepth 1 ! -name ".gitignore" -exec rm -rf {} +
+
+# STREAMLIT_FILE is interpreted relative to the dev container workdir
+# (/workspace/src), which corresponds to the repository's src/ folder on the
+# host. Override any of the variables on the command line as needed.
+STREAMLIT_FILE ?= assorted/session3/fake_agent_app.py
+STREAMLIT_ADDRESS ?= 0.0.0.0
+STREAMLIT_PORT ?= 8501
+
+streamlit-run:
+	./scripts/dev/cmd.sh streamlit run $(STREAMLIT_FILE) \
+		--server.address $(STREAMLIT_ADDRESS) \
+		--server.port $(STREAMLIT_PORT)
 
 trust-certs-host:
 	@if ! command -v mkcert >/dev/null 2>&1; then echo "mkcert not found on host; skipping trust step."; exit 0; fi

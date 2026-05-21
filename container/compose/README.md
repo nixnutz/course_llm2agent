@@ -114,6 +114,21 @@ print("MODEL_BASE_URL_CHAOS:", os.getenv("MODEL_BASE_URL_CHAOS"))
 
 Strictness can be tuned with `DEV_KEYS_STRICT` (`1` default, fail on missing required keys; `0` warns and continues).
 
+### Notebook imports from `src/` (dev container only)
+
+Course notebooks under `src/assorted` may import shared modules (for example `src.reducer`). The dev service mounts only `src` at `/workspace/src`; Jupyter’s working directory is usually the notebook folder, so `from src.…` fails until the repo root is on `sys.path`.
+
+First code cell when you need `src.*` imports (Cursor/kernel in `dev`):
+
+```python
+import sys
+sys.path.insert(0, "/workspace")
+```
+
+Example: `from src.reducer.base_reader import BaseReader`
+
+Not maintained for bare-metal clones or other layouts; use the dev container for the course.
+
 ## Devcontainer Wrapper Contract (MVP experiment)
 
 This repository includes a compose-first wrapper experiment for command/session semantics on service `dev`.
@@ -128,10 +143,95 @@ This repository includes a compose-first wrapper experiment for command/session 
 
 The wrapper commands still target the `dev` compose service with `src/` mounted at `/workspace/src`.
 
+### Optional Pylint (manual tool)
+
+`pylint` is available in the dev runtime as an optional hygiene tool.
+It is not auto-run by wrappers, Make targets, or notebook startup.
+Always pass a target path explicitly when invoking it.
+
+Project config lives in `src/.pylintrc` (explore-friendly defaults: no docstring nagging, no line-length checks, and similar).
+Pylint discovers config by walking upward from the current working directory.
+The score is informational only; do not optimize for 9.x vs 10.x.
+
+#### `/workspace/src` vs `/workspace` (important)
+
+These two invocation styles are **not equivalent**:
+
+| Where you run | Example | Typical effect |
+|---|---|---|
+| `/workspace/src` | `pylint reducer/base_reader.py` | Uses `src/.pylintrc`; fewer style messages; often higher score |
+| `/workspace` | `pylint src/reducer/base_reader.py` | Often misses `src/.pylintrc`; closer to pylint defaults; more messages (docstrings, import order, design hints) and often lower score |
+
+Use `/workspace/src` as the default project run.
+Use `/workspace` when you intentionally want a stricter second opinion (for example missing docstrings or import-order findings).
+
+Shared modules under `src/reducer` use relative imports (`from .base import ...`).
+Keep `src/__init__.py` and `src/reducer/__init__.py` present so pylint and runtime imports agree on package context.
+
+#### Examples (host wrapper)
+
+Default project run (recommended):
+
+```bash
+./scripts/dev/cmd.sh /bin/bash -lc 'cd /workspace/src && pylint reducer/base_reader.py'
+./scripts/dev/cmd.sh /bin/bash -lc 'cd /workspace/src && pylint reducer'
+```
+
+Stricter exploration run (more findings, including docstrings/imports):
+
+```bash
+./scripts/dev/cmd.sh /bin/bash -lc 'cd /workspace && pylint src/reducer/base_reader.py'
+```
+
+Same project rules from `/workspace` (explicit config path):
+
+```bash
+./scripts/dev/cmd.sh pylint --rcfile=/workspace/src/.pylintrc /workspace/src/reducer/base_reader.py
+```
+
+Errors only:
+
+```bash
+./scripts/dev/cmd.sh /bin/bash -lc 'cd /workspace/src && pylint --errors-only reducer/base.py'
+```
+
+When a score looks surprisingly low, inspect details:
+
+```bash
+pylint --reports=y reducer/base_reader.py
+pylint --help-msg=E0402
+```
+
+#### Ruff import sorting (isort-style)
+
+Ruff can sort imports in the same spirit as pylint `C0411` (stdlib, then third party, then local/first-party).
+Config: `src/pyproject.toml` (`extend-select = ["I"]`).
+
+From `/workspace/src`:
+
+```bash
+# check import order only
+ruff check --select I reducer/base_reader.py
+
+# apply import fixes
+ruff check --select I --fix reducer/base_reader.py
+
+# or rely on project config (I enabled via extend-select)
+ruff check --fix reducer/base_reader.py
+```
+
+Via host wrapper:
+
+```bash
+./scripts/dev/cmd.sh /bin/bash -lc 'cd /workspace/src && ruff check --select I --fix reducer/base_reader.py'
+```
+
 ```env
 OLLAMA_DATA_DIR=./.state/ollama_data
 KEYS_LOCAL_FILE=./.state/keys/keys.local.json
 HOST_BIND_IP=127.0.0.1
+DEV_JUPYTER_PORT=8888
+DEV_STREAMLIT_PORT=8501
 HEALTHCHECK_INTERVAL=120s
 HEALTHCHECK_INTERVAL_BOOT=3s
 POSTGRES_PORT=5432
