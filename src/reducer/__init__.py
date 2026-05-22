@@ -40,8 +40,8 @@ Limitations (non-goals)
   This is contract enforcement for course experiments, not isolation from malicious
   node code.
 * **Session context is manual** — ``reducer_session`` must wrap each ``invoke`` /
-  ``stream`` (and similar). Checkpoint resume does not restore ContextVars; reopen
-  the session before continuing.
+  ``ainvoke`` / ``stream`` (and similar). Checkpoint resume does not restore
+  ContextVars; reopen the session before continuing.
 * **Not a full security product** — no guarantee against prompt injection, tool
   abuse, or state fields that bypass ``messages``.
 
@@ -49,9 +49,9 @@ Out of scope (for now)
 ----------------------
 * Real PII redaction or policy-driven transforms (demos log and vault copies only)
 * Keyed vault lookup / deduplication by message id (append-only list today)
-* ``stream()`` wrapper on ``ReducerSession``
+* ``stream()`` / ``astream()`` wrapper on ``ReducerSession``
 * Strict matching of State class vs ``factory`` reducer type (convention only)
-* Async / threaded execution with context propagation
+* Threaded execution across OS threads (session is bound to the opening thread)
 
 Architecture (high level)
 -----------------------
@@ -59,7 +59,7 @@ Architecture (high level)
 
     with reducer_session("Chat-A", factory=make_transformer) as session:
         state = session.state(MyState, messages=[HumanMessage(...)])
-        reply = session.invoke(graph, state)   # config thread_id = "Chat-A"
+        reply = await session.ainvoke(graph, state)   # config thread_id = "Chat-A"
 
     # LangGraph merges message updates via session_message_reducer(left, right)
     #   -> get_active_reducer()  (ContextVar set by reducer_session)
@@ -67,9 +67,9 @@ Architecture (high level)
 
 Session safety (``reducer_session``)
 ------------------------------------
-* ``state()`` / ``invoke()`` only work on the **yielded** ``ReducerSession`` while
-  its ``with`` block is active.
-* ``invoke(..., config=...)`` may omit ``config`` (session default is used) or pass
+* ``state()`` / ``invoke()`` / ``ainvoke()`` only work on the **yielded**
+  ``ReducerSession`` while its ``with`` block is active.
+* ``invoke`` / ``ainvoke`` (``config=...``) may omit ``config`` (session default is used) or pass
   a dict whose ``configurable.thread_id`` must match the session; the session
   always injects its ``thread_id`` into the merged config.
 
@@ -84,7 +84,7 @@ Reducer / vault lifetime (caller-owned)
 Modules
 -------
 ``reducer_session``
-    Session scope: ``thread_id``, active reducer instance, ``state()``, ``invoke()``.
+    Session scope: ``thread_id``, active reducer instance, ``state()``, ``invoke()``, ``ainvoke()``.
 ``base``
     ``BaseReducer``: hook orchestration and per-``thread_id`` bookkeeping/vaults.
 ``base_reader`` / ``base_transformer``

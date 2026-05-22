@@ -23,8 +23,8 @@ Example (transform hook sketch)::
 
     vault = self.get_vault_for_thread(thread_id)
     vault.append(str(message.id), message.copy())
-    message.content = redacted_content
-    return message
+    redacted = message.model_copy(update={"content": redacted_content})
+    return redacted
 
 Inspect after a session (see ``langgraph_message.ipynb``)::
 

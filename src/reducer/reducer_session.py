@@ -27,10 +27,10 @@ Typical notebook flow
 
     with reducer_session("Chat-A", factory=make_transformer) as session:
         state = session.state(MyState, [HumanMessage(content="hello")])
-        reply = session.invoke(graph, state)
+        reply = await session.ainvoke(graph, state)
 
-``invoke`` and ``config``
--------------------------
+``invoke`` / ``ainvoke`` and ``config``
+---------------------------------------
 * ``config=None`` → uses ``{"configurable": {"thread_id": session.thread_id}}``.
 * ``config`` with ``configurable.thread_id`` → must equal the session's id, or
   ``RuntimeError``.
@@ -41,7 +41,7 @@ Guards
 ------
 * ``_require_active_session()`` — context set and same OS thread as session open.
 * ``_require_this_session(session)`` — the yielded handle is the active session
-  and ``current_reducer`` matches ``session.reducer`` (for ``state`` / ``invoke``).
+  and ``current_reducer`` matches ``session.reducer`` (for ``state`` / ``invoke`` / ``ainvoke``).
 * ``get_thread_id()`` / ``get_active_reducer()`` / ``session_message_reducer`` use
   the active session.
 
@@ -86,7 +86,7 @@ ReducerFactory = Callable[[Callable[[], str]], BaseReducer]
 
 @dataclass(frozen=True)
 class ReducerSession:
-    """Handle yielded by ``reducer_session``; use for ``state`` / ``invoke``."""
+    """Handle yielded by ``reducer_session``; use for ``state``, ``invoke``, or ``ainvoke``."""
 
     thread_id: str
     owner_thread_ident: int
@@ -107,6 +107,12 @@ class ReducerSession:
         _require_this_session(self)
         safe_config = _assert_config_matches_session(self, config)
         return graph.invoke(input_state, config=safe_config)
+
+    async def ainvoke(self, graph, input_state, config: dict | None = None):
+        """Run ``graph.ainvoke`` with session-checked config."""
+        _require_this_session(self)
+        safe_config = _assert_config_matches_session(self, config)
+        return await graph.ainvoke(input_state, config=safe_config)
 
     def _check_owner_thread(self) -> None:
         if threading.get_ident() != self.owner_thread_ident:
@@ -132,7 +138,7 @@ def _assert_config_matches_session(
         raise RuntimeError(
             f"Config thread_id {other_thread_id!r} does not match session "
             f"thread_id {session.thread_id!r}. "
-            "Use session.invoke() without a conflicting thread_id."
+            "Use session.invoke()/ainvoke() without a conflicting thread_id."
         )
 
     merged_config = dict(config)
@@ -147,7 +153,8 @@ def _require_active_session() -> ReducerSession:
     if session is None:
         raise RuntimeError(
             "Reducer session is not set. "
-            "Wrap invoke()/stream() in reducer_session(...)."
+            "Use reducer_session(...) and run graph.invoke()/ainvoke()/stream() "
+            "inside that with block (prefer session.invoke/ainvoke for config)."
         )
     session._check_owner_thread()
     return session

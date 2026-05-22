@@ -27,8 +27,10 @@ Thread id
 ---------
 Reducers receive ``get_thread_id: Callable[[], str]`` at construction time.
 In practice that callable is ``reducer_session.get_thread_id``, which reads the
-active session's conversation id (and aligns with ``ReducerSession.invoke``
-config).
+active session's conversation id from a **ContextVar** (not from LangGraph's
+reducer arguments — LangGraph calls ``reducer(left, right)`` with no ``config``).
+Use ``ReducerSession.invoke`` / ``ainvoke`` so LangGraph's
+``configurable.thread_id`` matches that session id for checkpoints and tracing.
 
 Vault
 -----
@@ -44,7 +46,8 @@ Example (subclass sketch)::
     class ScrubReducer(BaseReducer):
         def on_transform_message(self, thread_id, message):
             if isinstance(message.content, str):
-                message.content = message.content.replace("PII", "REDACTED")
+                redacted = message.content.replace("PII", "REDACTED")
+                return message.model_copy(update={"content": redacted})
             return message
 """
 
