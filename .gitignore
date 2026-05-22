@@ -1,4 +1,5 @@
 .env
+.agents
 .cursor/*.log
 src/.venv
 **/.env.local

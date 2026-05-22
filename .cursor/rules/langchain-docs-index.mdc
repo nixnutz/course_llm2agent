@@ -1,0 +1,15 @@
+---
+description: Use LangChain docs llms.txt index when working on LangChain/LangGraph
+globs: src/**/*
+alwaysApply: false
+---
+
+# LangChain Documentation Index
+
+When this repository involves **LangChain**, **LangGraph**, or **LangSmith** (anything under `src/`, or explicit user questions on those topics):
+
+1. **Find the right page** using the official index: [https://docs.langchain.com/llms.txt](https://docs.langchain.com/llms.txt) — treat it as a sitemap of doc URLs, not full page content.
+2. **Load details on demand** from the linked `.md` URLs (for example via the `docs-langchain` MCP server if configured, or a targeted fetch). Do not guess APIs or signatures from memory when the index or MCP can confirm them.
+3. **Keep context lean** — do not paste the entire `llms.txt` into the chat; pick only the sections or URLs relevant to the task.
+
+If the user asks about LangChain ecosystem topics outside `src/`, still follow steps 1–3 for that conversation.
