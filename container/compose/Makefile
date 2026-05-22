@@ -12,7 +12,7 @@ endif
 # 4) Single non-group targets (if any) at the end
 # This is primarily for readability/discoverability and avoids accidental order drift.
 
-.PHONY: help preflight-up up up-no-preflight down ps top logs logs-all logs-init-keys logs-init-models certs-generate dev-container-smoke dev-container-smoke-clean dev-container-smoke-wrapper devcontainer-smoke devcontainer-smoke-clean devcontainer-smoke-wrapper keys-generate keys-overwrite keys-show keys-sync litellm-recreate ollama-expose phoenix-health smoke-chat smoke-embeddings state-init state-prune streamlit-run toxiproxy-bootstrap toxiproxy-reset trust-certs-host
+.PHONY: help preflight-up up up-no-preflight down ps top logs logs-all logs-init-keys logs-init-models certs-generate dev-container-smoke dev-container-smoke-clean dev-container-smoke-wrapper devcontainer-smoke devcontainer-smoke-clean devcontainer-smoke-wrapper keys-generate keys-overwrite keys-show keys-sync litellm-recreate ollama-expose phoenix-health smoke-chat smoke-embeddings state-init state-prune streamlit-run ruff ruff-check toxiproxy-bootstrap toxiproxy-reset trust-certs-host
 
 CURL_TLS_FLAGS ?= -k
 MIN_DOCKER_ENGINE_VERSION ?= 25.0.0
@@ -56,6 +56,10 @@ help:
 	@echo "  Streamlit:"
 	@echo "    make streamlit-run          Run a Streamlit app inside the dev container"
 	@echo "                                Vars: STREAMLIT_FILE STREAMLIT_ADDRESS STREAMLIT_PORT"
+	@echo ""
+	@echo "  Code Quality:"
+	@echo "    make ruff-check               Run ruff lint (check only) on src/ Python files (no .ipynb)"
+	@echo "    make ruff                     Run ruff lint --fix and format on src/ Python files (no .ipynb)"
 	@echo ""
 	@echo "  Toxiproxy:"
 	@echo "    make toxiproxy-bootstrap   Ensure edge/provider proxies exist in Toxiproxy"
@@ -211,6 +215,13 @@ streamlit-run:
 	./scripts/dev/cmd.sh streamlit run $(STREAMLIT_FILE) \
 		--server.address $(STREAMLIT_ADDRESS) \
 		--server.port $(STREAMLIT_PORT)
+
+ruff-check:
+	./scripts/dev/cmd.sh ruff check .
+
+ruff:
+	./scripts/dev/cmd.sh ruff check --fix .
+	./scripts/dev/cmd.sh ruff format .
 
 trust-certs-host:
 	@if ! command -v mkcert >/dev/null 2>&1; then echo "mkcert not found on host; skipping trust step."; exit 0; fi

@@ -1,6 +1,8 @@
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+# Jupyter notebooks anywhere under src/ are not linted/formatted by make ruff.
+extend-exclude = ["*.ipynb"]
 
 [tool.ruff.lint]
 # Import sorting (isort-compatible), aligned with pylint import-order expectations.

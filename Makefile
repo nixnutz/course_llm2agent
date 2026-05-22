@@ -6,7 +6,8 @@
 	devcontainer-smoke devcontainer-smoke-wrapper devcontainer-smoke-clean \
 	keys-generate keys-overwrite keys-show keys-sync litellm-recreate ollama-expose \
 	phoenix-health smoke-chat smoke-embeddings state-init state-prune streamlit-run trust-certs-host \
-	dev-image-build dev-image-rebuild dev-image-reset-project-venv dev-container-restart review-manual
+	dev-image-build dev-image-rebuild dev-image-reset-project-venv dev-container-restart review-manual \
+	ruff ruff-check
 
 COMPOSE_DIR := container/compose
 DEV_IMAGE_NAME ?= course-llm-dev:v1
@@ -55,6 +56,10 @@ help:
 	@echo ""
 	@echo "Review Workflow:"
 	@echo "  make review-manual            Show fixed manual review checklist and context"
+	@echo ""
+	@echo "Code Quality (requires running dev container):"
+	@echo "  make ruff-check               Run ruff lint (check only) on src/ Python files (no .ipynb)"
+	@echo "  make ruff                     Run ruff lint --fix and format on src/ Python files (no .ipynb)"
 
 up:
 	$(MAKE) -C $(COMPOSE_DIR) preflight-up && $(MAKE) dev-image-build && $(MAKE) -C $(COMPOSE_DIR) up-no-preflight
@@ -62,7 +67,7 @@ up:
 down ps top logs logs-all logs-init-keys logs-init-models certs-generate \
 dev-container-smoke dev-container-smoke-wrapper dev-container-smoke-clean \
 keys-generate keys-overwrite keys-show keys-sync litellm-recreate ollama-expose \
-phoenix-health smoke-chat smoke-embeddings state-init state-prune streamlit-run trust-certs-host:
+phoenix-health smoke-chat smoke-embeddings state-init state-prune streamlit-run trust-certs-host ruff ruff-check:
 	$(MAKE) -C $(COMPOSE_DIR) $@
 
 # Backward-compatible aliases (deprecated naming).

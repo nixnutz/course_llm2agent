@@ -202,28 +202,45 @@ pylint --reports=y reducer/base_reader.py
 pylint --help-msg=E0402
 ```
 
-#### Ruff import sorting (isort-style)
+#### Ruff (lint + format)
 
-Ruff can sort imports in the same spirit as pylint `C0411` (stdlib, then third party, then local/first-party).
-Config: `src/pyproject.toml` (`extend-select = ["I"]`).
+Project config: `src/pyproject.toml` (`extend-select = ["I"]` for isort-style import sorting).
 
-From `/workspace/src`:
+**Check only (repo root or this directory):** lint without applying fixes:
+
+```bash
+make ruff-check
+```
+
+**Lint + fix + format:**
+
+```bash
+make ruff
+```
+
+From the repository root both targets delegate to `container/compose` and run via `./scripts/dev/cmd.sh` in `/workspace/src` (`ruff check .` vs `ruff check --fix .` then `ruff format .`). Notebooks (`*.ipynb`) are excluded via `src/pyproject.toml` (`extend-exclude`).
+
+Manual equivalent (check only):
+
+```bash
+./scripts/dev/cmd.sh ruff check .
+```
+
+**Targeted import-order checks** (inside `dev`, cwd `/workspace/src`):
 
 ```bash
 # check import order only
 ruff check --select I reducer/base_reader.py
 
-# apply import fixes
+# apply import fixes for one file
 ruff check --select I --fix reducer/base_reader.py
-
-# or rely on project config (I enabled via extend-select)
-ruff check --fix reducer/base_reader.py
 ```
 
-Via host wrapper:
+Via host wrapper (equivalent to running in `/workspace/src`):
 
 ```bash
-./scripts/dev/cmd.sh /bin/bash -lc 'cd /workspace/src && ruff check --select I --fix reducer/base_reader.py'
+./scripts/dev/cmd.sh ruff check --select I reducer/base_reader.py
+./scripts/dev/cmd.sh ruff check --select I --fix reducer/base_reader.py
 ```
 
 ```env

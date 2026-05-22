@@ -9,6 +9,7 @@ This document captures editor, Cursor, and agent-specific conventions for this r
 - Code-related commands should run through `container/compose/scripts/dev/cmd.sh`.
 - Use `container/compose/scripts/dev/session.sh` only for explicit interactive diagnostics.
 - Do not rely on shell state between `dev-cmd` calls.
+- From the repository root, `make ruff-check` runs `ruff check` (no fixes) and `make ruff` runs `ruff check --fix` plus `ruff format` in `/workspace/src` via the dev wrapper. Jupyter notebooks (`*.ipynb`) are excluded in `src/pyproject.toml`.
 
 ## Scope and Language
 
