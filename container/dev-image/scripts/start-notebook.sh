@@ -17,5 +17,5 @@ exec "${VENV_PATH}/bin/jupyter" lab \
   --ip=0.0.0.0 \
   --port="${JUPYTER_PORT:-8888}" \
   --no-browser \
-  --ServerApp.token="${JUPYTER_TOKEN:-change_me}" \
+  --ServerApp.token="${JUPYTER_TOKEN:?Set JUPYTER_TOKEN in container/compose/.env (or pass -e JUPYTER_TOKEN)}" \
   --ServerApp.password=''

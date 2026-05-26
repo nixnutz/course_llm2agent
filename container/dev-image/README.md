@@ -55,16 +55,53 @@ python --version
 ruff --version
 ```
 
-## Notebook Mode (same dev service, on demand)
+## Notebook Mode (compose `dev` service)
 
-```bash
-make up
+After `make up`, JupyterLab starts automatically in the `dev` container background (`keepalive.sh` → `start-notebook.sh`).
+
+### Browser URL (from the host)
+
+Set `HOST_BIND_IP`, `DEV_JUPYTER_PORT`, and `JUPYTER_TOKEN` in `container/compose/.env` (see `.env.example`). After `make up`, open:
+
+```text
+http://<HOST_BIND_IP>:<DEV_JUPYTER_PORT>/lab?token=<JUPYTER_TOKEN>
 ```
 
-JupyterLab is started automatically in the `dev` service background via keepalive.
-The notebook server is exposed on host-local `127.0.0.1:${DEV_JUPYTER_PORT:-8888}` through compose mapping.
-Check `dev` container logs to confirm Jupyter startup.
+Example with defaults from `.env.example`:
+
+```text
+http://127.0.0.1:8888/lab?token=<JUPYTER_TOKEN>
+```
+
+| Setting | `.env` variable | Example (`.env.example`) |
+|--------|-----------------|---------------------------|
+| Host bind | `HOST_BIND_IP` | `127.0.0.1` |
+| Host port | `DEV_JUPYTER_PORT` | `8888` |
+| Auth token | `JUPYTER_TOKEN` | set in `.env` (placeholder in example: `change_me`) |
+| Password | — | none (`--ServerApp.password=''`) |
+
+Compose passes `JUPYTER_TOKEN` into the `dev` container at runtime; `start-notebook.sh` (copied into the image at build time) reads that variable when Jupyter starts.
+
+**Restart vs. image rebuild**
+
+| What changed | What to run |
+|--------------|-------------|
+| `JUPYTER_TOKEN`, `DEV_JUPYTER_PORT`, or `HOST_BIND_IP` in `container/compose/.env` | `make dev-container-restart` (or `make up`) — no image rebuild |
+| `container/dev-image/scripts/start-notebook.sh` or `container/dev-image/Dockerfile` | `make dev-image-build`, then restart `dev` — script changes are not picked up from the host mount |
+
+Open the full URL including `?token=…` in one step. Without the token query parameter, Jupyter prompts for the token manually.
+
+### Verify inside the container
+
+```bash
+docker compose -f container/compose/docker-compose.yml --env-file container/compose/.env exec dev jupyter server list
+```
+
+Container logs also print a startup line (token may be redacted as `...`).
+
 The default notebook kernel is auto-registered from `/workspace/src/.venv`.
+
+More notebook/runtime notes: `container/compose/README.md` (API keys, `src` imports).
 
 ## TLS Trust Inside `dev`
 

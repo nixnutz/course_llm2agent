@@ -26,6 +26,14 @@ Open LiteLLM UI:
 xdg-open "https://localhost:4000/ui"
 ```
 
+Open JupyterLab (course notebooks under `src/assorted`; stack must be up via `make up`). URL uses `HOST_BIND_IP`, `DEV_JUPYTER_PORT`, and `JUPYTER_TOKEN` from `container/compose/.env`:
+
+```text
+http://<HOST_BIND_IP>:<DEV_JUPYTER_PORT>/lab?token=<JUPYTER_TOKEN>
+```
+
+Details (in-container checks, restart after token change): `container/dev-image/README.md` → **Notebook Mode**.
+
 If `smoke-chat` works, your local stack is ready for first agent experiments.
 
 Builds and operational stack commands are available from the repository root via `Makefile`.

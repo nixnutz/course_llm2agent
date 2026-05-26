@@ -449,6 +449,7 @@ services:
     networks:
       - dev_edge
     environment:
+      JUPYTER_TOKEN: "${JUPYTER_TOKEN:?Set JUPYTER_TOKEN in container/compose/.env}"
       KEYS_FILE: "/workspace/compose-state/keys/keys.local.json"
       DEV_SECRETS_EXPORTER: "/workspace/compose-scripts/dev/export-secrets-env.sh"
       DEV_SECRETS_ENV_FILE: "/tmp/dev-secrets.env.sh"

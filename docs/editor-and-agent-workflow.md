@@ -10,6 +10,7 @@ This document captures editor, Cursor, and agent-specific conventions for this r
 - Use `container/compose/scripts/dev/session.sh` only for explicit interactive diagnostics.
 - Do not rely on shell state between `dev-cmd` calls.
 - From the repository root, `make ruff-check` runs `ruff check` (no fixes) and `make ruff` runs `ruff check --fix` plus `ruff format` in `/workspace/src` via the dev wrapper. Jupyter notebooks (`*.ipynb`) are excluded in `src/pyproject.toml`.
+- With `make up`, JupyterLab in the `dev` container is reachable from the host at `http://<HOST_BIND_IP>:<DEV_JUPYTER_PORT>/lab?token=<JUPYTER_TOKEN>` (values in `container/compose/.env`; see `container/dev-image/README.md` → **Notebook Mode**). In Cursor, prefer **Jupyter: Specify Jupyter Server for Connections** → existing server with that URL so notebook kernels inherit `MODEL_API_KEY_*` and TLS trust from the `dev` runtime; a host-local Python kernel on the mounted `src/` tree does not get those variables.
 
 ## Scope and Language
 
