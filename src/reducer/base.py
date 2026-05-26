@@ -146,6 +146,4 @@ class BaseReducer:
         raise NotImplementedError("on_read_message must be implemented in subclass")
 
     def on_transform_message(self, thread_id: str, message: BaseMessage) -> BaseMessage:
-        raise NotImplementedError(
-            "on_transform_message must be implemented in subclass"
-        )
+        raise NotImplementedError("on_transform_message must be implemented in subclass")

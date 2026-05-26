@@ -28,9 +28,7 @@ class BaseReducerReader(BaseReducer):
 
     def on_read_message(self, thread_id: str, message: BaseMessage) -> None:
         if hasattr(message, "content") and isinstance(message.content, str):
-            print(
-                f"REDUCER (thread={thread_id}): observing message content: {message.content}"
-            )
+            print(f"REDUCER (thread={thread_id}): observing message content: {message.content}")
             vault = self.get_vault_for_thread(thread_id)
             if hasattr(message, "id"):
                 key = str(message.id)
@@ -38,6 +36,4 @@ class BaseReducerReader(BaseReducer):
                 key = ""
             vault.append(key, message.copy())
         else:
-            print(
-                f"REDUCER (thread={thread_id}): observing message without content: {message}"
-            )
+            print(f"REDUCER (thread={thread_id}): observing message without content: {message}")

@@ -68,14 +68,12 @@ class BaseReducerTransformer(BaseReducer):
 
     def on_transform_message(self, thread_id: str, message: BaseMessage) -> BaseMessage:
         if hasattr(message, "content") and isinstance(message.content, str):
-            print(
-                f"REDUCER (thread={thread_id}): transforming message content: {message.content}"
-            )
+            print(f"REDUCER (thread={thread_id}): transforming message content: {message.content}")
 
             vault = self.get_vault_for_thread(thread_id)
             key = str(message.id) if hasattr(message, "id") else ""
             vault.append(key, message.copy())
-        
+
             if isinstance(message, HumanMessage) and "Hi" in message.content:
                 # Don't do in-place modifications on the message object, create a new one instead
                 new_content = message.content.replace("Hi", "Moin")
@@ -83,9 +81,6 @@ class BaseReducerTransformer(BaseReducer):
                 print(f"REDUCER (thread={thread_id}): replaced 'Hi' with 'Moin': {message.content}")
                 vault.append(key, message.copy())
 
-            
         else:
-            print(
-                f"REDUCER (thread={thread_id}): transforming message without content: {message}"
-            )
+            print(f"REDUCER (thread={thread_id}): transforming message without content: {message}")
         return message

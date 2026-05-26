@@ -74,12 +74,8 @@ from .base import BaseReducer
 
 T = TypeVar("T")
 
-_current_reducer: ContextVar[BaseReducer | None] = ContextVar(
-    "current_reducer", default=None
-)
-_session_var: ContextVar["ReducerSession | None"] = ContextVar(
-    "reducer_session", default=None
-)
+_current_reducer: ContextVar[BaseReducer | None] = ContextVar("current_reducer", default=None)
+_session_var: ContextVar["ReducerSession | None"] = ContextVar("reducer_session", default=None)
 
 ReducerFactory = Callable[[Callable[[], str]], BaseReducer]
 

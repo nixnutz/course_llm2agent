@@ -12,4 +12,4 @@ extend-select = ["I"]
 # stdlib -> third party -> first party/local (e.g. from .base import ...)
 combine-as-imports = true
 force-sort-within-sections = true
-known-first-party = ["src", "reducer"]
+known-first-party = ["src", "reducer", "llm_nodes", "llm_handle"]
