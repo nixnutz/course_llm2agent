@@ -18,12 +18,14 @@ Typical usage in notebooks (no reliable `__file__` there):
 """
 
 import logging
+import uuid
 from pathlib import Path
 
 _CONFIGURED: bool = False
 _DISPLAY_ALL: bool = False
 _PROJECT_PREFIX: str = "course_llm2agent"
 _SRC_ROOT: Path = Path(__file__).resolve().parent
+_RUN_ID: str = str(uuid.uuid4())
 
 
 class _SelfOnlyFilter(logging.Filter):
@@ -39,9 +41,9 @@ class _DefaultRunIdFilter(logging.Filter):
     """Keep hook point for future per-run metadata."""
 
     def filter(self, record: logging.LogRecord) -> bool:
-        # Reserved for later: attach run_id or correlation id here when needed.
+        # Keep internal run context available on records without exposing it by default.
         if not hasattr(record, "run_id"):
-            record.run_id = "-"
+            record.run_id = _RUN_ID
         return True
 
 
@@ -69,6 +71,7 @@ def configure_logging(level: int = logging.INFO) -> None:
 
     if not root.handlers:
         console = logging.StreamHandler()
+        # To display the run id, include `%(run_id)s` in this formatter string.
         console.setFormatter(
             logging.Formatter("[%(levelname)s] [%(relpath)s:%(lineno)d] %(message)s")
         )
