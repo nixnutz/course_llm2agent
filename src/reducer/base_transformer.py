@@ -60,7 +60,10 @@ Example::
 
 from langchain_core.messages import BaseMessage, HumanMessage
 
+from ..logging_setup import get_logger
 from .base import BaseReducer
+
+logger = get_logger(__name__, __file__)
 
 
 class BaseReducerTransformer(BaseReducer):
@@ -68,7 +71,11 @@ class BaseReducerTransformer(BaseReducer):
 
     def on_transform_message(self, thread_id: str, message: BaseMessage) -> BaseMessage:
         if hasattr(message, "content") and isinstance(message.content, str):
-            print(f"REDUCER (thread={thread_id}): transforming message content: {message.content}")
+            logger.debug(
+                "transforming message content: %s",
+                message.content,
+                extra={"thread_id": thread_id},
+            )
 
             vault = self.get_vault_for_thread(thread_id)
             key = str(message.id) if hasattr(message, "id") else ""
@@ -78,9 +85,17 @@ class BaseReducerTransformer(BaseReducer):
                 # Don't do in-place modifications on the message object, create a new one instead
                 new_content = message.content.replace("Hi", "Moin")
                 message = message.model_copy(update={"content": new_content})
-                print(f"REDUCER (thread={thread_id}): replaced 'Hi' with 'Moin': {message.content}")
+                logger.debug(
+                    "replaced 'Hi' with 'Moin': %s",
+                    message.content,
+                    extra={"thread_id": thread_id},
+                )
                 vault.append(key, message.copy())
 
         else:
-            print(f"REDUCER (thread={thread_id}): transforming message without content: {message}")
+            logger.debug(
+                "transforming message without content: %s",
+                message,
+                extra={"thread_id": thread_id},
+            )
         return message

@@ -20,7 +20,10 @@ Example::
 
 from langchain_core.messages import BaseMessage
 
+from ..logging_setup import get_logger
 from .base import BaseReducer
+
+logger = get_logger(__name__, __file__)
 
 
 class BaseReducerReader(BaseReducer):
@@ -28,7 +31,11 @@ class BaseReducerReader(BaseReducer):
 
     def on_read_message(self, thread_id: str, message: BaseMessage) -> None:
         if hasattr(message, "content") and isinstance(message.content, str):
-            print(f"REDUCER (thread={thread_id}): observing message content: {message.content}")
+            logger.debug(
+                "observing message content: %s",
+                message.content,
+                extra={"thread_id": thread_id},
+            )
             vault = self.get_vault_for_thread(thread_id)
             if hasattr(message, "id"):
                 key = str(message.id)
@@ -36,4 +43,8 @@ class BaseReducerReader(BaseReducer):
                 key = ""
             vault.append(key, message.copy())
         else:
-            print(f"REDUCER (thread={thread_id}): observing message without content: {message}")
+            logger.debug(
+                "observing message without content: %s",
+                message,
+                extra={"thread_id": thread_id},
+            )
