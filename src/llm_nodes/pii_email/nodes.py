@@ -2,10 +2,11 @@
 
 from langchain_core.messages import AIMessage, convert_to_openai_messages
 from langchain_core.prompts import ChatPromptTemplate
+from pydantic import ValidationError
 
 from ...llm_handle.local import get_async_openai_client
 from ..global_state import GlobalState
-from ..parse_llm_json import parse_llm_json
+from ..parse_llm_json import ParseLLMJson
 from .models import PIIEmail
 from .prompts import _pii_email_prompt
 
@@ -34,7 +35,17 @@ class LlmNodePIIExtract:
             temperature=0.0,
         )
         answer = completion.choices[0].message.content or ""
-        parsed = parse_llm_json(answer, PIIEmail)
+        raw = ParseLLMJson().parse_as_dict(answer)
+        cleaned = {
+            "text": raw.get("text", ""),
+            "recognized_emails": raw.get("recognized_emails", []),
+            "raw_emails": raw.get("raw_emails", []),
+        }
+
+        try:
+            parsed = PIIEmail.model_validate(cleaned)
+        except ValidationError as e:
+            raise ValueError(f"JSON does not match schema: {e}") from e
 
         return {
             "messages": [AIMessage(content=answer.strip())],

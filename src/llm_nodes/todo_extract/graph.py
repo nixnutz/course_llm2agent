@@ -45,7 +45,7 @@ from .models import TODOList, TODOState
 from .nodes import get_todo_list_node
 
 
-def build_todo_subgraph(model: str) -> CompiledStateGraph:
+def build_todo_extract_subgraph(model: str) -> CompiledStateGraph:
     """Compile an isolated graph on ``TODOState`` (no session/config at build time)."""
     builder = StateGraph(TODOState)
     builder.add_node("todo_extract", get_todo_list_node(model))
@@ -54,7 +54,7 @@ def build_todo_subgraph(model: str) -> CompiledStateGraph:
     return builder.compile()
 
 
-def make_todo_subgraph_runner(todo_graph: CompiledStateGraph):
+def make_todo_extract_subgraph_runner(todo_graph: CompiledStateGraph):
     """Return a parent-graph node that bridges ``GlobalState`` ↔ ``TODOState``.
 
     At runtime LangGraph calls the inner function with ``(state, config)``.
@@ -62,7 +62,7 @@ def make_todo_subgraph_runner(todo_graph: CompiledStateGraph):
     docstring for how that relates to ``reducer_session``.
     """
 
-    async def run_todo_subgraph(
+    async def run_todo_extract_subgraph(
         state: GlobalState,
         config: RunnableConfig,
     ) -> dict:
@@ -73,19 +73,10 @@ def make_todo_subgraph_runner(todo_graph: CompiledStateGraph):
             {"text": state.pii_email.text},
             config=config,
         )
-        if isinstance(sub_result, dict):
-            todo_list = sub_result.get("todo_list")
-            messages = sub_result.get("messages", [])
-        else:
-            todo_list = sub_result.todo_list
-            messages = sub_result.messages
-
-        if todo_list is not None and not isinstance(todo_list, TODOList):
-            todo_list = TODOList.model_validate(todo_list)
 
         return {
-            "todo_list": todo_list or TODOList(),
-            "messages": messages,
+            "todo_list": TODOList.model_validate(sub_result["todo_list"]),
+            "messages": sub_result.get("messages", []),
         }
 
-    return run_todo_subgraph
+    return run_todo_extract_subgraph

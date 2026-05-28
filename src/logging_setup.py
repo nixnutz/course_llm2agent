@@ -18,8 +18,8 @@ Typical usage in notebooks (no reliable `__file__` there):
 """
 
 import logging
-import uuid
 from pathlib import Path
+import uuid
 
 _CONFIGURED: bool = False
 _DISPLAY_ALL: bool = False

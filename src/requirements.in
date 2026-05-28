@@ -12,3 +12,4 @@ pgvector
 streamlit
 Ipython
 pydantic>=2.13
+email-validator>=2.0

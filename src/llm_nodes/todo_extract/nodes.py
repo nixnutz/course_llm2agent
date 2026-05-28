@@ -4,7 +4,7 @@ from langchain_core.messages import AIMessage, convert_to_openai_messages
 from langchain_core.prompts import ChatPromptTemplate
 
 from ...llm_handle.local import get_async_openai_client
-from ..parse_llm_json import parse_llm_json
+from ..parse_llm_json import ParseLLMJson
 from .models import TODOList, TODOState
 from .prompts import _todo_list_prompt
 
@@ -31,7 +31,7 @@ class LlmNodeTODOList:
             temperature=0.0,
         )
         answer = completion.choices[0].message.content or ""
-        parsed = parse_llm_json(answer, TODOList)
+        parsed = ParseLLMJson().parse_as_model(answer, TODOList)
 
         return {
             "messages": [AIMessage(content=answer.strip())],
