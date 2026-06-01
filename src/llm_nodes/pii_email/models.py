@@ -37,7 +37,4 @@ class PIIEmail(BaseState):
         if len(self.recognized_emails) != len(self.raw_emails):
             raise ValueError("recognized_emails and raw_emails must have the same length")
 
-        if len(self.recognized_emails) != len(self.normalized_emails):
-            raise ValueError("recognized_emails and normalized_emails must have the same length")
-
         return self
