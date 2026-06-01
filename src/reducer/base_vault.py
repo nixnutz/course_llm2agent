@@ -26,7 +26,7 @@ Example (transform hook sketch)::
     redacted = message.model_copy(update={"content": redacted_content})
     return redacted
 
-Inspect after a session (see ``langgraph_message.ipynb``)::
+Inspect after a session (see ``langgraph_messages.ipynb``)::
 
     for key, original in vault.get():
         ...

@@ -94,4 +94,4 @@ Modules
 ``base_vault``
     Per-thread append-only ``(key, value)`` log outside graph ``messages``.
 
-See ``src/assorted/session3/langgraph_message.ipynb`` for a minimal mock graph."""
+See ``src/assorted/session3/langgraph_messages.ipynb`` for a minimal mock graph."""
