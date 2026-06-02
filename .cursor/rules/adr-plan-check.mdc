@@ -17,3 +17,10 @@ alwaysApply: true
 - If the answer is **no**:
   - Add one short rationale line in the plan that explains why no ADR update is needed.
 - Do not finalize a plan without one of these two outcomes (ADR task or no-ADR rationale).
+
+## Plan sidecar (local bridge)
+
+- After finalizing an implementation plan, if ADR-relevant context exists, update the local sidecar `docs/internal/adr-plan-sidecar.md` using [adr-plan-sidecar.template.md](docs/internal/adr-plan-sidecar.template.md).
+- Keep only ADR-relevant bullets (intent, constraints, rejected alternatives, runtime control surface, implementation state, ADR hint); do not paste the full plan.
+- One-off default: overwrite the sidecar for the current feature; trim or clear it after `review-w-auto-doc` when ADR work for that change is done.
+- Before writing ADR/raw-log content (including during review), read the sidecar if the file exists and treat it as supporting context only.

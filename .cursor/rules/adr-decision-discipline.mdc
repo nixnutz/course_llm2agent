@@ -14,3 +14,8 @@ alwaysApply: true
 - Keep ADRs short and focused (target: half a page, hard limit: one page).
 - Maintain a raw append-only decision log for collection; summarize only during review.
 - Track ADR maintenance overhead only as raw seconds (`OverheadSeconds: <number>`), without evaluation notes.
+
+## Plan sidecar
+
+- `docs/internal/adr-plan-sidecar.md` may capture rationale from one-off plans; it is not proof that a decision is implemented.
+- Respect `implementation_state` in the sidecar: write ADR/raw-log entries only when the change is implemented (or ask the user when state is `partial` / `proposal`).

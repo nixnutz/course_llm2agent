@@ -77,6 +77,7 @@ When user explicitly requests permanence (for example, "always ignore this" / "n
 
 At the beginning of every run:
 
+0) If `docs/internal/adr-plan-sidecar.md` exists, read it and use it as supporting context for Findings, Open questions, and Auto-doc (not as proof of implementation).
 1) Detect current branch and read `docs/internal/review-status.md` for this branch.
 2) If no branch status exists and branch already has commits, ask:
    - A) start from latest commit only
@@ -92,6 +93,8 @@ At the beginning of every run:
 Use AskQuestion for these user choices.
 
 ## Auto-Doc Decision (Mandatory)
+
+If `docs/internal/adr-plan-sidecar.md` exists, mention in section 3 whether its `adr_hint` and bullets were used, ignored (stale), or contradicted by the diff.
 
 Always include an explicit decision for both logs:
 

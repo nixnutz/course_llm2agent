@@ -19,9 +19,17 @@ Goal: Continuously capture project context so reviews include not only the lates
     - `docs/auto-doc/adr/0005-define-ollama-runtime-control-surface.md`
 - Architecture/invariants track (`b`) is currently inactive because no clear need has appeared so far.
 
+## Plan sidecar (one-off plans)
+
+- Template: `docs/internal/adr-plan-sidecar.template.md`
+- Local file (gitignored): `docs/internal/adr-plan-sidecar.md`
+- After Plan mode: copy template, fill ADR-relevant bullets only, overwrite per feature.
+- Before `review-w-auto-doc`: agent reads sidecar if present; ADR writes still require implemented decisions.
+- After review: trim or delete sidecar when ADR/raw-log work for that change is done.
+
 ## Use in Review
 
-- Before review: collect and condense relevant log entries.
+- Before review: collect and condense relevant log entries; read plan sidecar if it exists.
 - In review: provide the compact timeline as context (not only the latest state).
 - After review: feed open points/decisions back into ongoing logging.
 - Optional post-commit review tracking can use local branch status in `docs/internal/review-status.md` (local-only, gitignored).
