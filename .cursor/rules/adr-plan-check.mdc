@@ -17,10 +17,12 @@ alwaysApply: true
 - If the answer is **no**:
   - Add one short rationale line in the plan that explains why no ADR update is needed.
 - Do not finalize a plan without one of these two outcomes (ADR task or no-ADR rationale).
+- As the closing step of finalizing the plan, record that outcome in the plan sidecar (see below). Treat this as a normal part of the plan workflow, but best-effort: it is not a hard gate, and a skipped write is acceptable.
 
 ## Plan sidecar (local bridge)
 
-- After finalizing an implementation plan, if ADR-relevant context exists, update the local sidecar `docs/internal/adr-plan-sidecar.md` using [adr-plan-sidecar.template.md](docs/internal/adr-plan-sidecar.template.md).
+- When finalizing an implementation plan, append a `## plan-<n>` block to the local sidecar `docs/internal/adr-plan-sidecar.md` (template: [adr-plan-sidecar.template.md](docs/internal/adr-plan-sidecar.template.md)) capturing the ADR outcome — whether the answer was yes (with `adr_hint`) or no (with `no_adr_rationale`). No extra command is needed; this is just the closing step of the plan.
 - Keep only ADR-relevant bullets (intent, constraints, rejected alternatives, runtime control surface, implementation state, ADR hint); do not paste the full plan.
-- One-off default: overwrite the sidecar for the current feature; trim or clear it after `review-w-auto-doc` when ADR work for that change is done.
+- Append default: add one `## plan-<n>` block per finalized plan (incrementing `<n>`); do not overwrite earlier blocks. Only overwrite the whole file when starting an unrelated feature with no pending ADR work from the existing blocks.
+- Do not clear or trim the sidecar automatically after `review-w-auto-doc`. Only clear it after explicit confirmation that the ADR work for every plan currently captured in the sidecar is done and committed (raw-log/ADR entries landed). When unsure, keep the sidecar so the next review still has context.
 - Before writing ADR/raw-log content (including during review), read the sidecar if the file exists and treat it as supporting context only.

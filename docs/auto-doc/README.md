@@ -23,9 +23,9 @@ Goal: Continuously capture project context so reviews include not only the lates
 
 - Template: `docs/internal/adr-plan-sidecar.template.md`
 - Local file (gitignored): `docs/internal/adr-plan-sidecar.md`
-- After Plan mode: copy template, fill ADR-relevant bullets only, overwrite per feature.
+- As the closing step of finalizing a plan (no extra command, best-effort): append one `## plan-<n>` block from the template, ADR-relevant bullets only, capturing the ADR outcome (yes + `adr_hint`, or no + `no_adr_rationale`). Overwrite the whole file only when starting an unrelated feature with no pending ADR work.
 - Before `review-w-auto-doc`: agent reads sidecar if present; ADR writes still require implemented decisions.
-- After review: trim or delete sidecar when ADR/raw-log work for that change is done.
+- After review: do NOT auto-clear. Only trim/delete the sidecar after explicit confirmation that the ADR/raw-log work for every plan captured in it is done and committed; otherwise keep it so the next review retains context.
 
 ## Use in Review
 

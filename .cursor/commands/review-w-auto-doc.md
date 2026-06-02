@@ -96,6 +96,8 @@ Use AskQuestion for these user choices.
 
 If `docs/internal/adr-plan-sidecar.md` exists, mention in section 3 whether its `adr_hint` and bullets were used, ignored (stale), or contradicted by the diff.
 
+Sidecar lifecycle (mandatory): do NOT clear or trim the sidecar as part of this review. Only propose clearing it after explicit user confirmation that the ADR work for every plan currently captured in the sidecar is done and committed. If any captured plan still has pending ADR work, keep the sidecar intact so the next review retains context.
+
 Always include an explicit decision for both logs:
 
 - ADR raw log: `add` | `skip (trivial)` | `update existing`
