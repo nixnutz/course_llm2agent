@@ -18,5 +18,8 @@ known-first-party = ["src", "reducer", "llm_nodes", "llm_handle"]
 pythonpath = [".."]
 asyncio_mode = "auto"
 markers = [
+    "unit: marks tests as unit tests",
+    "smoke: marks tests as smoke tests",
     "integration: marks tests as integration tests",
+    "eval: marks tests as eval/golden-set tests",
 ]

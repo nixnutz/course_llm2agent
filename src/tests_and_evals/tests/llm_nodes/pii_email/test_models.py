@@ -3,7 +3,7 @@
 Summary:
 - Default empty lists and ``extra="forbid"`` on ``BaseState``.
 - Field transformers: ``raw_emails`` (strip + lower), ``recognized_emails`` (strip only).
-- Model validator: derives ``normalized_emails`` from ``raw_emails`` (invalid → ``None``).
+- Model validator: derives ``normalized_emails`` from ``raw_emails`` (invalid -> ``None``).
 - Length parity between ``recognized_emails`` and ``raw_emails``.
 
 Not exhaustive: this node is course/WIP code, not production, and ``models.py`` may still
@@ -16,6 +16,7 @@ import pytest
 from src.llm_nodes.pii_email.models import PIIEmail
 
 
+@pytest.mark.unit
 def test_minimal_defaults():
     result = PIIEmail(text="No emails here.")
     assert result.text == "No emails here."
@@ -24,6 +25,7 @@ def test_minimal_defaults():
     assert result.normalized_emails == []
 
 
+@pytest.mark.unit
 def test_valid_consistent_lists():
     result = PIIEmail(
         text="This is a confidential email: Test@example.com, Test2@example.com",
@@ -36,6 +38,7 @@ def test_valid_consistent_lists():
     assert str(result.normalized_emails[1]) == "test2@example.com"
 
 
+@pytest.mark.unit
 def test_auto_normalization_mixed_valid_invalid():
     result = PIIEmail(
         text="Contact: good@example.com or bad address",
@@ -46,6 +49,7 @@ def test_auto_normalization_mixed_valid_invalid():
     assert result.normalized_emails[1] is None
 
 
+@pytest.mark.unit
 def test_raw_emails_strip_and_lower():
     result = PIIEmail(
         text="x",
@@ -55,6 +59,7 @@ def test_raw_emails_strip_and_lower():
     assert result.raw_emails == ["foo@bar.com"]
 
 
+@pytest.mark.unit
 def test_recognized_emails_strip_preserves_case():
     result = PIIEmail(
         text="x",
@@ -64,6 +69,7 @@ def test_recognized_emails_strip_preserves_case():
     assert result.recognized_emails == ["Test@Example.COM"]
 
 
+@pytest.mark.unit
 def test_invalid_email_same_lengths_normalized_none():
     result = PIIEmail(
         text="This is a confidential email",
@@ -73,11 +79,13 @@ def test_invalid_email_same_lengths_normalized_none():
     assert result.normalized_emails == [None]
 
 
+@pytest.mark.unit
 def test_extra_fields_forbidden():
     with pytest.raises(ValidationError):
         PIIEmail(text="x", unknown_field=1)
 
 
+@pytest.mark.unit
 def test_length_mismatch_recognized_vs_raw():
     with pytest.raises(ValidationError) as exc_info:
         PIIEmail(
@@ -92,6 +100,7 @@ def test_length_mismatch_recognized_vs_raw():
     assert "recognized_emails and raw_emails must have the same length" in str(exc_info.value)
 
 
+@pytest.mark.unit
 def test_length_mismatch_recognized_shorter_than_raw():
     with pytest.raises(ValidationError) as exc_info:
         PIIEmail(

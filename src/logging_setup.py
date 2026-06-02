@@ -23,7 +23,7 @@ import uuid
 
 _CONFIGURED: bool = False
 _DISPLAY_ALL: bool = False
-_PROJECT_PREFIX: str = "course_llm2agent"
+_PROJECT_PREFIX: str = "c2a"
 _SRC_ROOT: Path = Path(__file__).resolve().parent
 _RUN_ID: str = str(uuid.uuid4())
 

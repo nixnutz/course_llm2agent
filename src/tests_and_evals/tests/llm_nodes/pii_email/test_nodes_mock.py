@@ -1,12 +1,12 @@
 """Placeholder mocked unit tests for ``LlmNodePIIExtract``.
 
 Summary:
-- Smoke: mocked LLM JSON → ``pii_email`` and ``messages`` in result.
+- Smoke: mocked LLM JSON -> ``pii_email`` and ``messages`` in result.
 - Guards: no human message, non-string human content.
 - Last human message is used for the prompt.
 - Return shape: ``AIMessage`` with stripped LLM answer.
 - OpenAI wiring: model and ``temperature=0.0``.
-- Partial LLM JSON: missing email fields → node defaults before ``PIIEmail`` validation.
+- Partial LLM JSON: missing email fields -> node defaults before ``PIIEmail`` validation.
 - Error paths: invalid JSON, schema mismatch (one case each).
 
 Not exhaustive: course/WIP code, no real LLM, expand when ``nodes.py`` stabilizes.
@@ -44,6 +44,7 @@ def mock_openai_for_pii(mocker):
     return _patch_openai(mocker, _LLM_JSON)
 
 
+@pytest.mark.unit
 @pytest.mark.asyncio
 async def test_smoke_mocked_llm_fills_state(mock_openai_for_pii):
     mock_client, client_provider = mock_openai_for_pii
@@ -60,6 +61,7 @@ async def test_smoke_mocked_llm_fills_state(mock_openai_for_pii):
     assert mock_client.chat.completions.create.await_count == 1
 
 
+@pytest.mark.unit
 @pytest.mark.asyncio
 async def test_raises_without_human_message(mocker):
     _, client_provider = _patch_openai(mocker, _LLM_JSON)
@@ -68,6 +70,7 @@ async def test_raises_without_human_message(mocker):
         await node(GlobalState(messages=[]))
 
 
+@pytest.mark.unit
 @pytest.mark.asyncio
 async def test_raises_when_human_content_not_string(mocker):
     _, client_provider = _patch_openai(mocker, _LLM_JSON)
@@ -77,6 +80,7 @@ async def test_raises_when_human_content_not_string(mocker):
         await node(state)
 
 
+@pytest.mark.unit
 @pytest.mark.asyncio
 async def test_uses_last_human_message(mocker):
     mock_client, client_provider = _patch_openai(mocker, _LLM_JSON)
@@ -93,6 +97,7 @@ async def test_uses_last_human_message(mocker):
     assert user_payload["content"] == "Second message."
 
 
+@pytest.mark.unit
 @pytest.mark.asyncio
 async def test_returns_ai_message_with_stripped_llm_answer(mocker):
     _, client_provider = _patch_openai(mocker, f"  {_LLM_JSON}  ")
@@ -103,6 +108,7 @@ async def test_returns_ai_message_with_stripped_llm_answer(mocker):
     assert result["messages"][0].content == _LLM_JSON
 
 
+@pytest.mark.unit
 @pytest.mark.asyncio
 async def test_openai_called_with_model_and_zero_temperature(mocker, mock_openai_for_pii):
     mock_client, client_provider = mock_openai_for_pii
@@ -114,6 +120,7 @@ async def test_openai_called_with_model_and_zero_temperature(mocker, mock_openai
     assert call_kwargs["temperature"] == 0.0
 
 
+@pytest.mark.unit
 @pytest.mark.asyncio
 async def test_partial_llm_json_applies_field_defaults(mocker):
     partial = json.dumps({"text": "No emails in reply."})
@@ -127,6 +134,7 @@ async def test_partial_llm_json_applies_field_defaults(mocker):
     assert result["pii_email"].normalized_emails == []
 
 
+@pytest.mark.unit
 @pytest.mark.asyncio
 async def test_raises_on_invalid_json_from_llm(mocker):
     _, client_provider = _patch_openai(mocker, "not json")
@@ -136,6 +144,7 @@ async def test_raises_on_invalid_json_from_llm(mocker):
         await node(state)
 
 
+@pytest.mark.unit
 @pytest.mark.asyncio
 async def test_raises_on_schema_mismatch(mocker):
     bad_json = json.dumps(

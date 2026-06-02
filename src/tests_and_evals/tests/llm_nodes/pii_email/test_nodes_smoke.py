@@ -1,27 +1,14 @@
 """Smoke integration tests for pii email node (real LLM call)."""
 
-import os
-
 from langchain_core.messages import HumanMessage
 import pytest
 
 from src.llm_nodes.global_state import GlobalState
 from src.llm_nodes.pii_email.nodes import get_pii_email_node
-
-_SMOKE_MODEL = "ollama_chat/llama3.2:3b"
-
-
-@pytest.fixture
-def get_model_for_smoke_test():
-    model = os.getenv("SMOKE_MODEL", _SMOKE_MODEL)
-
-    # Optional guard: skip if runtime secrets/base-url are missing
-    if not os.getenv("MODEL_API_KEY_DEV") or not os.getenv("MODEL_BASE_URL_CLEAN"):
-        pytest.skip("Smoke test requires MODEL_API_KEY_DEV and MODEL_BASE_URL_CLEAN")
-
-    return model
+from src.tests_and_evals.common.fixtures import get_model_for_smoke_test
 
 
+@pytest.mark.smoke
 @pytest.mark.integration
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
