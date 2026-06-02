@@ -36,11 +36,7 @@ def _patch_openai(mocker, llm_content: str):
     mock_completion.choices = [mocker.MagicMock(message=mock_message)]
     mock_client = mocker.MagicMock()
     mock_client.chat.completions.create = mocker.AsyncMock(return_value=mock_completion)
-    mocker.patch(
-        "src.llm_nodes.pii_email.nodes.get_async_openai_client",
-        return_value=mock_client,
-    )
-    return mock_client
+    return mock_client, (lambda: mock_client)
 
 
 @pytest.fixture
@@ -50,7 +46,8 @@ def mock_openai_for_pii(mocker):
 
 @pytest.mark.asyncio
 async def test_smoke_mocked_llm_fills_state(mock_openai_for_pii):
-    node = get_pii_email_node(model="test-model")
+    mock_client, client_provider = mock_openai_for_pii
+    node = get_pii_email_node(model="test-model", client_provider=client_provider)
     state = GlobalState(
         messages=[HumanMessage(content="Contact alice@example.com for details.")],
     )
@@ -60,21 +57,21 @@ async def test_smoke_mocked_llm_fills_state(mock_openai_for_pii):
     assert result["pii_email"].raw_emails == ["alice@example.com"]
     assert isinstance(result["messages"][0], AIMessage)
     assert len(result["messages"]) == 1
-    assert mock_openai_for_pii.chat.completions.create.await_count == 1
+    assert mock_client.chat.completions.create.await_count == 1
 
 
 @pytest.mark.asyncio
 async def test_raises_without_human_message(mocker):
-    _patch_openai(mocker, _LLM_JSON)
-    node = get_pii_email_node(model="test-model")
+    _, client_provider = _patch_openai(mocker, _LLM_JSON)
+    node = get_pii_email_node(model="test-model", client_provider=client_provider)
     with pytest.raises(ValueError, match="Expected at least one human message"):
         await node(GlobalState(messages=[]))
 
 
 @pytest.mark.asyncio
 async def test_raises_when_human_content_not_string(mocker):
-    _patch_openai(mocker, _LLM_JSON)
-    node = get_pii_email_node(model="test-model")
+    _, client_provider = _patch_openai(mocker, _LLM_JSON)
+    node = get_pii_email_node(model="test-model", client_provider=client_provider)
     state = GlobalState(messages=[HumanMessage(content=[{"type": "text", "text": "x"}])])
     with pytest.raises(ValueError, match="Expected at least one human message"):
         await node(state)
@@ -82,8 +79,8 @@ async def test_raises_when_human_content_not_string(mocker):
 
 @pytest.mark.asyncio
 async def test_uses_last_human_message(mocker):
-    mock_client = _patch_openai(mocker, _LLM_JSON)
-    node = get_pii_email_node(model="test-model")
+    mock_client, client_provider = _patch_openai(mocker, _LLM_JSON)
+    node = get_pii_email_node(model="test-model", client_provider=client_provider)
     state = GlobalState(
         messages=[
             HumanMessage(content="First message."),
@@ -98,8 +95,8 @@ async def test_uses_last_human_message(mocker):
 
 @pytest.mark.asyncio
 async def test_returns_ai_message_with_stripped_llm_answer(mocker):
-    _patch_openai(mocker, f"  {_LLM_JSON}  ")
-    node = get_pii_email_node(model="test-model")
+    _, client_provider = _patch_openai(mocker, f"  {_LLM_JSON}  ")
+    node = get_pii_email_node(model="test-model", client_provider=client_provider)
     state = GlobalState(messages=[HumanMessage(content="Hello.")])
     result = await node(state)
     assert isinstance(result["messages"][0], AIMessage)
@@ -108,10 +105,11 @@ async def test_returns_ai_message_with_stripped_llm_answer(mocker):
 
 @pytest.mark.asyncio
 async def test_openai_called_with_model_and_zero_temperature(mocker, mock_openai_for_pii):
-    node = get_pii_email_node(model="test-model")
+    mock_client, client_provider = mock_openai_for_pii
+    node = get_pii_email_node(model="test-model", client_provider=client_provider)
     state = GlobalState(messages=[HumanMessage(content="Hello.")])
     await node(state)
-    call_kwargs = mock_openai_for_pii.chat.completions.create.await_args.kwargs
+    call_kwargs = mock_client.chat.completions.create.await_args.kwargs
     assert call_kwargs["model"] == "test-model"
     assert call_kwargs["temperature"] == 0.0
 
@@ -119,8 +117,8 @@ async def test_openai_called_with_model_and_zero_temperature(mocker, mock_openai
 @pytest.mark.asyncio
 async def test_partial_llm_json_applies_field_defaults(mocker):
     partial = json.dumps({"text": "No emails in reply."})
-    _patch_openai(mocker, partial)
-    node = get_pii_email_node(model="test-model")
+    _, client_provider = _patch_openai(mocker, partial)
+    node = get_pii_email_node(model="test-model", client_provider=client_provider)
     state = GlobalState(messages=[HumanMessage(content="Hello.")])
     result = await node(state)
     assert result["pii_email"].text == "No emails in reply."
@@ -131,8 +129,8 @@ async def test_partial_llm_json_applies_field_defaults(mocker):
 
 @pytest.mark.asyncio
 async def test_raises_on_invalid_json_from_llm(mocker):
-    _patch_openai(mocker, "not json")
-    node = get_pii_email_node(model="test-model")
+    _, client_provider = _patch_openai(mocker, "not json")
+    node = get_pii_email_node(model="test-model", client_provider=client_provider)
     state = GlobalState(messages=[HumanMessage(content="Hello.")])
     with pytest.raises(ValueError, match="Invalid JSON from model"):
         await node(state)
@@ -147,8 +145,8 @@ async def test_raises_on_schema_mismatch(mocker):
             "raw_emails": ["a@b.com"],
         }
     )
-    _patch_openai(mocker, bad_json)
-    node = get_pii_email_node(model="test-model")
+    _, client_provider = _patch_openai(mocker, bad_json)
+    node = get_pii_email_node(model="test-model", client_provider=client_provider)
     state = GlobalState(messages=[HumanMessage(content="Hello.")])
     with pytest.raises(ValueError, match="JSON does not match schema"):
         await node(state)

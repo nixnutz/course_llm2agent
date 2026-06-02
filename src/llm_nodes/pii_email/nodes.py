@@ -4,7 +4,11 @@ from langchain_core.messages import AIMessage, convert_to_openai_messages
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import ValidationError
 
-from ...llm_handle.local import get_async_openai_client
+from ...llm_handle.local import (
+    AsyncClientProvider,
+    ClientCachePolicy,
+    make_async_openai_client_provider,
+)
 from ..global_state import GlobalState
 from ..parse_llm_json import ParseLLMJson
 from .models import PIIEmail
@@ -14,8 +18,17 @@ from .prompts import _pii_email_prompt
 class LlmNodePIIExtract:
     """Async callable; appends AI JSON trace and merges ``pii_email`` into state."""
 
-    def __init__(self, model: str, template: ChatPromptTemplate):
-        self._client = get_async_openai_client()
+    def __init__(
+        self,
+        model: str,
+        template: ChatPromptTemplate,
+        client_provider: AsyncClientProvider | None = None,
+        client_cache_policy: ClientCachePolicy = "cached",
+    ):
+        provider = client_provider or make_async_openai_client_provider(
+            client_cache_policy=client_cache_policy
+        )
+        self._client = provider()
         self._model = model
         self._template = template
 
@@ -53,5 +66,14 @@ class LlmNodePIIExtract:
         }
 
 
-def get_pii_email_node(model: str):
-    return LlmNodePIIExtract(model=model, template=_pii_email_prompt)
+def get_pii_email_node(
+    model: str,
+    client_provider: AsyncClientProvider | None = None,
+    client_cache_policy: ClientCachePolicy = "cached",
+):
+    return LlmNodePIIExtract(
+        model=model,
+        template=_pii_email_prompt,
+        client_provider=client_provider,
+        client_cache_policy=client_cache_policy,
+    )

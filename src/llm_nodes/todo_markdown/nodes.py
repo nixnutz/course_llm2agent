@@ -3,7 +3,11 @@
 from langchain_core.messages import AIMessage, convert_to_openai_messages
 from langchain_core.prompts import ChatPromptTemplate
 
-from ...llm_handle.local import get_async_openai_client
+from ...llm_handle.local import (
+    AsyncClientProvider,
+    ClientCachePolicy,
+    make_async_openai_client_provider,
+)
 from .models import TODOMarkdown, TODOMarkdownState
 from .prompts import _todo_markdown_prompt
 
@@ -11,8 +15,17 @@ from .prompts import _todo_markdown_prompt
 class LlmNodeTODOMarkdown:
     """Async callable; reads TODO payload and returns markdown schema."""
 
-    def __init__(self, model: str, template: ChatPromptTemplate):
-        self._client = get_async_openai_client()
+    def __init__(
+        self,
+        model: str,
+        template: ChatPromptTemplate,
+        client_provider: AsyncClientProvider | None = None,
+        client_cache_policy: ClientCachePolicy = "cached",
+    ):
+        provider = client_provider or make_async_openai_client_provider(
+            client_cache_policy=client_cache_policy
+        )
+        self._client = provider()
         self._model = model
         self._template = template
 
@@ -35,5 +48,14 @@ class LlmNodeTODOMarkdown:
         }
 
 
-def get_todo_markdown_node(model: str):
-    return LlmNodeTODOMarkdown(model=model, template=_todo_markdown_prompt)
+def get_todo_markdown_node(
+    model: str,
+    client_provider: AsyncClientProvider | None = None,
+    client_cache_policy: ClientCachePolicy = "cached",
+):
+    return LlmNodeTODOMarkdown(
+        model=model,
+        template=_todo_markdown_prompt,
+        client_provider=client_provider,
+        client_cache_policy=client_cache_policy,
+    )
