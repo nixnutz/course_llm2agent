@@ -146,12 +146,16 @@ This repository includes a compose-first wrapper experiment for command/session 
 - `./scripts/dev/cmd.sh`: one-shot execution in `dev` (state between calls is undefined)
 - `./scripts/dev/session.sh`: interactive/stateful session in `dev`
 - Wrapper config source of truth: `./dev-wrapper.yaml`
+- Shared runtime env bootstrap: `./scripts/dev/bootstrap-env.sh`
+  - Used by `dev-cmd`, `dev-session`, and container startup (`keepalive.sh`)
+  - Delegates secret generation to `./scripts/dev/export-secrets-env.sh` and sources `${DEV_SECRETS_ENV_FILE:-/tmp/dev-secrets.env.sh}`
 - Policy header is emitted by wrappers for traceability:
   - `mode=dev-cmd|dev-session`
   - `backend=compose`
   - `service=dev`
 
 The wrapper commands still target the `dev` compose service with `src/` mounted at `/workspace/src`.
+Direct `docker compose exec ...` remains valid for diagnostics, but it does not guarantee the wrapper/bootstrap runtime env setup.
 
 ### Optional Pylint (manual tool)
 

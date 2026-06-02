@@ -58,4 +58,11 @@ fi
 
 echo "policy_header mode=dev-cmd backend=${backend} service=${service}" >&2
 
-docker compose exec -T "${env_args[@]}" -w "${workdir}" "${service}" "$@"
+escaped_cmd=()
+for arg in "$@"; do
+  escaped_cmd+=("$(printf '%q' "${arg}")")
+done
+command_string="${escaped_cmd[*]}"
+
+docker compose exec -T "${env_args[@]}" -w "${workdir}" "${service}" \
+  /bin/bash -c ". /workspace/compose-scripts/dev/bootstrap-env.sh; exec ${command_string}"

@@ -32,9 +32,9 @@ if [ "${1:-}" = "--cmd" ]; then
     exit 2
   fi
   echo "policy_header mode=dev-session backend=${backend} service=${service}" >&2
-  docker compose exec -T -w "${workdir}" "${service}" /bin/bash -lc "$*"
+  docker compose exec -T -w "${workdir}" "${service}" /bin/bash -c ". /workspace/compose-scripts/dev/bootstrap-env.sh; $*"
   exit 0
 fi
 
 echo "policy_header mode=dev-session backend=${backend} service=${service}" >&2
-docker compose exec -it -w "${workdir}" "${service}" /bin/bash
+docker compose exec -it -w "${workdir}" "${service}" /bin/bash -c ". /workspace/compose-scripts/dev/bootstrap-env.sh; exec /bin/bash"
