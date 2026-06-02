@@ -1,4 +1,10 @@
-"""Chat prompts for the PII email extraction node."""
+"""Chat prompts for the PII email extraction node.
+
+The model only DETECTS emails and reports a normalized address per detected
+span. It does NOT rewrite the text and does NOT assign placeholders — masking,
+placeholder assignment and deduplication happen deterministically in Python
+(see ``mask.py``).
+"""
 
 from langchain_core.prompts import ChatPromptTemplate
 
@@ -7,49 +13,48 @@ _pii_email_prompt = ChatPromptTemplate.from_messages(
         (
             "system",
             """
-            You are a deterministic text transformer. Do not chat, explain, or fix spelling.
+You are a deterministic email detector. Do not chat, explain, or fix spelling. Do NOT rewrite the text.
 
-Task: Copy the user text verbatim except email addresses. Detect email addresses and replace them with EMAIL0, EMAIL1, ... in order of first appearance.
-Email = typical address (user@domain.tld) or spelled-out variants like "user at domain dot com" and similar variants.
-Replace in order of first appearance: 1st -> EMAIL0, 2nd -> EMAIL1, 3rd -> EMAIL2, ...
-If the same email appears multiple times, replace each occurrence with a new EMAILn token.
+Task: Find every email address in the user text and report each one as a (span, raw) pair.
+Email = typical address (user@domain.tld) or spelled-out variants like "user at domain dot com" and similar.
+
+Fields per occurrence:
+- "span": the EXACT substring as it appears in the input (verbatim, not normalized), so it can be found by a plain string search.
+- "raw": your best normalized/canonical email for that span (e.g. "user@domain.tld").
 
 Rules:
-- Change ONLY email-like spans. Keep all other words, punctuation, spaces, and line breaks exactly as in the input.
-- "recognized_emails" = exact original text spans from the input that were recognized and replaced (verbatim, not normalized), in order of appearance.
-- "raw_emails" = normalized/canonical email addresses corresponding to recognized_emails, in order of appearance.
-- Keep strict index alignment: len(recognized_emails) == len(raw_emails), and item i in both arrays refers to the same replaced span.
-- Do not replace malformed email-like fragments that cannot be normalized into a valid email address.
-- If zero emails: {{"text": "<unchanged input>", "recognized_emails": [], "raw_emails": []}}
+- One entry per VISIBLE occurrence, in order of appearance.
+- Do NOT deduplicate. If the same email appears twice, output two entries. If two different spellings refer to the same address, still output one entry per span.
+- Do not invent emails. If a fragment cannot be turned into a valid email, omit it.
+- Output a single JSON object only. No markdown, no prose, no code fences.
 
-Output:
-- Return a single JSON object only.
-- No markdown, no prose, no code fences.
-
-Fields:
-- text (string): transformed text with EMAIL0, EMAIL1, ...
-- recognized_emails (array of strings): exact original recognized spans (verbatim from input), in order of appearance.
-- raw_emails (array of strings): normalized email for each recognized span, in order of appearance.
+Output shape:
+{{"occurrences": [{{"span": "<verbatim>", "raw": "<normalized>"}}, ...]}}
 
 Example input:
 Task alice@x.com and bob@test.org today.
 Example output:
-{{"text": "Task EMAIL0 and EMAIL1 today.", "recognized_emails": ["alice@x.com", "bob@test.org"], "raw_emails": ["alice@x.com", "bob@test.org"]}}
+{{"occurrences": [{{"span": "alice@x.com", "raw": "alice@x.com"}}, {{"span": "bob@test.org", "raw": "bob@test.org"}}]}}
 
 Example input:
-Task hans at example dot com and hans@example .com to sing a song.
+Mail hans at example dot com or hans@example.com to sing a song.
 Example output:
-{{"text": "Task EMAIL0 and EMAIL1 to sing a song.", "recognized_emails": ["hans at example dot com", "hans@example .com"], "raw_emails": ["hans@example.com", "hans@example.com"]}}
+{{"occurrences": [{{"span": "hans at example dot com", "raw": "hans@example.com"}}, {{"span": "hans@example.com", "raw": "hans@example.com"}}]}}
+
+Example input:
+Contact Ulf at phpdoc.de, ulf.wendel@phpdoc.de for details.
+Example output:
+{{"occurrences": [{{"span": "Ulf at phpdoc.de", "raw": "ulf@phpdoc.de"}}, {{"span": "ulf.wendel@phpdoc.de", "raw": "ulf.wendel@phpdoc.de"}}]}}
 
 Example input:
 No contact info here.
 Example output:
-{{"text": "No contact info here.", "recognized_emails": [], "raw_emails": []}}
+{{"occurrences": []}}
 
 Example input:
 Contact me at hans(at)example tomorrow.
 Example output:
-{{"text": "Contact me at hans(at)example tomorrow.", "recognized_emails": [], "raw_emails": []}}
+{{"occurrences": []}}
             """,
         ),
         ("user", "{input}"),

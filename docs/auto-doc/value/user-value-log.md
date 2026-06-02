@@ -15,3 +15,5 @@ Keep each entry to a single line.
 ## Entries
 
 <!-- Add new entries below this line -->
+2026-06-02 | solo developer | unclear separation between fast tests and manual eval runs | tests/evals layout and explicit markers improve execution clarity and reduce accidental eval runs | src/tests_and_evals/README.md pytest markers in pyproject.toml | approved
+2026-06-02 | solo developer / learner | PII leaks and non-restorable masking when the LLM rewrote text freely | deterministic, auditable email masking (collision-free placeholders, soft-fail logs) replaces LLM free-text redaction | mask.py + test_mask.py (13 unit tests green) | approved

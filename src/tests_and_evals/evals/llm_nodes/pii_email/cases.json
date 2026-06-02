@@ -5,11 +5,10 @@
             "requirement_level": "MUST"
         },
         "input": "Contact alice@example.com for details.",
-        "quality": "MUST",
-        "expected_recognized_emails": [
+        "expected_emails": [
             "alice@example.com"
         ],
-        "expected_raw_emails": [
+        "forbidden_in_text": [
             "alice@example.com"
         ]
     },
@@ -19,30 +18,41 @@
             "requirement_level": "MUST"
         },
         "input": "Contact bob at example dot com and charlie@example.com for details.",
-        "expected_recognized_emails": [
-            "bob at example dot com",
+        "expected_emails": [
+            "bob@example.com",
             "charlie@example.com"
         ],
-        "expected_raw_emails": [
-            "bob@example.com",
+        "forbidden_in_text": [
+            "bob at example dot com",
             "charlie@example.com"
         ]
     },
     {
         "_metadata": {
             "id": "3",
+            "requirement_level": "MUST"
+        },
+        "input": "Mail ulf.wendel@phpdoc.de, and again ulf.wendel@phpdoc.de please.",
+        "expected_emails": [
+            "ulf.wendel@phpdoc.de"
+        ],
+        "forbidden_in_text": [
+            "ulf.wendel@phpdoc.de"
+        ]
+    },
+    {
+        "_metadata": {
+            "id": "4",
             "requirement_level": "SHOULD"
         },
-        "input": "david(at)example dot com, eve (at) example (dot) com, and frank add example dot com for details.",
-        "expected_recognized_emails": [
+        "input": "david(at)example dot com, eve (at) example (dot) com for details.",
+        "expected_emails": [
             "david@example.com",
-            "eve@example.com",
-            "frank@example.com"
+            "eve@example.com"
         ],
-        "expected_raw_emails": [
-            "david@example.com",
-            "eve@example.com",
-            "frank@example.com"
+        "forbidden_in_text": [
+            "david(at)example dot com",
+            "eve (at) example (dot) com"
         ]
     }
 ]

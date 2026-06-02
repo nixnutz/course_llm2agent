@@ -1,15 +1,18 @@
-"""Placeholder mocked unit tests for ``LlmNodePIIExtract``.
+"""Mocked unit tests for ``LlmNodePIIExtract`` (no real LLM).
 
 Summary:
-- Smoke: mocked LLM JSON -> ``pii_email`` and ``messages`` in result.
+- Smoke: mocked LLM ``occurrences`` -> masked ``pii_email`` and ``messages``.
 - Guards: no human message, non-string human content.
 - Last human message is used for the prompt.
 - Return shape: ``AIMessage`` with stripped LLM answer.
 - OpenAI wiring: model and ``temperature=0.0``.
-- Partial LLM JSON: missing email fields -> node defaults before ``PIIEmail`` validation.
-- Error paths: invalid JSON, schema mismatch (one case each).
+- Empty occurrences -> text unchanged.
+- Error paths: invalid JSON, ``occurrences`` not a list.
 
-Not exhaustive: course/WIP code, no real LLM, expand when ``nodes.py`` stabilizes.
+Deterministic masking detail lives in ``test_mask.py``; here we only check the
+node wiring (LLM call -> parse -> mask pipeline -> state).
+
+Not exhaustive: course/WIP code, no real LLM.
 """
 
 import json
@@ -21,11 +24,7 @@ from src.llm_nodes.global_state import GlobalState
 from src.llm_nodes.pii_email.nodes import get_pii_email_node
 
 _LLM_JSON = json.dumps(
-    {
-        "text": "Contact EMAIL1 for details.",
-        "recognized_emails": ["alice@example.com"],
-        "raw_emails": ["alice@example.com"],
-    }
+    {"occurrences": [{"span": "alice@example.com", "raw": "alice@example.com"}]}
 )
 
 
@@ -53,9 +52,12 @@ async def test_smoke_mocked_llm_fills_state(mock_openai_for_pii):
         messages=[HumanMessage(content="Contact alice@example.com for details.")],
     )
     result = await node(state)
-    assert result["pii_email"].text == "Contact EMAIL1 for details."
-    assert result["pii_email"].recognized_emails == ["alice@example.com"]
-    assert result["pii_email"].raw_emails == ["alice@example.com"]
+
+    pii = result["pii_email"]
+    assert "alice@example.com" not in pii.text
+    assert pii.identities == ["alice@example.com"]
+    assert len(pii.occurrences) == 1
+    assert pii.occurrences[0].placeholder == f"E0_{pii.salt}"
     assert isinstance(result["messages"][0], AIMessage)
     assert len(result["messages"]) == 1
     assert mock_client.chat.completions.create.await_count == 1
@@ -122,16 +124,26 @@ async def test_openai_called_with_model_and_zero_temperature(mocker, mock_openai
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_partial_llm_json_applies_field_defaults(mocker):
-    partial = json.dumps({"text": "No emails in reply."})
+async def test_empty_occurrences_keeps_text_unchanged(mocker):
+    empty = json.dumps({"occurrences": []})
+    _, client_provider = _patch_openai(mocker, empty)
+    node = get_pii_email_node(model="test-model", client_provider=client_provider)
+    state = GlobalState(messages=[HumanMessage(content="No emails in reply.")])
+    result = await node(state)
+    assert result["pii_email"].text == "No emails in reply."
+    assert result["pii_email"].identities == []
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_missing_occurrences_field_defaults_to_empty(mocker):
+    partial = json.dumps({"unrelated": True})
     _, client_provider = _patch_openai(mocker, partial)
     node = get_pii_email_node(model="test-model", client_provider=client_provider)
     state = GlobalState(messages=[HumanMessage(content="Hello.")])
     result = await node(state)
-    assert result["pii_email"].text == "No emails in reply."
-    assert result["pii_email"].recognized_emails == []
-    assert result["pii_email"].raw_emails == []
-    assert result["pii_email"].normalized_emails == []
+    assert result["pii_email"].text == "Hello."
+    assert result["pii_email"].identities == []
 
 
 @pytest.mark.unit
@@ -146,16 +158,10 @@ async def test_raises_on_invalid_json_from_llm(mocker):
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_raises_on_schema_mismatch(mocker):
-    bad_json = json.dumps(
-        {
-            "text": "x",
-            "recognized_emails": ["a@b.com", "c@d.com"],
-            "raw_emails": ["a@b.com"],
-        }
-    )
-    _, client_provider = _patch_openai(mocker, bad_json)
+async def test_raises_when_occurrences_not_a_list(mocker):
+    bad = json.dumps({"occurrences": {"span": "a@b.com", "raw": "a@b.com"}})
+    _, client_provider = _patch_openai(mocker, bad)
     node = get_pii_email_node(model="test-model", client_provider=client_provider)
     state = GlobalState(messages=[HumanMessage(content="Hello.")])
-    with pytest.raises(ValueError, match="JSON does not match schema"):
+    with pytest.raises(ValueError, match="must be a list"):
         await node(state)

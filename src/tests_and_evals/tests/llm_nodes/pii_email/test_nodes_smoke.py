@@ -35,9 +35,15 @@ async def test_pii_email_node_smoke_real_llm_extracts_at_least_one_email(
     assert "pii_email" in result
     assert "messages" in result
     assert result["messages"], "expected at least one trace message"
-    assert result["pii_email"].raw_emails, "expected at least one extracted raw email"
-    assert result["pii_email"].recognized_emails, "expected at least one recognized email"
 
-    raw_emails = {e.lower() for e in result["pii_email"].raw_emails}
-    missing = {e.lower() for e in expected_emails} - raw_emails
-    assert not missing, f"missing expected emails: {missing}; got raw={raw_emails}"
+    pii = result["pii_email"]
+    assert pii.occurrences, "expected at least one detected occurrence"
+    assert pii.identities, "expected at least one normalized identity"
+
+    identities = {e.lower() for e in pii.identities if e is not None}
+    missing = {e.lower() for e in expected_emails} - identities
+    assert not missing, f"missing expected emails: {missing}; got identities={identities}"
+
+    # Masking must remove the original email forms from the redacted text.
+    for email in expected_emails:
+        assert email not in pii.text, f"email {email!r} leaked into masked text"

@@ -1,82 +1,55 @@
-"""Tests for ``PIIEmail`` (minimal coverage).
+"""Tests for ``PIIEmail`` / ``Occurrence`` (minimal coverage).
 
 Summary:
-- Default empty lists and ``extra="forbid"`` on ``BaseState``.
-- Field transformers: ``raw_emails`` (strip + lower), ``recognized_emails`` (strip only).
-- Model validator: derives ``normalized_emails`` from ``raw_emails`` (invalid -> ``None``).
-- Length parity between ``recognized_emails`` and ``raw_emails``.
+- Default empty values and ``extra="forbid"`` on ``BaseState``.
+- ``identities`` may hold ``None`` (recognized but not normalizable).
+- ``Occurrence`` defaults.
 
-Not exhaustive: this node is course/WIP code, not production, and ``models.py`` may still
-change.
+Not exhaustive: course/WIP code. Masking behavior is covered in ``test_mask.py``.
 """
 
 from pydantic import ValidationError
 import pytest
 
-from src.llm_nodes.pii_email.models import PIIEmail
+from src.llm_nodes.pii_email.models import Occurrence, PIIEmail
 
 
 @pytest.mark.unit
 def test_minimal_defaults():
-    result = PIIEmail(text="No emails here.")
-    assert result.text == "No emails here."
-    assert result.recognized_emails == []
-    assert result.raw_emails == []
-    assert result.normalized_emails == []
+    result = PIIEmail()
+    assert result.text == ""
+    assert result.salt == ""
+    assert result.identities == []
+    assert result.occurrences == []
 
 
 @pytest.mark.unit
-def test_valid_consistent_lists():
-    result = PIIEmail(
-        text="This is a confidential email: Test@example.com, Test2@example.com",
-        recognized_emails=["Test@example.com", "Test2@example.com"],
-        raw_emails=["test@example.com", "test2@example.com"],
-    )
-    assert result.recognized_emails == ["Test@example.com", "Test2@example.com"]
-    assert result.raw_emails == ["test@example.com", "test2@example.com"]
-    assert str(result.normalized_emails[0]) == "test@example.com"
-    assert str(result.normalized_emails[1]) == "test2@example.com"
+def test_identities_allow_none():
+    result = PIIEmail(text="x", salt="abcd", identities=["a@b.com", None])
+    assert result.identities == ["a@b.com", None]
 
 
 @pytest.mark.unit
-def test_auto_normalization_mixed_valid_invalid():
-    result = PIIEmail(
-        text="Contact: good@example.com or bad address",
-        recognized_emails=["good@example.com", "not-an-email"],
-        raw_emails=["good@example.com", "not-an-email"],
-    )
-    assert str(result.normalized_emails[0]) == "good@example.com"
-    assert result.normalized_emails[1] is None
+def test_occurrence_defaults():
+    occ = Occurrence(span="a@b.com", raw_llm="a@b.com")
+    assert occ.span == "a@b.com"
+    assert occ.raw_llm == "a@b.com"
+    assert occ.canonical_key is None
+    assert occ.placeholder is None
+    assert occ.skipped_reason is None
 
 
 @pytest.mark.unit
-def test_raw_emails_strip_and_lower():
+def test_occurrences_accept_nested_models():
     result = PIIEmail(
         text="x",
-        recognized_emails=["x@y.com"],
-        raw_emails=["  Foo@Bar.COM  "],
+        salt="abcd",
+        identities=["a@b.com"],
+        occurrences=[
+            Occurrence(span="a@b.com", raw_llm="a@b.com", canonical_key="a@b.com", placeholder="E0_abcd")
+        ],
     )
-    assert result.raw_emails == ["foo@bar.com"]
-
-
-@pytest.mark.unit
-def test_recognized_emails_strip_preserves_case():
-    result = PIIEmail(
-        text="x",
-        recognized_emails=["  Test@Example.COM  "],
-        raw_emails=["test@example.com"],
-    )
-    assert result.recognized_emails == ["Test@Example.COM"]
-
-
-@pytest.mark.unit
-def test_invalid_email_same_lengths_normalized_none():
-    result = PIIEmail(
-        text="This is a confidential email",
-        recognized_emails=["test at example.com"],
-        raw_emails=["test at example.com"],
-    )
-    assert result.normalized_emails == [None]
+    assert result.occurrences[0].placeholder == "E0_abcd"
 
 
 @pytest.mark.unit
@@ -86,27 +59,6 @@ def test_extra_fields_forbidden():
 
 
 @pytest.mark.unit
-def test_length_mismatch_recognized_vs_raw():
-    with pytest.raises(ValidationError) as exc_info:
-        PIIEmail(
-            text="Email thread",
-            recognized_emails=[
-                "test@example.com",
-                "test2@example.com",
-                "test3@example.com",
-            ],
-            raw_emails=["test@example.com", "test2@example.com"],
-        )
-    assert "recognized_emails and raw_emails must have the same length" in str(exc_info.value)
-
-
-@pytest.mark.unit
-def test_length_mismatch_recognized_shorter_than_raw():
-    with pytest.raises(ValidationError) as exc_info:
-        PIIEmail(
-            text="This is a confidential email",
-            recognized_emails=["test at example.com"],
-            raw_emails=["test at example.com", "test2@example.com"],
-        )
-    msg = str(exc_info.value)
-    assert "recognized_emails and raw_emails must have the same length" in msg
+def test_occurrence_extra_fields_forbidden():
+    with pytest.raises(ValidationError):
+        Occurrence(span="x", raw_llm="x", unexpected=True)

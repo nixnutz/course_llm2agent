@@ -2,7 +2,6 @@
 
 from langchain_core.messages import AIMessage, convert_to_openai_messages
 from langchain_core.prompts import ChatPromptTemplate
-from pydantic import ValidationError
 
 from ...llm_handle.local import (
     AsyncClientProvider,
@@ -11,7 +10,7 @@ from ...llm_handle.local import (
 )
 from ..global_state import GlobalState
 from ..parse_llm_json import ParseLLMJson
-from .models import PIIEmail
+from .mask import mask_pii_emails
 from .prompts import _pii_email_prompt
 
 
@@ -49,16 +48,11 @@ class LlmNodePIIExtract:
         )
         answer = completion.choices[0].message.content or ""
         raw = ParseLLMJson().parse_as_dict(answer)
-        cleaned = {
-            "text": raw.get("text", ""),
-            "recognized_emails": raw.get("recognized_emails", []),
-            "raw_emails": raw.get("raw_emails", []),
-        }
+        occurrences = raw.get("occurrences", [])
+        if not isinstance(occurrences, list):
+            raise ValueError("LLM JSON field 'occurrences' must be a list")
 
-        try:
-            parsed = PIIEmail.model_validate(cleaned)
-        except ValidationError as e:
-            raise ValueError(f"JSON does not match schema: {e}") from e
+        parsed = mask_pii_emails(last_human.content, occurrences)
 
         return {
             "messages": [AIMessage(content=answer.strip())],
