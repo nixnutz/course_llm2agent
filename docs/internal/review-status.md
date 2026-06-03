@@ -1,15 +1,15 @@
 ## branch: main
-- last_reviewed_commit: e134e7f
-- last_reviewed_at: 2026-06-03T18:00:00+02:00
-- last_review_context: eval MUST/SHOULD pytest hooks, shared evals/eval_collector, xdist merge, ADR 0010 + raw-log; F1 collector move, F2 numprocesses, F4 exitstatus max
+- last_reviewed_commit: 13a1d69
+- last_reviewed_at: 2026-06-03T20:00:00+02:00
+- last_review_context: piggyback ruff (mask, mock test) + smoke test drops redundant fixture import after pytest_plugins
 - last_action: pre_commit_review
-- raw_log_decision: add
-- adr_file_decision: add
+- raw_log_decision: skip (trivial)
+- adr_file_decision: skip (trivial)
 - user_value_log_decision: skip (trivial)
-- raw_log_status: done
-- adr_file_status: done
+- raw_log_status: n/a
+- adr_file_status: n/a
 - user_value_log_status: n/a
 - findings_resolved: yes
 - doc_decisions_made: yes
 - ready_to_commit: yes
-- notes: Staged eval hook set only; mask.py and unit tests out of scope. eval_collector PII-shaped fields documented in ADR 0010 for later generalization.
+- notes: Follow-up to 252b41f eval hooks commit; no ADR delta.

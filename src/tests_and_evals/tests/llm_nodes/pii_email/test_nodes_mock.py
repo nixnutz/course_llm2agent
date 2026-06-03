@@ -23,9 +23,7 @@ import pytest
 from src.llm_nodes.global_state import GlobalState
 from src.llm_nodes.pii_email.nodes import get_pii_email_node
 
-_LLM_JSON = json.dumps(
-    {"occurrences": [{"span": "alice@example.com", "raw": "alice@example.com"}]}
-)
+_LLM_JSON = json.dumps({"occurrences": [{"span": "alice@example.com", "raw": "alice@example.com"}]})
 
 
 def _patch_openai(mocker, llm_content: str):

@@ -81,7 +81,12 @@ def mask_pii_emails(input_text: str, raw_occurrences: list) -> PIIEmail:
         if not span:
             logger.warning("span_not_found span=%r raw=%r (empty span)", span, raw)
             skipped.append(
-                {"pos": len(input_text), "occurrence": Occurrence(span=span, raw_llm=raw, skipped_reason="span_not_found")}
+                {
+                    "pos": len(input_text),
+                    "occurrence": Occurrence(
+                        span=span, raw_llm=raw, skipped_reason="span_not_found"
+                    ),
+                }
             )
             continue
 
@@ -90,7 +95,12 @@ def mask_pii_emails(input_text: str, raw_occurrences: list) -> PIIEmail:
         if pos < 0:
             logger.warning("span_not_found span=%r raw=%r", span, raw)
             skipped.append(
-                {"pos": len(input_text), "occurrence": Occurrence(span=span, raw_llm=raw, skipped_reason="span_not_found")}
+                {
+                    "pos": len(input_text),
+                    "occurrence": Occurrence(
+                        span=span, raw_llm=raw, skipped_reason="span_not_found"
+                    ),
+                }
             )
             continue
 

@@ -5,7 +5,6 @@ import pytest
 
 from src.llm_nodes.global_state import GlobalState
 from src.llm_nodes.pii_email.nodes import get_pii_email_node
-from src.tests_and_evals.common.fixtures import get_model_for_smoke_test
 
 
 @pytest.mark.smoke
