@@ -1,15 +1,15 @@
 ## branch: main
 - last_reviewed_commit: b21d64b
-- last_reviewed_at: 2026-06-03T23:42:00+02:00
-- last_review_context: follow-up review — F1 who-token fix + TODO, _make_salt fail-fast; staged eval/test bundle plus unstaged mask.py
+- last_reviewed_at: 2026-06-03T24:00:00+02:00
+- last_review_context: staged-only — pii_email course-scope docs (README, ADR 0009 limitations), mask docstring, leak_suspected unit test
 - last_action: pre_commit_review
-- raw_log_decision: update existing
+- raw_log_decision: skip (trivial)
 - adr_file_decision: update existing
 - user_value_log_decision: skip (trivial)
-- raw_log_status: done
+- raw_log_status: n/a
 - adr_file_status: done
 - user_value_log_status: n/a
 - findings_resolved: yes
 - doc_decisions_made: yes
 - ready_to_commit: yes
-- notes: F1 closed (exact placeholder tokens + TODO at _PLACEHOLDER_RE). Stage mask.py and test_todo_extract_eval.py unstaged hunks with the eval bundle before commit. pii_email eval MUST may still fail on weak local model (out of scope).
+- notes: Staged bundle only (4 files). User confirmed all tests green. Include this file in the same commit (not review-only). Allowlist audit remains out of scope per README.

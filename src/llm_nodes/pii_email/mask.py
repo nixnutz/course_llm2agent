@@ -1,5 +1,8 @@
 """Deterministic email masking pipeline (no LLM).
 
+Course sketch — not production PII tooling. See ``README.md`` in this package
+for scope and known limitations.
+
 Input: original text + LLM occurrences ``[{"span", "raw"}, ...]``.
 Output: a :class:`PIIEmail` with masked ``text``, ``salt``, ``emails`` and a
 per-span audit trail in ``occurrences``.

@@ -2,12 +2,13 @@
 
 These tests exercise the Python pipeline directly (no LLM): given the LLM
 ``occurrences`` they assert masked ``text``, placeholder/``emails`` mapping
-and the soft-fail markers (span_not_found, normalization_failed).
+and the soft-fail markers (span_not_found, normalization_failed, leak_suspected).
 
 Not exhaustive: course/WIP code. The non-deterministic part (which spans/raws
 the LLM returns) is covered by the eval, not here.
 """
 
+import logging
 import re
 
 import pytest
@@ -78,6 +79,17 @@ def test_distinct_canonical_keys_get_separate_placeholders():
     result = mask_pii_emails(inp, occ)
     assert result.emails == ["a@x.com", "b@y.com"]
     assert result.text == f"E0_{result.salt} and E1_{result.salt}"
+
+
+@pytest.mark.unit
+def test_under_reported_duplicate_emits_leak_suspected(caplog):
+    """One LLM occurrence for two identical spans: second address stays, log warns."""
+    caplog.set_level(logging.WARNING)
+    inp = "mail a@x.com or a@x.com again"
+    result = mask_pii_emails(inp, [{"span": "a@x.com", "raw": "a@x.com"}])
+
+    assert "a@x.com" in result.text
+    assert "leak_suspected" in caplog.text
 
 
 @pytest.mark.unit
