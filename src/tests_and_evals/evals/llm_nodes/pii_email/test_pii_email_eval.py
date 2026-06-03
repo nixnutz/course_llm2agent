@@ -4,8 +4,12 @@ What we measure (the LLM is the non-deterministic part; masking is deterministic
 - Email recall: expected emails present in ``pii_email.emails``.
 - Text integrity: forbidden spans removed from ``pii_email.text``.
 
-MUST cases gate the test (collected, asserted once at the end); SHOULD cases are
-only measured/logged. Skipped automatically when smoke secrets are absent.
+Eval collector usage (see ``evals/conftest.py`` hooks):
+- Call ``get_eval_collector()`` inside each test function (never at module import).
+- After each case, ``collector.record(...)`` with ``requirement_level`` from metadata.
+- Assert MUST failures in the test; SHOULD is gated in ``pytest_sessionfinish``.
+
+Skipped automatically when smoke secrets are absent.
 """
 
 import json
@@ -18,7 +22,7 @@ import pytest
 from src.llm_nodes.global_state import GlobalState
 from src.llm_nodes.pii_email.nodes import get_pii_email_node
 from src.logging_setup import get_logger
-from src.tests_and_evals.common.fixtures import get_model_for_smoke_test
+from src.tests_and_evals.evals.eval_collector import get_eval_collector
 
 logger = get_logger(__name__, "tests_and_evals/evals/llm_nodes/pii_email/test_pii_email_eval.py")
 logger.setLevel(logging.INFO)
@@ -42,15 +46,14 @@ def _leaked_spans(text: str, forbidden_spans: list[str]) -> list[str]:
 @pytest.mark.eval
 @pytest.mark.asyncio
 async def test_pii_email_eval(get_model_for_smoke_test):
+    # Fresh singleton for this session (reset in pytest_sessionstart).
+    collector = get_eval_collector()
     cases = get_cases()
     model = get_model_for_smoke_test
     node = get_pii_email_node(model=model, client_cache_policy="none")
     logger.info("Running pii_email eval: %d cases", len(cases))
 
     summary = {
-        "must_cases": 0,
-        "should_cases": 0,
-        "must_failures": 0,
         "email_expected_total": 0,
         "email_missing_total": 0,
         "text_forbidden_total": 0,
@@ -85,15 +88,15 @@ async def test_pii_email_eval(get_model_for_smoke_test):
                 sorted(missing),
                 leaked,
                 pii.emails,
-                pii.text,
+                case["input"],
             )
 
-        if level == "MUST":
-            summary["must_cases"] += 1
-            if is_failure:
-                summary["must_failures"] += 1
-        elif level == "SHOULD":
-            summary["should_cases"] += 1
+        collector.record(
+            case_id=case_id,
+            level=level,
+            missing_emails=missing,
+            leaked_spans=leaked,
+        )
 
     email_recall = (
         1.0 - (summary["email_missing_total"] / summary["email_expected_total"])
@@ -105,12 +108,15 @@ async def test_pii_email_eval(get_model_for_smoke_test):
         if summary["text_forbidden_total"]
         else 1.0
     )
+    must_cases = len([r for r in collector.results if r.level == "MUST"])
+    should_cases = len([r for r in collector.results if r.level == "SHOULD"])
+    must_failures = len([r for r in collector.results if r.level == "MUST" and not r.passed])
     logger.info(
         "pii_email eval summary | MUST=%d SHOULD=%d must_failures=%d email_recall=%.3f text_clean=%.3f",
-        summary["must_cases"],
-        summary["should_cases"],
-        summary["must_failures"],
+        must_cases,
+        should_cases,
+        must_failures,
         email_recall,
         text_clean_rate,
     )
-    assert summary["must_failures"] == 0, f"MUST eval failures: {summary['must_failures']}"
+    assert must_failures == 0, f"MUST eval failures: {must_failures}"

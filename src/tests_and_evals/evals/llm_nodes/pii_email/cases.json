@@ -54,5 +54,18 @@
             "david(at)example dot com",
             "eve (at) example (dot) com"
         ]
+    },
+    {
+        "_metadata": {
+            "id": "5",
+            "requirement_level": "SHOULD"
+        },
+        "input": "david          at example com.",
+        "expected_emails": [
+            "david@example.com"
+        ],
+        "forbidden_spans": [
+            "david          at example com"
+        ]
     }
 ]

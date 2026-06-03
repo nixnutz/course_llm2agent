@@ -1,15 +1,15 @@
 ## branch: main
-- last_reviewed_commit: bcb2cf1
-- last_reviewed_at: 2026-06-03T12:00:00+02:00
-- last_review_context: pii_email public contract rename (emails/email, forbidden_spans), demask_pii_emails, ADR 0009 + raw-log sync, demask unit tests (F1/F2)
-- last_action: post_commit_synced
-- raw_log_decision: update existing
-- adr_file_decision: update existing
+- last_reviewed_commit: e134e7f
+- last_reviewed_at: 2026-06-03T18:00:00+02:00
+- last_review_context: eval MUST/SHOULD pytest hooks, shared evals/eval_collector, xdist merge, ADR 0010 + raw-log; F1 collector move, F2 numprocesses, F4 exitstatus max
+- last_action: pre_commit_review
+- raw_log_decision: add
+- adr_file_decision: add
 - user_value_log_decision: skip (trivial)
 - raw_log_status: done
 - adr_file_status: done
 - user_value_log_status: n/a
 - findings_resolved: yes
 - doc_decisions_made: yes
-- ready_to_commit: n/a
-- notes: Committed bcb2cf1 (13 files). eval_collector scaffold unused (O1 later). Sidecar not cleared — pending user confirmation that ADR work for all captured plans is done.
+- ready_to_commit: yes
+- notes: Staged eval hook set only; mask.py and unit tests out of scope. eval_collector PII-shaped fields documented in ADR 0010 for later generalization.
