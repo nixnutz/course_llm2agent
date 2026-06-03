@@ -1,7 +1,7 @@
 ## branch: main
-- last_reviewed_commit: 13a1d69
-- last_reviewed_at: 2026-06-03T20:00:00+02:00
-- last_review_context: piggyback ruff (mask, mock test) + smoke test drops redundant fixture import after pytest_plugins
+- last_reviewed_commit: c8c8d41
+- last_reviewed_at: 2026-06-03T22:00:00+02:00
+- last_review_context: staged-only follow-up — todo_extract/todo_markdown prompts EMAIL0 → E{n}_{salt} after pii_email mask contract
 - last_action: pre_commit_review
 - raw_log_decision: skip (trivial)
 - adr_file_decision: skip (trivial)
@@ -12,4 +12,4 @@
 - findings_resolved: yes
 - doc_decisions_made: yes
 - ready_to_commit: yes
-- notes: Follow-up to 252b41f eval hooks commit; no ADR delta.
+- notes: Missed prompt sync from prior PII email work; session4 notebook EMAIL0 left didactic/out of scope.

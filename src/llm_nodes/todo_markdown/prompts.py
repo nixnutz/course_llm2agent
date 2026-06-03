@@ -12,7 +12,7 @@ _todo_markdown_prompt = ChatPromptTemplate.from_messages(
 Task: Generate a TODO list in Markdown format from the given TODO list items. Items are given in JSON format as list of JSON objects.
 Each JSON object has keys "who", "what", "when".
 
-Who: person or token (e.g. EMAIL0) tasked with the action. If unclear, "UNKNOWN".
+Who: person or masked-email token (e.g. E0_a1b2c3d4 for placeholder E{{n}}_{{salt}}) tasked with the action. If unclear, "UNKNOWN".
 What: action to be performed.
 When: deadline if stated. If unclear, "UNKNOWN".
 
@@ -24,9 +24,9 @@ In the section, list the "what" items for the "who" with the "when" as the item 
 If the "when" is not stated, use "today" as the deadline.
 
 Example input:
-{{"items": [{{"who": "EMAIL0", "what": "feed the cat", "when": "today"}}, {{"who": "Bob", "what": "feed the cat", "when": "today"}}]}}
+{{"items": [{{"who": "E0_a1b2c3d4", "what": "feed the cat", "when": "today"}}, {{"who": "Bob", "what": "feed the cat", "when": "today"}}]}}
 Example output:
-# EMAIL0
+# E0_a1b2c3d4
 - [ ] feed the cat (by today)
 
 # Bob
