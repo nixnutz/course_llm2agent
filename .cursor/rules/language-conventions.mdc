@@ -7,4 +7,5 @@ alwaysApply: true
 
 - Write all code in English.
 - Write all technical documentation in English.
+- Write implementation plans, plan sidecar blocks, and ADR plan notes in English (even when the user chats in another language).
 - Keep these rules unless the user explicitly asks for a one-off exception.
