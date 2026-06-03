@@ -9,7 +9,7 @@ Support both:
 - working-tree review (staged + unstaged changes)
 - post-commit review (commits since last local review state)
 
-Use local state file (branch-scoped): `docs/internal/review-status.md`.
+Use branch-scoped state file: `docs/internal/review-status.md` (versioned in git).
 Do not use git tags/refs/notes for review tracking.
 
 ## Required Review Output
@@ -88,9 +88,18 @@ At the beginning of every run:
 4) Ask what to do:
    - A) mark all pending commits as already handled, continue with current working-tree review
    - B) review pending commits now (single commit, range, or logical group)
-5) Update `docs/internal/review-status.md` according to the chosen path.
+5) Update `docs/internal/review-status.md` according to the chosen path (gates, `last_reviewed_commit` after commit, notes).
 
 Use AskQuestion for these user choices.
+
+## Review status and git commits (Mandatory)
+
+- `docs/internal/review-status.md` is **tracked** (not gitignored). `docs/internal/adr-plan-sidecar.md` stays gitignored.
+- **Never** create a commit that contains only review-status (no standalone “review state” commits).
+- After every review that ends with `ready_to_commit: yes` (or when the user commits the reviewed change), the **same** feature/fix commit must include the updated `docs/internal/review-status.md` alongside code and doc files.
+- In section 5 (Commit readiness gate), when `ready_to_commit: yes`, add one line: `stage_with_commit: docs/internal/review-status.md` (plus any other pending doc paths from the status gate).
+- When the user asks the agent to run `git commit` after this review: always `git add docs/internal/review-status.md` together with the other staged paths; do not leave review-status unstaged or in a follow-up commit.
+- Prefer **amend** only to attach review-status or fix review metadata on the **same** logical commit that is not yet pushed; otherwise include review-status in the next feature commit.
 
 ## Auto-Doc Decision (Mandatory)
 
@@ -151,3 +160,5 @@ Use `doc_decisions_made: yes` even when both logs are intentionally skipped as t
 Set `doc_decisions_made: no` if any of the three auto-doc decisions is missing or any documentation status is `pending`.
 
 When review is post-commit only (clean working tree), `ready_to_commit` may be `n/a`.
+
+After post-commit review, still update `docs/internal/review-status.md` on disk; the user may bundle it into the **next** feature commit (never a review-only commit).

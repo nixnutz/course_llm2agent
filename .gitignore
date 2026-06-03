@@ -5,5 +5,4 @@ src/.venv
 **/.env.local
 **/__pycache__/
 .DS_Store
-docs/internal/review-status.md
 docs/internal/adr-plan-sidecar.md

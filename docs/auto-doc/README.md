@@ -32,9 +32,9 @@ Goal: Continuously capture project context so reviews include not only the lates
 - Before review: collect and condense relevant log entries; read plan sidecar if it exists.
 - In review: provide the compact timeline as context (not only the latest state).
 - After review: feed open points/decisions back into ongoing logging.
-- Optional post-commit review tracking can use local branch status in `docs/internal/review-status.md` (local-only, gitignored).
+- Post-commit review tracking uses branch status in `docs/internal/review-status.md` (versioned; commit it **with** the feature commit, never alone).
 - The review output should include explicit documentation status for `raw-log`, `ADR file`, and `user-value log`.
-- The local review status file can persist these doc decisions/status values to avoid context-loss after user clarifications.
+- The review status file persists doc decisions/status values to avoid context-loss after user clarifications.
 
 ## Rules vs Hooks (ADR guardrails)
 
