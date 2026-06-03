@@ -8,7 +8,7 @@
         "expected_emails": [
             "alice@example.com"
         ],
-        "forbidden_in_text": [
+        "forbidden_spans": [
             "alice@example.com"
         ]
     },
@@ -22,7 +22,7 @@
             "bob@example.com",
             "charlie@example.com"
         ],
-        "forbidden_in_text": [
+        "forbidden_spans": [
             "bob at example dot com",
             "charlie@example.com"
         ]
@@ -36,7 +36,7 @@
         "expected_emails": [
             "ulf.wendel@phpdoc.de"
         ],
-        "forbidden_in_text": [
+        "forbidden_spans": [
             "ulf.wendel@phpdoc.de"
         ]
     },
@@ -50,7 +50,7 @@
             "david@example.com",
             "eve@example.com"
         ],
-        "forbidden_in_text": [
+        "forbidden_spans": [
             "david(at)example dot com",
             "eve (at) example (dot) com"
         ]

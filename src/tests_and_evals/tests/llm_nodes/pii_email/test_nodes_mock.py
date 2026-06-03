@@ -55,7 +55,7 @@ async def test_smoke_mocked_llm_fills_state(mock_openai_for_pii):
 
     pii = result["pii_email"]
     assert "alice@example.com" not in pii.text
-    assert pii.identities == ["alice@example.com"]
+    assert pii.emails == ["alice@example.com"]
     assert len(pii.occurrences) == 1
     assert pii.occurrences[0].placeholder == f"E0_{pii.salt}"
     assert isinstance(result["messages"][0], AIMessage)
@@ -131,7 +131,7 @@ async def test_empty_occurrences_keeps_text_unchanged(mocker):
     state = GlobalState(messages=[HumanMessage(content="No emails in reply.")])
     result = await node(state)
     assert result["pii_email"].text == "No emails in reply."
-    assert result["pii_email"].identities == []
+    assert result["pii_email"].emails == []
 
 
 @pytest.mark.unit
@@ -143,7 +143,7 @@ async def test_missing_occurrences_field_defaults_to_empty(mocker):
     state = GlobalState(messages=[HumanMessage(content="Hello.")])
     result = await node(state)
     assert result["pii_email"].text == "Hello."
-    assert result["pii_email"].identities == []
+    assert result["pii_email"].emails == []
 
 
 @pytest.mark.unit

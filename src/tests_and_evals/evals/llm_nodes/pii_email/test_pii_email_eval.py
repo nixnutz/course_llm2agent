@@ -1,8 +1,8 @@
 """Eval for the pii_email node against a real LLM (golden set in ``cases.json``).
 
 What we measure (the LLM is the non-deterministic part; masking is deterministic):
-- Email recall: expected canonical emails present in ``pii_email.identities``.
-- Text integrity: original email forms removed from ``pii_email.text``.
+- Email recall: expected emails present in ``pii_email.emails``.
+- Text integrity: forbidden spans removed from ``pii_email.text``.
 
 MUST cases gate the test (collected, asserted once at the end); SHOULD cases are
 only measured/logged. Skipped automatically when smoke secrets are absent.
@@ -30,13 +30,13 @@ def get_cases() -> list[dict]:
         return json.load(f)
 
 
-def _missing_emails(identities: list[str | None], expected_emails: list[str]) -> set[str]:
-    found = {e.lower() for e in identities if e is not None}
+def _missing_emails(emails: list[str | None], expected_emails: list[str]) -> set[str]:
+    found = {e.lower() for e in emails if e is not None}
     return {e.lower() for e in expected_emails} - found
 
 
-def _leaked_spans(text: str, forbidden_in_text: list[str]) -> list[str]:
-    return [span for span in forbidden_in_text if span in text]
+def _leaked_spans(text: str, forbidden_spans: list[str]) -> list[str]:
+    return [span for span in forbidden_spans if span in text]
 
 
 @pytest.mark.eval
@@ -61,30 +61,30 @@ async def test_pii_email_eval(get_model_for_smoke_test):
         case_id = case["_metadata"]["id"]
         level = case["_metadata"]["requirement_level"]
         expected_emails = case["expected_emails"]
-        forbidden_in_text = case["forbidden_in_text"]
+        forbidden_spans = case["forbidden_spans"]
 
         state = GlobalState(messages=[HumanMessage(content=case["input"])])
         result = await node(state)
         pii = result["pii_email"]
 
-        missing = _missing_emails(pii.identities, expected_emails)
-        leaked = _leaked_spans(pii.text, forbidden_in_text)
+        missing = _missing_emails(pii.emails, expected_emails)
+        leaked = _leaked_spans(pii.text, forbidden_spans)
 
         summary["email_expected_total"] += len(expected_emails)
         summary["email_missing_total"] += len(missing)
-        summary["text_forbidden_total"] += len(forbidden_in_text)
+        summary["text_forbidden_total"] += len(forbidden_spans)
         summary["text_leaked_total"] += len(leaked)
 
         is_failure = bool(missing or leaked)
         log = logger.error if level == "MUST" else logger.warning
         if is_failure:
             log(
-                "[case=%s] [%s] missing_emails=%s leaked_spans=%s identities=%s text=%r",
+                "[case=%s] [%s] missing_emails=%s leaked_spans=%s emails=%s text=%r",
                 case_id,
                 level,
                 sorted(missing),
                 leaked,
-                pii.identities,
+                pii.emails,
                 pii.text,
             )
 

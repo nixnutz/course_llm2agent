@@ -2,7 +2,7 @@
 
 Summary:
 - Default empty values and ``extra="forbid"`` on ``BaseState``.
-- ``identities`` may hold ``None`` (recognized but not normalizable).
+- ``emails`` may hold ``None`` (recognized but not normalizable).
 - ``Occurrence`` defaults.
 
 Not exhaustive: course/WIP code. Masking behavior is covered in ``test_mask.py``.
@@ -19,14 +19,14 @@ def test_minimal_defaults():
     result = PIIEmail()
     assert result.text == ""
     assert result.salt == ""
-    assert result.identities == []
+    assert result.emails == []
     assert result.occurrences == []
 
 
 @pytest.mark.unit
-def test_identities_allow_none():
-    result = PIIEmail(text="x", salt="abcd", identities=["a@b.com", None])
-    assert result.identities == ["a@b.com", None]
+def test_emails_allow_none():
+    result = PIIEmail(text="x", salt="abcd", emails=["a@b.com", None])
+    assert result.emails == ["a@b.com", None]
 
 
 @pytest.mark.unit
@@ -34,7 +34,7 @@ def test_occurrence_defaults():
     occ = Occurrence(span="a@b.com", raw_llm="a@b.com")
     assert occ.span == "a@b.com"
     assert occ.raw_llm == "a@b.com"
-    assert occ.canonical_key is None
+    assert occ.email is None
     assert occ.placeholder is None
     assert occ.skipped_reason is None
 
@@ -44,9 +44,9 @@ def test_occurrences_accept_nested_models():
     result = PIIEmail(
         text="x",
         salt="abcd",
-        identities=["a@b.com"],
+        emails=["a@b.com"],
         occurrences=[
-            Occurrence(span="a@b.com", raw_llm="a@b.com", canonical_key="a@b.com", placeholder="E0_abcd")
+            Occurrence(span="a@b.com", raw_llm="a@b.com", email="a@b.com", placeholder="E0_abcd")
         ],
     )
     assert result.occurrences[0].placeholder == "E0_abcd"

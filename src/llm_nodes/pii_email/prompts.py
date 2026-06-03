@@ -47,12 +47,22 @@ Example output:
 {{"occurrences": [{{"span": "Ulf at phpdoc.de", "raw": "ulf@phpdoc.de"}}, {{"span": "ulf.wendel@phpdoc.de", "raw": "ulf.wendel@phpdoc.de"}}]}}
 
 Example input:
+Contact Ulf at phpdoc.de, ulf.wendel@phpdoc.de and ulf.wendel@phpdoc.de for details.
+Example output:
+{{"occurrences": [{{"span": "Ulf at phpdoc.de", "raw": "ulf@phpdoc.de"}}, {{"span": "ulf.wendel@phpdoc.de", "raw": "ulf.wendel@phpdoc.de"}}, {{"span": "ulf.wendel@phpdoc.de", "raw": "ulf.wendel@phpdoc.de"}}]}}
+
+Example input:
 No contact info here.
 Example output:
 {{"occurrences": []}}
 
 Example input:
 Contact me at hans(at)example tomorrow.
+Example output:
+{{"occurrences": [{{"span": "hans(at)example", "raw": "hans@example.com"}}]}}
+
+Example input:
+Email hans.
 Example output:
 {{"occurrences": []}}
             """,

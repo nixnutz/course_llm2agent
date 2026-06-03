@@ -1,7 +1,7 @@
 """Deterministic email masking pipeline (no LLM).
 
 Input: original text + LLM occurrences ``[{"span", "raw"}, ...]``.
-Output: a :class:`PIIEmail` with masked ``text``, ``salt``, ``identities`` and a
+Output: a :class:`PIIEmail` with masked ``text``, ``salt``, ``emails`` and a
 per-span audit trail in ``occurrences``.
 
 Contract (see plan ``PII email prompt contract``):
@@ -55,6 +55,7 @@ def _canonical_key(raw: str) -> str | None:
     try:
         _EMAIL_ADAPTER.validate_python(key)
     except ValidationError:
+        logger.warning("normalization_failed raw=%r key=%r (not a valid email)", raw, key)
         return None
     return key
 
@@ -72,6 +73,7 @@ def mask_pii_emails(input_text: str, raw_occurrences: list) -> PIIEmail:
 
     for item in raw_occurrences:
         if not isinstance(item, dict):
+            logger.warning("invalid occurrence=%r (not a dict)", item)
             continue
         span = str(item.get("span", ""))
         raw = str(item.get("raw", ""))
@@ -96,6 +98,7 @@ def mask_pii_emails(input_text: str, raw_occurrences: list) -> PIIEmail:
         located.append({"span": span, "raw": raw, "pos": pos})
 
     # Step 3: order by reading position; reject overlaps (first wins).
+
     located.sort(key=lambda e: e["pos"])
     accepted: list[dict] = []
     last_end = -1
@@ -118,15 +121,15 @@ def mask_pii_emails(input_text: str, raw_occurrences: list) -> PIIEmail:
         accepted.append(entry)
         last_end = entry["pos"] + len(entry["span"])
 
-    # Step 4: assign placeholders / identities in reading order.
-    identities: list[str | None] = []
+    # Step 4: assign placeholders / emails in reading order.
+    emails: list[str | None] = []
     key_to_index: dict[str, int] = {}
     placed: list[dict] = []  # {pos, occurrence}
     for entry in accepted:
         key = _canonical_key(entry["raw"])
         if key is None:
-            index = len(identities)
-            identities.append(None)
+            index = len(emails)
+            emails.append(None)
             logger.error(
                 "normalization_failed span=%r raw=%r (masked, no restore)",
                 entry["span"],
@@ -135,8 +138,8 @@ def mask_pii_emails(input_text: str, raw_occurrences: list) -> PIIEmail:
         elif key in key_to_index:
             index = key_to_index[key]
         else:
-            index = len(identities)
-            identities.append(key)
+            index = len(emails)
+            emails.append(key)
             key_to_index[key] = index
 
         placeholder = f"E{index}_{salt}"
@@ -148,7 +151,7 @@ def mask_pii_emails(input_text: str, raw_occurrences: list) -> PIIEmail:
                 "occurrence": Occurrence(
                     span=entry["span"],
                     raw_llm=entry["raw"],
-                    canonical_key=key,
+                    email=key,
                     placeholder=placeholder,
                 ),
             }
@@ -180,4 +183,22 @@ def mask_pii_emails(input_text: str, raw_occurrences: list) -> PIIEmail:
         elif entry["key"] is not None and entry["raw"] and entry["raw"] in text:
             logger.warning("leak_suspected raw=%r still present in masked text", entry["raw"])
 
-    return PIIEmail(text=text, salt=salt, identities=identities, occurrences=occurrences)
+    return PIIEmail(text=text, salt=salt, emails=emails, occurrences=occurrences)
+
+
+def demask_pii_emails(masked_text: str, pii: PIIEmail) -> str:
+    """Replace ``E{n}_{salt}`` placeholders with the original email addresses.
+
+    Only placeholders that have a non-``None`` email in ``pii.emails`` are
+    restored. Placeholders whose email is ``None`` (normalization failed) are
+    left as-is so downstream code can still detect them.
+
+    Returns a new string; ``pii`` is not mutated.
+    """
+    result = masked_text
+    for k, email in enumerate(pii.emails):
+        if email is None:
+            continue
+        placeholder = f"E{k}_{pii.salt}"
+        result = result.replace(placeholder, email)
+    return result
