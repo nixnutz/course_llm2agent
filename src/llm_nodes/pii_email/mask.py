@@ -41,7 +41,12 @@ def _make_salt(input_text: str, length: int = 8, attempts: int = 5) -> str:
         if candidate not in input_text:
             return candidate
     # Extremely unlikely fallback: full-length uuid.
-    return uuid.uuid4().hex
+    
+    candidate = uuid.uuid4().hex
+    if candidate in input_text:
+        raise RuntimeError("Failed to generate a salt that is not a substring of the input text")
+        
+    return candidate
 
 
 def _canonical_key(raw: str) -> str | None:

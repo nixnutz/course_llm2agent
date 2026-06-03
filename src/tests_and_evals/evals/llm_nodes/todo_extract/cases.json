@@ -1,0 +1,51 @@
+[
+    {
+        "_metadata": {
+            "id": "1"
+        },
+        "input": "Task E0_a1b2c3d4 to feed the cat today.",
+        "expected_who_tokens": [
+            "E0_a1b2c3d4"
+        ],
+        "expected_what_terms": [
+            "feed",
+            "cat"
+        ],
+        "expected_when_terms": [
+            "today"
+        ]
+    },
+    {
+        "_metadata": {
+            "id": "2"
+        },
+        "input": "Task E0_a1b2c3d4 to water the plants.",
+        "expected_who_tokens": [
+            "E0_a1b2c3d4"
+        ],
+        "expected_what_terms": [
+            "water",
+            "plants"
+        ],
+        "expected_when_terms": [
+            "UNKNOWN"
+        ]
+    },
+    {
+        "_metadata": {
+            "id": "3"
+        },
+        "input": "Task E0_a1b2c3d4 and E1_b2c3d4e5 to review the report by Friday.",
+        "expected_who_tokens": [
+            "E0_a1b2c3d4",
+            "E1_b2c3d4e5"
+        ],
+        "expected_what_terms": [
+            "review",
+            "report"
+        ],
+        "expected_when_terms": [
+            "Friday"
+        ]
+    }
+]

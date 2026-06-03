@@ -78,7 +78,13 @@ async def test_pii_email_eval(get_model_for_smoke_test):
         summary["text_forbidden_total"] += len(forbidden_spans)
         summary["text_leaked_total"] += len(leaked)
 
-        is_failure = bool(missing or leaked)
+        failed_checks: list[str] = []
+        if missing:
+            failed_checks.append("email_recall")
+        if leaked:
+            failed_checks.append("text_integrity")
+
+        is_failure = bool(failed_checks)
         log = logger.error if level == "MUST" else logger.warning
         if is_failure:
             log(
@@ -92,10 +98,11 @@ async def test_pii_email_eval(get_model_for_smoke_test):
             )
 
         collector.record(
+            suite="pii_email",
             case_id=case_id,
             level=level,
-            missing_emails=missing,
-            leaked_spans=leaked,
+            failed_checks=failed_checks,
+            details={"missing_emails": missing, "leaked_spans": leaked},
         )
 
     email_recall = (

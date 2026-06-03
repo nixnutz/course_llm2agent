@@ -29,28 +29,45 @@ def _should_summary(results: list[EvalCaseResult]) -> tuple[int, int, list[EvalC
     return len(should), passed, failed
 
 
+def _suites(results: list[EvalCaseResult]) -> list[str]:
+    """Distinct suite names, in first-seen order, so each suite is gated on its own."""
+    seen: list[str] = []
+    for r in results:
+        if r.suite not in seen:
+            seen.append(r.suite)
+    return seen
+
+
 def _finalize_should(session, results: list[EvalCaseResult]) -> None:
-    total, passed, failed = _should_summary(results)
-    if total == 0:
-        return
+    """Summarize and gate the SHOULD pass rate per suite (one gate per eval node)."""
+    breached = False
+    for suite in _suites(results):
+        suite_results = [r for r in results if r.suite == suite]
+        total, passed, failed = _should_summary(suite_results)
+        if total == 0:
+            continue
 
-    rate = passed / total
-    summary_msg = "SHOULD summary: %d/%d passed (%.0f%%, min %.0f%%)"
-    summary_args = (passed, total, rate * 100, SHOULD_MIN_PASS_RATE * 100)
-    if rate < SHOULD_MIN_PASS_RATE:
-        logger.error(summary_msg, *summary_args)
-    else:
-        logger.info(summary_msg, *summary_args)
+        rate = passed / total
+        suite_breached = rate < SHOULD_MIN_PASS_RATE
+        summary_msg = "SHOULD summary suite=%s: %d/%d passed (%.0f%%, min %.0f%%)"
+        summary_args = (suite, passed, total, rate * 100, SHOULD_MIN_PASS_RATE * 100)
+        if suite_breached:
+            logger.error(summary_msg, *summary_args)
+        else:
+            logger.info(summary_msg, *summary_args)
 
-    case_log = logger.error if rate < SHOULD_MIN_PASS_RATE else logger.warning
-    for r in failed:
-        case_log(
-            "SHOULD fail case=%s missing_emails=%s leaked_spans=%s",
-            r.case_id,
-            r.missing_emails,
-            r.leaked_spans,
-        )
-    if rate < SHOULD_MIN_PASS_RATE:
+        case_log = logger.error if suite_breached else logger.warning
+        for r in failed:
+            case_log(
+                "SHOULD fail suite=%s case=%s failed_checks=%s details=%s",
+                r.suite,
+                r.case_id,
+                r.failed_checks,
+                r.details,
+            )
+        breached = breached or suite_breached
+
+    if breached:
         session.exitstatus = max(session.exitstatus, 1)
 
 

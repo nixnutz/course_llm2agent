@@ -1,15 +1,15 @@
 ## branch: main
-- last_reviewed_commit: c8c8d41
-- last_reviewed_at: 2026-06-03T22:00:00+02:00
-- last_review_context: staged-only follow-up — todo_extract/todo_markdown prompts EMAIL0 → E{n}_{salt} after pii_email mask contract
+- last_reviewed_commit: b21d64b
+- last_reviewed_at: 2026-06-03T23:42:00+02:00
+- last_review_context: follow-up review — F1 who-token fix + TODO, _make_salt fail-fast; staged eval/test bundle plus unstaged mask.py
 - last_action: pre_commit_review
-- raw_log_decision: skip (trivial)
-- adr_file_decision: skip (trivial)
+- raw_log_decision: update existing
+- adr_file_decision: update existing
 - user_value_log_decision: skip (trivial)
-- raw_log_status: n/a
-- adr_file_status: n/a
+- raw_log_status: done
+- adr_file_status: done
 - user_value_log_status: n/a
 - findings_resolved: yes
 - doc_decisions_made: yes
 - ready_to_commit: yes
-- notes: Missed prompt sync from prior PII email work; session4 notebook EMAIL0 left didactic/out of scope.
+- notes: F1 closed (exact placeholder tokens + TODO at _PLACEHOLDER_RE). Stage mask.py and test_todo_extract_eval.py unstaged hunks with the eval bundle before commit. pii_email eval MUST may still fail on weak local model (out of scope).
