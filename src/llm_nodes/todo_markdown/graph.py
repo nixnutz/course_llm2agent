@@ -5,22 +5,36 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
 from ..global_state import GlobalState
+from ..placeholder_audit import allowlist_from_pii_email, audit_placeholder_texts, log_placeholder_violations
 from ..todo_extract.models import TODOList
 from .models import TODOMarkdown, TODOMarkdownState
 from .nodes import get_todo_markdown_node
+
+
+async def _audit_todo_markdown_placeholders(state: TODOMarkdownState) -> dict:
+    """Deterministic allowlist check after the LLM node (does not read raw emails)."""
+    result = audit_placeholder_texts(
+        state.todo_list_json,
+        state.todo_markdown.markdown,
+        allowlist=state.placeholder_allowlist,
+    )
+    log_placeholder_violations(result, node="todo_markdown")
+    return {}
 
 
 def build_todo_markdown_subgraph(model: str) -> CompiledStateGraph:
     """Compile an isolated graph on ``TODOMarkdownState``."""
     builder = StateGraph(TODOMarkdownState)
     builder.add_node("todo_markdown", get_todo_markdown_node(model))
+    builder.add_node("audit_placeholders", _audit_todo_markdown_placeholders)
     builder.add_edge(START, "todo_markdown")
-    builder.add_edge("todo_markdown", END)
+    builder.add_edge("todo_markdown", "audit_placeholders")
+    builder.add_edge("audit_placeholders", END)
     return builder.compile()
 
 
 def make_todo_markdown_subgraph_runner(todo_graph: CompiledStateGraph):
-    """Return a parent-graph node that bridges ``GlobalState`` ↔ ``TODOState``.
+    """Return a parent-graph node that bridges ``GlobalState`` ↔ ``TODOMarkdownState``.
 
     At runtime LangGraph calls the inner function with ``(state, config)``.
     ``config`` is forwarded unchanged to ``todo_graph.ainvoke``; see the module
@@ -35,9 +49,13 @@ def make_todo_markdown_subgraph_runner(todo_graph: CompiledStateGraph):
             raise ValueError("Expected non-empty todo_list.items before TODO markdown subgraph")
 
         todo_list_payload = TODOList.model_validate(state.todo_list).model_dump_json()
+        allowlist = allowlist_from_pii_email(state.pii_email)
 
         sub_result = await todo_graph.ainvoke(
-            {"todo_list_json": todo_list_payload},
+            {
+                "todo_list_json": todo_list_payload,
+                "placeholder_allowlist": allowlist,
+            },
             config=config,
         )
 

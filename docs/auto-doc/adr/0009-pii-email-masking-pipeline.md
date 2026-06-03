@@ -19,6 +19,7 @@ Split responsibilities along determinism boundaries:
 - The LLM returns only `occurrences: [{span, raw}]` (verbatim span + its normalized form), in reading order, with no deduplication and no masked text.
 - Deterministic Python (`src/llm_nodes/pii_email/mask.py`) builds the masked text by position-based splicing in the original input, assigns collision-free placeholders `E{n}_{salt}` (salt chosen so it does not occur in the input), deduplicates by `raw.strip().lower()` into `emails`, and keeps a per-span audit trail in `occurrences` (`Occurrence.email` is the mail-ready address per span).
 - Soft-fail markers (pipeline never aborts): `span_not_found` (warning, raw discarded), `normalization_failed` (error, span still masked with `email=None`), `leak_suspected` (warning).
+- After each TODO subgraph LLM step, deterministic `placeholder_audit` checks output strings against a bridge-derived `PlaceholderAllowlist` (token strings only, no raw emails in subgraph state); round 1 logs `placeholder_violation` on unknown tokens (reaction policy deferred).
 - Trusted application code restores placeholders after the graph via `demask_pii_emails(masked_text, pii)` — not inside subgraph LLM nodes.
 
 The `PIIEmail` state carries `text`, `salt`, `emails`, and `occurrences`.
@@ -37,5 +38,6 @@ This decision is currently in effect in production/dev workflow.
 This pipeline is a teaching sketch, not production compliance tooling. Documented gaps:
 
 - **Under-reported duplicates:** if the LLM omits a repeated identical `span`, Python masks only occurrences consumed by the list; residual text raises `leak_suspected` (warning only).
-- **Downstream LLM nodes** may corrupt or invent placeholders; `demask_pii_emails` does not repair them (post-LLM allowlist audit is out of band for this ADR).
+- **Downstream placeholder audit:** invented/wrong-salt tokens (e.g. `E0_cafebabe` vs session salt) and truncated-but-still-matching tokens (e.g. `E0_a1b2c3` vs allowed `E0_a1b2c3d4`) log `placeholder_violation`; tokens that break the finder shape (e.g. `E0-a1b2c3d4`) are not detected — see `src/llm_nodes/placeholder_audit/README.md`. Input recall and failure policy are deferred.
+- **`demask_pii_emails`** still uses exact `.replace`; it does not repair invalid tokens.
 - See `src/llm_nodes/pii_email/README.md` for the maintainer-facing table.

@@ -2,11 +2,11 @@
 
 State isolation (bridge)
 ------------------------
-``build_todo_subgraph`` defines a graph on ``TODOState`` only. The bridge from
-``make_todo_subgraph_runner`` maps ``GlobalState.pii_email.text`` into that
-subgraph and merges ``todo_list`` plus AI trace ``messages`` back onto
-``GlobalState``. The subgraph never sees ``pii_email`` or the parent's human
-message list.
+``build_todo_extract_subgraph`` defines a graph on ``TODOState`` only. The bridge
+maps ``GlobalState.pii_email.text`` and a derived ``PlaceholderAllowlist`` (no
+raw emails) into that subgraph and merges ``todo_list`` plus AI trace ``messages``
+back onto ``GlobalState``. The subgraph never sees ``PIIEmail.emails`` or the
+parent's human message list.
 
 Build time vs run time
 ----------------------
@@ -14,7 +14,8 @@ Compiling the subgraph in the notebook (cells *before* ``with reducer_session``)
 needs no LangGraph ``config`` and no active reducer session — that is structure
 only. Every real execution happens later, inside
 ``await session.ainvoke(parent_graph, state)`` (or
-``session.ainvoke(todo_graph, {"text": ...})`` when testing the subgraph alone).
+``session.ainvoke(todo_graph, {"text": ..., "placeholder_allowlist": ...})`` when
+testing the subgraph alone).
 
 LangGraph ``config`` (thread_id, tracing, checkpoints)
 ------------------------------------------------------
@@ -41,16 +42,29 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
 from ..global_state import GlobalState
+from ..placeholder_audit import allowlist_from_pii_email, audit_placeholder_texts, log_placeholder_violations
 from .models import TODOList, TODOState
 from .nodes import get_todo_list_node
+
+
+async def _audit_todo_extract_placeholders(state: TODOState) -> dict:
+    """Deterministic allowlist check after the LLM node (does not read raw emails)."""
+    parts: list[str] = []
+    for item in state.todo_list.items:
+        parts.extend((item.who, item.what, item.when))
+    result = audit_placeholder_texts(*parts, allowlist=state.placeholder_allowlist)
+    log_placeholder_violations(result, node="todo_extract")
+    return {}
 
 
 def build_todo_extract_subgraph(model: str) -> CompiledStateGraph:
     """Compile an isolated graph on ``TODOState`` (no session/config at build time)."""
     builder = StateGraph(TODOState)
     builder.add_node("todo_extract", get_todo_list_node(model))
+    builder.add_node("audit_placeholders", _audit_todo_extract_placeholders)
     builder.add_edge(START, "todo_extract")
-    builder.add_edge("todo_extract", END)
+    builder.add_edge("todo_extract", "audit_placeholders")
+    builder.add_edge("audit_placeholders", END)
     return builder.compile()
 
 
@@ -69,8 +83,12 @@ def make_todo_extract_subgraph_runner(todo_graph: CompiledStateGraph):
         if not state.pii_email.text:
             raise ValueError("Expected non-empty pii_email.text before TODO subgraph")
 
+        allowlist = allowlist_from_pii_email(state.pii_email)
         sub_result = await todo_graph.ainvoke(
-            {"text": state.pii_email.text},
+            {
+                "text": state.pii_email.text,
+                "placeholder_allowlist": allowlist,
+            },
             config=config,
         )
 

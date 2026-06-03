@@ -7,6 +7,7 @@ from pydantic import Field
 
 from ...reducer.reducer_session import session_message_reducer
 from ..base_state import BaseState
+from ..placeholder_audit.models import PlaceholderAllowlist
 
 
 class TODOItem(BaseState):
@@ -24,8 +25,11 @@ class TODOList(BaseState):
 
 
 class TODOState(BaseState):
-    """Subgraph-only state: bridge passes ``text`` in; no ``pii_email`` or parent ``messages``."""
+    """Subgraph-only state: bridge passes ``text`` and ``placeholder_allowlist`` in."""
 
     text: str = Field(default="", frozen=True)
+    placeholder_allowlist: PlaceholderAllowlist = Field(
+        default_factory=PlaceholderAllowlist, frozen=True
+    )
     todo_list: TODOList = Field(default_factory=TODOList)
     messages: Annotated[list[BaseMessage], session_message_reducer] = Field(default_factory=list)

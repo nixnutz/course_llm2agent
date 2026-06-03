@@ -41,5 +41,6 @@ def test_todo_state_defaults():
     state = TODOState()
 
     assert state.text == ""
+    assert state.placeholder_allowlist.allowed_tokens == ()
     assert state.todo_list == TODOList()
     assert state.messages == []
