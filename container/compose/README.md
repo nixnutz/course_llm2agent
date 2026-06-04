@@ -107,8 +107,8 @@ For notebooks in `src/assorted`, the `dev` container now injects API keys into e
 Exposed variables in notebook runtime include:
 
 - `MODEL_API_KEY_DEV`, `MODEL_API_KEY_STAGE`, `MODEL_API_KEY_PROD`, `MODEL_API_KEY_USER1`, `MODEL_API_KEY_USER2`
-- `MODEL_BASE_URL_CLEAN` (default `https://caddy:${LITELLM_PORT}`) for normal model calls
-- `MODEL_BASE_URL_CHAOS` (default `https://caddy:${LITELLM_CHAOS_PORT}`) for chaos channel calls
+- `MODEL_BASE_URL_CLEAN`, `MODEL_BASE_URL_CHAOS` (set in `.env` — see `.env.example`)
+- `PHOENIX_COLLECTOR_ENDPOINT`, `PHOENIX_APP_PROJECT_NAME` (dev compose maps the latter to `PHOENIX_PROJECT_NAME` for tracing)
 
 No API key aliases are provided in this strict mode (`API_KEY`, `LITELLM_API_KEY`, `LITELLM_API_KEY_*` are intentionally absent).
 
@@ -305,6 +305,10 @@ PHOENIX_PROJECT_NAME=litellm-proxy
 PHOENIX_PROJECT_NAME_CLEAN=litellm-clean
 PHOENIX_PROJECT_NAME_CHAOS=litellm-chaos
 PHOENIX_API_KEY=
+PHOENIX_COLLECTOR_ENDPOINT=https://caddy:6006/v1/traces
+PHOENIX_APP_PROJECT_NAME=langgraph-course
+MODEL_BASE_URL_CLEAN=https://caddy:4000
+MODEL_BASE_URL_CHAOS=https://caddy:4001
 OLLAMA_API_BASE=http://ollama:${OLLAMA_CONTAINER_PORT}
 OLLAMA_API_BASE_CLEAN=http://ollama:${OLLAMA_CONTAINER_PORT}
 OLLAMA_API_BASE_CHAOS=http://toxiproxy:${TOXIPROXY_OLLAMA_LISTEN}
@@ -533,21 +537,31 @@ For this callback, the LiteLLM container must receive:
 - `PHOENIX_API_KEY` (required for Phoenix Cloud, optional for local self-hosted)
 
 LiteLLM does not auto-instrument all upstream client logic. Phoenix sees what clients export.
-For a Python client/agent, a minimal OTEL setup looks like:
 
-```python
-from phoenix.otel import register
-from openinference.instrumentation.litellm import LiteLLMInstrumentor
+### LangGraph traces (app-side)
 
-tracer_provider = register(
-    project_name="local-agent-dev",
-    endpoint="https://localhost:6006/v1/traces",
-)
-LiteLLMInstrumentor().instrument(tracer_provider=tracer_provider)
+| Source | Phoenix project (typical) | What you see |
+|--------|---------------------------|--------------|
+| LiteLLM `arize_phoenix` callback | `litellm-clean` / `litellm-chaos` | Flat proxy request traces |
+| App instrumentation (`src/tracing/phoenix.py`) | `langgraph-course` (`PHOENIX_APP_PROJECT_NAME`) | One root trace per `graph.ainvoke` with nested node/subgraph/LLM spans |
+
+Course nodes call **`AsyncOpenAI`** against the LiteLLM proxy (not the `litellm` Python SDK). Use **`enable_langgraph_tracing()`** (LangChain + OpenAI OpenInference instrumentors), not `LiteLLMInstrumentor`.
+
+Dev container: set `PHOENIX_COLLECTOR_ENDPOINT` and `PHOENIX_APP_PROJECT_NAME` in `container/compose/.env` (see `.env.example`). Use **`https://caddy:6006/v1/traces`** (not `http://` — port 6006 is TLS-only) or **`http://phoenix:6006/v1/traces`**. `enable_langgraph_tracing()` applies `/certs/.caroot/rootCA.pem` for HTTPS (same as LiteLLM). Host browser UI: `https://localhost:6006`.
+
+**Tip:** In [`src/assorted/session5/graphtrace.ipynb`](../../src/assorted/session5/graphtrace.ipynb), run the **first code cell** before any `langgraph` / `llm_nodes` import. After experimenting in the kernel: **Restart kernel → Run All**.
+
+**Duplicate LLM visibility is expected:** proxy callback spans may appear under `litellm-clean` while instrumented client spans appear as children under `langgraph-course` — different projects, not a bug.
+
+Verification:
+
+```text
+make up  # rebuilds dev image when requirements.in changed
+# Jupyter: session5/graphtrace.ipynb → Restart kernel → Run All
+# Phoenix UI: https://localhost:6006 → project langgraph-course → one root trace with nested children (exact span names may vary)
 ```
 
-Set a distinct project/service name per app/agent so traces stay source-attributable in the UI.
-Quick callback smoke flow for proxy traces: `make up` -> `make smoke-chat` -> check Phoenix UI for a new LiteLLM trace.
+Quick callback smoke flow for proxy-only traces: `make up` -> `make smoke-chat` -> Phoenix UI under the LiteLLM project name.
 
 ## Dev maintenance (minimal)
 

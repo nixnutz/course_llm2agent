@@ -87,6 +87,7 @@ Compose passes `JUPYTER_TOKEN` into the `dev` container at runtime; `start-noteb
 | What changed | What to run |
 |--------------|-------------|
 | `JUPYTER_TOKEN`, `DEV_JUPYTER_PORT`, or `HOST_BIND_IP` in `container/compose/.env` | `make dev-container-restart` (or `make up`) — no image rebuild |
+| `src/requirements.in` (new packages) | `make dev-image-rebuild` + `make dev-container-restart` (or manual `pip install -r` in `/workspace/src/.venv`, then restart Jupyter kernel) |
 | `container/dev-image/scripts/start-notebook.sh` or `container/dev-image/Dockerfile` | `make dev-image-build`, then restart `dev` — script changes are not picked up from the host mount |
 
 Open the full URL including `?token=…` in one step. Without the token query parameter, Jupyter prompts for the token manually.

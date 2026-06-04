@@ -448,6 +448,7 @@ services:
       - ./.state/keys:/workspace/compose-state/keys:ro,z
     networks:
       - dev_edge
+      - backend_core
     environment:
       JUPYTER_TOKEN: "${JUPYTER_TOKEN:?Set JUPYTER_TOKEN in container/compose/.env}"
       KEYS_FILE: "/workspace/compose-state/keys/keys.local.json"
@@ -461,6 +462,8 @@ services:
       POSTGRES_TOOLBERT_DB: "${POSTGRES_TOOLBERT_DB}"
       POSTGRES_TOOLBERT_USER: "${POSTGRES_TOOLBERT_USER}"
       POSTGRES_TOOLBERT_PASSWORD: "${POSTGRES_TOOLBERT_PASSWORD}"
+      PHOENIX_COLLECTOR_ENDPOINT: "${PHOENIX_COLLECTOR_ENDPOINT}"
+      PHOENIX_PROJECT_NAME: "${PHOENIX_APP_PROJECT_NAME}"
     restart: unless-stopped
     stop_grace_period: 10s
     logging:

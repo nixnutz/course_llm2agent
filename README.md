@@ -26,7 +26,7 @@ Open LiteLLM UI:
 xdg-open "https://localhost:4000/ui"
 ```
 
-Open JupyterLab (course notebooks under `src/assorted`; stack must be up via `make up`). URL uses `HOST_BIND_IP`, `DEV_JUPYTER_PORT`, and `JUPYTER_TOKEN` from `container/compose/.env`:
+Open JupyterLab (course notebooks under `src/assorted`; stack must be up via `make up`). LangGraph tracing lab: `src/assorted/session5/graphtrace.ipynb` (Phoenix project `langgraph-course`). URL uses `HOST_BIND_IP`, `DEV_JUPYTER_PORT`, and `JUPYTER_TOKEN` from `container/compose/.env`:
 
 ```text
 http://<HOST_BIND_IP>:<DEV_JUPYTER_PORT>/lab?token=<JUPYTER_TOKEN>
