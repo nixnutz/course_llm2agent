@@ -2,6 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-06-02
+- Amended: 2026-06-04 (PII-in-graph compromise; parent `demask_node`)
 - OverheadSeconds: 0
 
 ## Context
@@ -20,9 +21,26 @@ Split responsibilities along determinism boundaries:
 - Deterministic Python (`src/llm_nodes/pii_email/mask.py`) builds the masked text by position-based splicing in the original input, assigns collision-free placeholders `E{n}_{salt}` (salt chosen so it does not occur in the input), deduplicates by `raw.strip().lower()` into `emails`, and keeps a per-span audit trail in `occurrences` (`Occurrence.email` is the mail-ready address per span).
 - Soft-fail markers (pipeline never aborts): `span_not_found` (warning, raw discarded), `normalization_failed` (error, span still masked with `email=None`), `leak_suspected` (warning).
 - After each TODO subgraph LLM step, deterministic `placeholder_audit` checks output strings against a bridge-derived `PlaceholderAllowlist` (token strings only, no raw emails in subgraph state); round 1 logs `placeholder_violation` on unknown tokens (reaction policy deferred).
-- Trusted application code restores placeholders after the graph via `demask_pii_emails(masked_text, pii)` — not inside subgraph LLM nodes.
+- **Restore (demask):** deterministic `demask_pii_emails(masked_text, pii)` runs only in **trusted** code — never in TODO subgraph LLM nodes. Session 5+ may call it from a parent-graph `demask_node` (no LLM) so Phoenix/reducer see one span per step; Session 4 may still demask in notebook code after `ainvoke`. Restore target in the course pipeline is **`todo_markdown.markdown`** only (not structured `todo_list` fields).
 
 The `PIIEmail` state carries `text`, `salt`, `emails`, and `occurrences`.
+
+### PII in the graph (course compromise)
+
+**Ideal:** mask and demask at a dedicated **system boundary** with a narrow API; raw emails never live in LangGraph state.
+
+**Why PII appears in-graph anyway:** masking requires reading human input once; `pii_email` (including `emails` for restore) must exist on `GlobalState` for that step. TODO subgraphs stay isolated via bridges — they do not receive raw emails.
+
+**Accepted compromise (Session 5+):** trusted **parent** nodes only: `pii_extract_node` (mask) and `demask_node` (restore markdown). Untrusted LLM nodes never see `PIIEmail.emails`.
+
+**If PII is in graph state, these rules apply:**
+
+1. Raw emails only on `GlobalState.pii_email` — not in subgraph state or LLM prompts.
+2. Mask before any external/untrusted LLM; demask only in trusted deterministic nodes or equally trusted app code.
+3. No fuzzy or LLM-driven restore; use `demask_pii_emails` only.
+4. Prefer observability without widening trust: in-graph demask is for trace trees, not a production boundary.
+
+**Future optimum:** explicit ingress/egress API (mask in, demask out) with the compiled graph operating only on placeholders.
 Here, *production/dev workflow* means this repository's course labs, tests, and session graphs—not a production PII compliance deployment.
 This decision is currently in effect in production/dev workflow.
 

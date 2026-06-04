@@ -1,15 +1,15 @@
 ## branch: main
-- last_reviewed_commit: 345d597
-- last_reviewed_at: 2026-06-04T19:00:00+02:00
-- last_review_context: post-commit — LangGraph Phoenix tracing only (345d597); dc49b74 placeholder audit out of scope (no review)
-- last_action: post_commit_review
+- last_reviewed_commit: a31c68d
+- last_reviewed_at: 2026-06-04T23:30:00+02:00
+- last_review_context: working-tree — ParentBaseGraph, demask_node, session5 graphtrace, ADR 0009 compromise, demask unit tests; ruff pass
+- last_action: pre_commit_review_complete
 - raw_log_decision: add
-- adr_file_decision: skip (trivial)
+- adr_file_decision: update existing
 - user_value_log_decision: skip (trivial)
 - raw_log_status: done
-- adr_file_status: n/a
+- adr_file_status: done
 - user_value_log_status: n/a
 - findings_resolved: yes
 - doc_decisions_made: yes
-- ready_to_commit: n/a
-- notes: Phoenix review closed 345d597. F1 notebook output churn — accepted (didactic hack). F2 no tracing unit tests — accepted. F3 compose PHOENIX_* without :? — intentional. A1/A2 confirmed (.env set; stack rebuilt and verified). Amend 345d597 or follow-up commit for this review-status file. Sidecar plan-4 aligned; sidecar not cleared.
+- ready_to_commit: yes
+- notes: F1–F5 closed. applied_review_skips 0.

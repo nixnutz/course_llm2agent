@@ -42,6 +42,6 @@ async def test_todo_extract_node_smoke_real_llm_extracts_placeholder_todo(
 
     who_values = [item.who for item in todo_list.items if item.who]
     assert who_values, "expected at least one non-empty who field"
-    assert any(
-        expected_placeholder in who or _PLACEHOLDER_RE.match(who) for who in who_values
-    ), f"expected placeholder-like who; got who_values={who_values}"
+    assert any(expected_placeholder in who or _PLACEHOLDER_RE.match(who) for who in who_values), (
+        f"expected placeholder-like who; got who_values={who_values}"
+    )

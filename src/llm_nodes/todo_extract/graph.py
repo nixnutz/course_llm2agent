@@ -42,7 +42,11 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
 from ..global_state import GlobalState
-from ..placeholder_audit import allowlist_from_pii_email, audit_placeholder_texts, log_placeholder_violations
+from ..placeholder_audit import (
+    allowlist_from_pii_email,
+    audit_placeholder_texts,
+    log_placeholder_violations,
+)
 from .models import TODOList, TODOState
 from .nodes import get_todo_list_node
 

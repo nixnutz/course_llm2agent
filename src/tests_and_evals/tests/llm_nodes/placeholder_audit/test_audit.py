@@ -2,20 +2,18 @@
 
 import pytest
 
+from src.llm_nodes.pii_email.models import PIIEmail
 from src.llm_nodes.placeholder_audit import (
     PlaceholderAllowlist,
     allowlist_from_pii_email,
     audit_placeholder_text,
 )
-from src.llm_nodes.pii_email.models import PIIEmail
 
 _SALT = "a1b2c3d4"
 
 
 def _allowlist(*indices: int) -> PlaceholderAllowlist:
-    return PlaceholderAllowlist(
-        allowed_tokens=tuple(f"E{i}_{_SALT}" for i in indices)
-    )
+    return PlaceholderAllowlist(allowed_tokens=tuple(f"E{i}_{_SALT}" for i in indices))
 
 
 @pytest.mark.unit
@@ -64,7 +62,7 @@ def test_malformed_separator_not_reported():
 @pytest.mark.unit
 def test_unknown_who_not_reported():
     allowlist = _allowlist(0)
-    result = audit_placeholder_text('who UNKNOWN what x when y', allowlist)
+    result = audit_placeholder_text("who UNKNOWN what x when y", allowlist)
     assert not result.unknown_tokens
 
 

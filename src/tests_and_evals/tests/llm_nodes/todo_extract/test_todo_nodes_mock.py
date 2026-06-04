@@ -24,9 +24,7 @@ from src.llm_nodes.todo_extract.models import TODOState
 from src.llm_nodes.todo_extract.nodes import get_todo_list_node
 
 _INPUT_TEXT = "Task E0_a1b2c3d4 to feed the cat today."
-_LLM_JSON = json.dumps(
-    {"items": [{"who": "E0_a1b2c3d4", "what": "feed the cat", "when": "today"}]}
-)
+_LLM_JSON = json.dumps({"items": [{"who": "E0_a1b2c3d4", "what": "feed the cat", "when": "today"}]})
 
 
 def _patch_openai(mocker, llm_content: str):

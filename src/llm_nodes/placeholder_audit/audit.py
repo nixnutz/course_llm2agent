@@ -23,9 +23,7 @@ def audit_placeholder_text(text: str, allowlist: PlaceholderAllowlist) -> Placeh
     return PlaceholderAuditResult(candidates, unknown)
 
 
-def audit_placeholder_texts(
-    *texts: str, allowlist: PlaceholderAllowlist
-) -> PlaceholderAuditResult:
+def audit_placeholder_texts(*texts: str, allowlist: PlaceholderAllowlist) -> PlaceholderAuditResult:
     """Audit one or more string fields as a single combined scan."""
     if not allowlist.allowed_tokens:
         return PlaceholderAuditResult(frozenset(), frozenset())

@@ -5,7 +5,11 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
 from ..global_state import GlobalState
-from ..placeholder_audit import allowlist_from_pii_email, audit_placeholder_texts, log_placeholder_violations
+from ..placeholder_audit import (
+    allowlist_from_pii_email,
+    audit_placeholder_texts,
+    log_placeholder_violations,
+)
 from ..todo_extract.models import TODOList
 from .models import TODOMarkdown, TODOMarkdownState
 from .nodes import get_todo_markdown_node
