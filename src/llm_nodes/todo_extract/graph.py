@@ -41,6 +41,7 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
+from ...llm_handle.local import AsyncClientProvider, ClientCachePolicy
 from ..global_state import GlobalState
 from ..placeholder_audit import (
     allowlist_from_pii_email,
@@ -61,10 +62,22 @@ async def _audit_todo_extract_placeholders(state: TODOState) -> dict:
     return {}
 
 
-def build_todo_extract_subgraph(model: str) -> CompiledStateGraph:
+def build_todo_extract_subgraph(
+    model: str,
+    *,
+    client_provider: AsyncClientProvider | None = None,
+    client_cache_policy: ClientCachePolicy = "cached",
+) -> CompiledStateGraph:
     """Compile an isolated graph on ``TODOState`` (no session/config at build time)."""
     builder = StateGraph(TODOState)
-    builder.add_node("todo_extract", get_todo_list_node(model))
+    builder.add_node(
+        "todo_extract",
+        get_todo_list_node(
+            model,
+            client_provider=client_provider,
+            client_cache_policy=client_cache_policy,
+        ),
+    )
     builder.add_node("audit_placeholders", _audit_todo_extract_placeholders)
     builder.add_edge(START, "todo_extract")
     builder.add_edge("todo_extract", "audit_placeholders")

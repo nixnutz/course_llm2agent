@@ -19,13 +19,6 @@ _PII_JSON = json.dumps(
     {"occurrences": [{"span": "alice@example.com", "raw": "alice@example.com"}]}
 )
 
-_NODE_MODULES = (
-    "src.llm_nodes.pii_email.nodes",
-    "src.llm_nodes.todo_extract.nodes",
-    "src.llm_nodes.todo_markdown.nodes",
-)
-
-
 def _patch_openai_for_parent_graph(mocker):
     call_state = {"n": 0}
 
@@ -57,9 +50,11 @@ def _patch_openai_for_parent_graph(mocker):
 
     mock_client = mocker.MagicMock()
     mock_client.chat.completions.create = mocker.AsyncMock(side_effect=llm_create)
-    provider = lambda: mock_client
-    for mod in _NODE_MODULES:
-        mocker.patch(f"{mod}.make_async_openai_client_provider", return_value=provider)
+
+    def provider():
+        return mock_client
+
+    mocker.patch("src.graphs.parent_base_graph.make_async_openai_client_provider", return_value=provider)
     return mock_client
 
 

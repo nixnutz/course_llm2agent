@@ -16,6 +16,7 @@ Current folder contract:
 Direct pytest commands:
 - fast: `pytest src/tests_and_evals/tests -m "not eval"`
 - integration: `pytest src/tests_and_evals/tests -m "integration and not eval"`
+- chaos (L6, stack up): `pytest src/tests_and_evals/tests -m "chaos" -v` — two serial tests (segments A/B); requires documented env from `container/compose/.env.example` (`MODEL_API_KEY_DEV` via keys export, `MODEL_BASE_URL_CHAOS`, `TOXIPROXY_URL`); Toxiproxy proxies (`make toxiproxy-bootstrap` if chaos channel returns 502); smoke/chaos model is the fixed course default in `common/fixtures.py` (`SMOKE_MODEL`), not an env var; do not combine with `pytest -n` unless `xdist_group("chaos")` is acceptable
 - eval: `pytest src/tests_and_evals/evals -m "eval"`
 
 Eval execution is intentionally manual via explicit command selection.

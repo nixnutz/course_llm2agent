@@ -107,7 +107,7 @@ For notebooks in `src/assorted`, the `dev` container now injects API keys into e
 Exposed variables in notebook runtime include:
 
 - `MODEL_API_KEY_DEV`, `MODEL_API_KEY_STAGE`, `MODEL_API_KEY_PROD`, `MODEL_API_KEY_USER1`, `MODEL_API_KEY_USER2`
-- `MODEL_BASE_URL_CLEAN`, `MODEL_BASE_URL_CHAOS` (set in `.env` — see `.env.example`)
+- `MODEL_BASE_URL_CLEAN`, `MODEL_BASE_URL_CHAOS`, `TOXIPROXY_URL` (set in `.env` — see `.env.example`)
 - `PHOENIX_COLLECTOR_ENDPOINT`, `PHOENIX_APP_PROJECT_NAME` (dev compose maps the latter to `PHOENIX_PROJECT_NAME` for tracing)
 
 No API key aliases are provided in this strict mode (`API_KEY`, `LITELLM_API_KEY`, `LITELLM_API_KEY_*` are intentionally absent).

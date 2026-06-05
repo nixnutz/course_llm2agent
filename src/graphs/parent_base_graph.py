@@ -6,6 +6,7 @@ from typing import Literal
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
+from src.llm_handle.local import ClientCachePolicy, make_async_openai_client_provider
 from src.llm_nodes.global_state import GlobalState
 from src.llm_nodes.pii_email.nodes import get_pii_email_node
 from src.llm_nodes.todo_extract.graph import (
@@ -43,15 +44,39 @@ class ParentBaseGraph:
             ) from exc
 
 
-def build_parent_base_graph(model: str) -> ParentBaseGraph:
+def build_parent_base_graph(
+    model: str,
+    *,
+    chaos: bool = False,
+    client_cache_policy: ClientCachePolicy = "cached",
+) -> ParentBaseGraph:
     """Build and compile the course parent graph plus isolated TODO subgraphs."""
+    client_provider = make_async_openai_client_provider(
+        chaos=chaos,
+        client_cache_policy=client_cache_policy,
+    )
     subgraphs: dict[SubgraphName, CompiledStateGraph] = {
-        "todo_extract": build_todo_extract_subgraph(model),
-        "todo_markdown": build_todo_markdown_subgraph(model),
+        "todo_extract": build_todo_extract_subgraph(
+            model,
+            client_provider=client_provider,
+            client_cache_policy=client_cache_policy,
+        ),
+        "todo_markdown": build_todo_markdown_subgraph(
+            model,
+            client_provider=client_provider,
+            client_cache_policy=client_cache_policy,
+        ),
     }
 
     builder = StateGraph(GlobalState)
-    builder.add_node("pii_extract_node", get_pii_email_node(model=model))
+    builder.add_node(
+        "pii_extract_node",
+        get_pii_email_node(
+            model=model,
+            client_provider=client_provider,
+            client_cache_policy=client_cache_policy,
+        ),
+    )
     builder.add_node(
         "todo_extract_node",
         make_todo_extract_subgraph_runner(subgraphs["todo_extract"]),

@@ -1,15 +1,15 @@
 ## branch: main
-- last_reviewed_commit: eb90ba5
-- last_reviewed_at: 2026-06-04T18:00:00+02:00
-- last_review_context: working tree — ADR 0012 course error-mode contract, cross-refs 0009/0011, public READMEs, session5 graphtrace teaching cells, docstrings; eb90ba5 marked handled per user choice A
+- last_reviewed_commit: 07dfacd
+- last_reviewed_at: 2026-06-05T15:35:00+02:00
+- last_review_context: post-commit review L6 chaos exemplars; ceaf5ed marked handled per prior review (ADR 0012); F1–F3 fixed in amend
 - last_action: pre_commit_review_complete
-- raw_log_decision: update existing
-- adr_file_decision: add
+- raw_log_decision: skip (trivial)
+- adr_file_decision: update existing
 - user_value_log_decision: skip (trivial)
-- raw_log_status: done
+- raw_log_status: n/a
 - adr_file_status: done
 - user_value_log_status: n/a
 - findings_resolved: yes
 - doc_decisions_made: yes
 - ready_to_commit: yes
-- notes: F1 stage untracked ADR 0012 with commit. Exclude cursor-profile-repair.sh. Sidecar plan-6 aligned; do not commit sidecar. applied_review_skips 0.
+- notes: Amended without Cursor co-author. Exclude cursor-profile-repair.sh. Sidecar plan-7 aligned. applied_review_skips 0.

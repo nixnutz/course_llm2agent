@@ -39,9 +39,9 @@ Golden-set eval gates ([ADR 0010](0010-eval-must-should-pytest-hooks.md), L5 in 
 - **Risk-appropriate degradation** → mask even when restore is uncertain (`email=None`).
 - **Human oversight** → notebook/session, not autonomous delivery.
 
-### Future L6 chaos expectations (tests not in scope of ADR 0012)
+### L6 chaos expectations
 
-When chaos exemplars are added ([ADR 0006](0006-toxiproxy-chaos-channel-architecture.md), L6 in [ADR 0011](0011-course-test-scope-layers.md)):
+Chaos exemplars ([ADR 0006](0006-toxiproxy-chaos-channel-architecture.md), L6 in [ADR 0011](0011-course-test-scope-layers.md)):
 
 - Infrastructure faults → **Library tier** (exception propagates; trace may show a partial run).
 - Application markers → remain **Observe tier** unless egress boundary is implemented.
@@ -52,4 +52,4 @@ This decision is currently in effect in production/dev workflow.
 
 - Agents and review cite ADR 0012 for runtime reaction semantics.
 - Module READMEs and `graphtrace.ipynb` point here; placeholder “round 2” policy is superseded by this ADR’s boundary section (deferred implementation).
-- L6 chaos **tests** remain optional until an exemplar is added; runtime expectations are defined here.
+- Parent-graph L6 exemplars: `src/tests_and_evals/tests/graphs/test_parent_base_graph_chaos.py` (provider + edge `reset_peer`); additional chaos paths remain optional per [ADR 0011](0011-course-test-scope-layers.md).
