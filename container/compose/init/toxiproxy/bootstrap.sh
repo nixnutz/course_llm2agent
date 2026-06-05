@@ -4,6 +4,7 @@ set -euo pipefail
 # Called by: compose one-shot service and Make target.
 # Notes: safe to run multiple times; uses /populate with fixed proxy names.
 
+# Host-side default (make/localhost). Dev container must set TOXIPROXY_URL from .env (http://toxiproxy:8474).
 TOXIPROXY_URL="${TOXIPROXY_URL:-http://localhost:8474}"
 TOXIPROXY_EDGE_LISTEN="${TOXIPROXY_EDGE_LISTEN:-11111}"
 TOXIPROXY_OLLAMA_LISTEN="${TOXIPROXY_OLLAMA_LISTEN:-11112}"

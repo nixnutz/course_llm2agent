@@ -4,6 +4,7 @@ set -euo pipefail
 # Called by: Make targets and manual local chaos runs.
 # Notes: supports deterministic test setup from host/dev workflows.
 
+# Host-side default (make/localhost). Dev container must set TOXIPROXY_URL from .env (http://toxiproxy:8474).
 TOXIPROXY_URL="${TOXIPROXY_URL:-http://localhost:8474}"
 MODE="${1:-}"
 

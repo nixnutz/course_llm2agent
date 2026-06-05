@@ -68,8 +68,9 @@ def enable_langgraph_tracing(
 ) -> TracerProvider:
     """Register Phoenix OTLP export and instrument LangGraph + OpenAI clients.
 
-    Requires ``PHOENIX_COLLECTOR_ENDPOINT`` and ``PHOENIX_PROJECT_NAME`` in the
-    environment unless passed as arguments (dev compose sets both from ``.env``).
+    Requires ``PHOENIX_COLLECTOR_ENDPOINT`` and ``PHOENIX_PROJECT_NAME`` unless
+    passed as arguments. Dev compose maps ``PHOENIX_APP_PROJECT_NAME`` from
+    ``.env`` to ``PHOENIX_PROJECT_NAME`` in the container.
 
     For ``https://caddy:...`` the dev root CA at ``CA_CERT_PATH`` is passed to the
     OTLP exporter (same trust as LiteLLM). Plain ``http://caddy:6006`` is rejected.
