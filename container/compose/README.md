@@ -35,10 +35,11 @@ Two complementary mechanisms cooperate on Postgres setup:
 
 ## Quickstart (happy path)
 
+Learner-oriented walkthrough: [docs/getting-started.md](../../docs/getting-started.md).
+
 ```bash
 cp .env.example .env
-make certs-generate
-make up
+make up          # runs state-init + certs-generate, then starts the stack
 make smoke-chat
 ```
 
@@ -269,16 +270,16 @@ HEALTHCHECK_INTERVAL_BOOT=3s
 POSTGRES_PORT=5432
 POSTGRES_LITELLM_DB=litellm
 POSTGRES_LITELLM_USER=litellm
-POSTGRES_LITELLM_PASSWORD=litellm_dev_password
+POSTGRES_LITELLM_PASSWORD=change_me
 POSTGRES_PHOENIX_DB=phoenix
 POSTGRES_PHOENIX_USER=phoenix
-POSTGRES_PHOENIX_PASSWORD=phoenix_dev_password
+POSTGRES_PHOENIX_PASSWORD=change_me
 POSTGRES_TOOLBERT_DB=toolbert
 POSTGRES_TOOLBERT_USER=toolbert
-POSTGRES_TOOLBERT_PASSWORD=toolbert_dev_password
+POSTGRES_TOOLBERT_PASSWORD=change_me
 DATABASE_URL=postgresql://${POSTGRES_LITELLM_USER}:${POSTGRES_LITELLM_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_LITELLM_DB}
 UI_USERNAME=admin
-UI_PASSWORD=admin
+UI_PASSWORD=change_me
 LITELLM_PLATFORM=linux/amd64
 OLLAMA_CONTAINER_PORT=11434
 OLLAMA_HOST_PORT=11435
@@ -288,13 +289,15 @@ LITELLM_INTERNAL_PORT=4000
 LITELLM_DEFAULT_TIMEOUT=420
 LITELLM_MASTER_KEY=frozenlips
 OLLAMA_HOST=http://ollama:${OLLAMA_CONTAINER_PORT}
-OLLAMA_MODELS=nomic-embed-text:latest llama3.2:3b deepseek-r1:7b
+OLLAMA_MODELS=nomic-embed-text:latest llama3.2:3b
 OLLAMA_INIT_MODE=pull_missing
 OLLAMA_PULL_OPTIONS=
 OLLAMA_RUN_OPTIONS=
 OLLAMA_RUN_PROMPT=Say hello.
 OLLAMA_RETRY_MAX_ATTEMPTS=0
 KEYS_INIT_MODE=required
+GEMINI_API_KEY=
+GROQ_API_KEY=
 JSON_LOGS=true
 PHOENIX_PORT=6006
 PHOENIX_UI_TLS_PORT=6006
@@ -309,7 +312,6 @@ PHOENIX_COLLECTOR_ENDPOINT=https://caddy:6006/v1/traces
 PHOENIX_APP_PROJECT_NAME=langgraph-course
 MODEL_BASE_URL_CLEAN=https://caddy:4000
 MODEL_BASE_URL_CHAOS=https://caddy:4001
-OLLAMA_API_BASE=http://ollama:${OLLAMA_CONTAINER_PORT}
 OLLAMA_API_BASE_CLEAN=http://ollama:${OLLAMA_CONTAINER_PORT}
 OLLAMA_API_BASE_CHAOS=http://toxiproxy:${TOXIPROXY_OLLAMA_LISTEN}
 TOXIPROXY_ADMIN_PORT=8474
@@ -320,8 +322,10 @@ TOXIPROXY_OLLAMA_LISTEN=11112
 Model data is persisted on the host in `./.state/ollama_data` (configurable via `OLLAMA_DATA_DIR`).
 Phoenix trace data is persisted in `./.state/phoenix_data`.
 Phoenix SQL metadata is stored in the same Postgres server as LiteLLM, but with a dedicated
-database/user pair (`POSTGRES_PHOENIX_DB`, `POSTGRES_PHOENIX_USER`).
-The Postgres service runs with pgvector and creates `vector` extension idempotently in LiteLLM and Phoenix databases during `postgres_init_identities`.
+database/user pair (`POSTGRES_PHOENIX_DB`, `POSTGRES_PHOENIX_USER`). A third database
+(`POSTGRES_TOOLBERT_DB`) is provisioned for course RAG / pgvector work in `dev`.
+The Postgres service runs with pgvector and creates the `vector` extension idempotently in
+LiteLLM, Phoenix, and Toolbert databases during `postgres_init_identities`.
 LiteLLM and Phoenix are intentionally separated at config level; you can still map both to one SQL user manually if desired.
 Published ports are bound to `HOST_BIND_IP` (default `127.0.0.1` for localhost-only access).
 Set `HOST_BIND_IP=0.0.0.0` only if you explicitly want LAN access.
@@ -349,8 +353,9 @@ For debug/smoke runs you can set `OLLAMA_INIT_MODE=run`, which executes
 `OLLAMA_RUN_OPTIONS` is used for `run`.
 `OLLAMA_PULL_OPTIONS` is used for `pull` and `pull_missing`.
 `OLLAMA_RETRY_MAX_ATTEMPTS` controls per-model retry budget during init (`0` = unlimited retries).
-Defaults include `nomic-embed-text:latest`, `llama3.2:3b`, and `deepseek-r1:7b` (local reasoning / Thinking); first startup pulls a larger model set.
-You can add more models later in `.env` (`OLLAMA_MODELS`) if needed.
+Default pull set: `nomic-embed-text:latest` and `llama3.2:3b` (see `.env.example`).
+Add larger models in `.env` (`OLLAMA_MODELS`) if you have RAM — for example `deepseek-r1:7b`
+is listed in the commented optional line in `.env.example`.
 
 ### Ollama Runtime Tuning (CPU-friendly defaults)
 
@@ -439,8 +444,8 @@ Model examples currently configured:
 - Groq: `groq-llama-3.3-70b`, `groq-llama-3.1-8b-instant`
 - Mistral API: `mistral-small`
 
-Example Ollama preload set currently used in local `.env`:
-- `nomic-embed-text:latest deepseek-coder:6.7b qwen2.5-coder:7b qwen2.5:1.5b llama3.2:3b llama3.2:1b llama3.1:8b mistral:7b mistral-nemo:12b`
+Optional larger Ollama preload set (commented example in `.env.example`):
+- `nomic-embed-text:latest deepseek-coder:6.7b qwen2.5-coder:7b qwen2.5:1.5b llama3.2:3b llama3.2:1b llama3.1:8b mistral:7b mistral-nemo:12b deepseek-r1:7b`
 Virtual key startup sync is controlled via `KEYS_INIT_MODE`:
 - `required` (default): key sync failures are treated as failures in the one-shot key init container.
 - `optional`: key sync failures are logged, but the init container exits successfully.
@@ -452,10 +457,9 @@ UI spend logs are stored in Postgres and limited by LiteLLM retention settings
 ## Start
 
 ```bash
-make certs-generate
-# Optional: trust generated local CA on host if mkcert is installed
+make up          # includes state-init + certs-generate
+# Optional: trust generated local CA on host
 # make trust-certs-host
-make up
 ```
 
 Optional: expose Ollama API on host (still bound to `HOST_BIND_IP`):
@@ -691,4 +695,5 @@ make dev-container-smoke-clean
 
 This MVP is **lazy / on-demand** at runtime: models are loaded into RAM/VRAM when first used by a request.
 With default `OLLAMA_INIT_MODE=pull_missing`, missing models are pre-downloaded to disk at startup but not inferred.
+Ballpark host RAM and cloud-model fallback: [getting-started appendix](../../docs/getting-started.md#host-ram-local-models).
 

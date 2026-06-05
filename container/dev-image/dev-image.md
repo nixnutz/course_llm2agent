@@ -2,7 +2,8 @@
 
 ## Purpose
 
-Provide a minimal, reproducible Python runtime for this course agent project.
+Provide a minimal, reproducible Python runtime for this **work-in-progress** course lab
+(agent experiments and notebooks in `dev`; no finished product UI).
 
 ## Fixed Requirements
 
@@ -50,13 +51,21 @@ For stricter setups, remove `sudo` or gate privileged operations through explici
 - Exploratory package installs happen in `/workspace/src/.venv` for zero-friction iteration.
 - Promote durable dependencies to `src/requirements.in` when experimentation stabilizes.
 
-## LiteLLM API Contract
+## LiteLLM API Contract (Compose `dev` service)
 
-- `LITELLM_BASE_URL`: required
-- `LITELLM_API_KEY`: optional
-- `LITELLM_TIMEOUT_SECONDS`: required default
+When the image runs as Compose service `dev`, course code uses OpenAI-compatible clients via
+`src/llm_handle/local.py` and these **injected** variables (from `container/compose/.env`):
 
-Do not hardcode endpoint URLs or tokens in source code.
+- `MODEL_BASE_URL_CLEAN`: required (default `https://caddy:4000` — TLS via Caddy)
+- `MODEL_BASE_URL_CHAOS`: required for chaos-channel tests (`https://caddy:4001`)
+- `MODEL_API_KEY_DEV`: required — virtual key exported at container start from `.state/keys/`
+- `TOXIPROXY_URL`: required when using the chaos channel from tests or advanced labs
+
+Do not hardcode endpoint URLs or API keys in source code.
+
+**Standalone image** (`docker run` without Compose): `container/dev-image/.env.example` may use
+legacy names (`LITELLM_BASE_URL`, `LITELLM_API_KEY`); the supported course path is the Compose
+stack above.
 
 ## Verification Checklist
 

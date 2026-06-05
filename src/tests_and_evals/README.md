@@ -1,7 +1,9 @@
 ## tests_and_evals
 
 This area is intentionally an infrastructure sketch, not a complete testing platform.
-It is optimized for a single-developer workflow and local LLM usage.
+It is optimized for a single-developer workflow and local LLM usage. Parent-graph tests
+exercise the **current WIP** `build_parent_base_graph()` sketch — not a frozen product
+contract.
 
 **Normative test scope:** [ADR 0011](../../docs/auto-doc/adr/0011-course-test-scope-layers.md) (six layers; tests are reminders, not exhaustive coverage).
 

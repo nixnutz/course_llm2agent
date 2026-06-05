@@ -1,5 +1,8 @@
 # Auto-Doc (Experiment)
 
+Side-learning documentation — separate from the official OpenCampus.sh course materials.
+Course-facing docs live under [docs/course/](../course/README.md) and [getting started](../getting-started.md).
+
 Goal: Continuously capture project context so reviews include not only the latest diff, but also the timeline and rationale.
 
 ## Idea
@@ -13,8 +16,8 @@ Goal: Continuously capture project context so reviews include not only the lates
 - User value log active: `docs/auto-doc/value/user-value-log.md`
 - Implementation/decision tracking active:
   - Raw log: `docs/auto-doc/adr/raw-log.md`
-  - Summarized ADRs: `docs/auto-doc/adr/`
-  - Current operational decisions:
+  - Summarized ADRs: [adr/README.md](adr/README.md) (index of `docs/auto-doc/adr/*.md`)
+  - Current operational decisions (examples):
     - `docs/auto-doc/adr/0004-local-ollama-overload-guardrails.md`
     - `docs/auto-doc/adr/0005-define-ollama-runtime-control-surface.md`
     - `docs/auto-doc/adr/0011-course-test-scope-layers.md`

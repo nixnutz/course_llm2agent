@@ -1,16 +1,23 @@
 # Editor and Agent Workflow
 
-This document captures editor, Cursor, and agent-specific conventions for this repository.
+Contributor conventions for Cursor, VS Code, and repo agents — not the learner quickstart.
+First-time lab setup: [getting-started.md](getting-started.md).
 
 ## Execution Model
 
 - Cursor runs on the host machine.
-- Source code is mounted into the running `dev` container.
+- `<repo>/src/` is bind-mounted to `/workspace/src/` in the `dev` container (same files on
+  host and in kernels).
 - Code-related commands should run through `container/compose/scripts/dev/cmd.sh`.
 - Use `container/compose/scripts/dev/session.sh` only for explicit interactive diagnostics.
 - Do not rely on shell state between `dev-cmd` calls.
 - From the repository root, `make ruff-check` runs `ruff check` (no fixes) and `make ruff` runs `ruff check --fix` plus `ruff format` in `/workspace/src` via the dev wrapper. Jupyter notebooks (`*.ipynb`) are excluded in `src/pyproject.toml`.
-- With `make up`, JupyterLab in the `dev` container is reachable from the host at `http://<HOST_BIND_IP>:<DEV_JUPYTER_PORT>/lab?token=<JUPYTER_TOKEN>` (values in `container/compose/.env`; see `container/dev-image/README.md` → **Notebook Mode**). In Cursor, prefer **Jupyter: Specify Jupyter Server for Connections** → existing server with that URL so notebook kernels inherit `MODEL_API_KEY_*` and TLS trust from the `dev` runtime; a host-local Python kernel on the mounted `src/` tree does not get those variables.
+- With `make up`, JupyterLab in `dev` is reachable from the host — default URL in
+  [getting-started §7](getting-started.md#7-services-with-a-web-ui). See
+  `container/dev-image/README.md` → **Notebook Mode** for restart/rebuild.
+  In Cursor or VS Code, use **Specify Jupyter Server for Connections** → that URL so kernels inherit
+  `MODEL_API_KEY_*` and TLS trust from `dev`; a host-local Python kernel on the mounted `src/` tree
+  does not get those variables.
 
 ## Scope and Language
 

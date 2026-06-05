@@ -70,7 +70,7 @@ http://<HOST_BIND_IP>:<DEV_JUPYTER_PORT>/lab?token=<JUPYTER_TOKEN>
 Example with defaults from `.env.example`:
 
 ```text
-http://127.0.0.1:8888/lab?token=<JUPYTER_TOKEN>
+http://127.0.0.1:8888/lab?token=change_me
 ```
 
 | Setting | `.env` variable | Example (`.env.example`) |

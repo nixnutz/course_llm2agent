@@ -1,84 +1,17 @@
 # OpenCampus.sh - From LLM to Agents
 
-This repository is my scratchpad for the OpenCampus.sh course **"From LLM to Agents"**.
+This repository is my **work-in-progress scratchpad** for the OpenCampus.sh course
+**"From LLM to Agents"** — lab stack, agent experiments, and course graphs are still
+evolving.
 
-I use it to capture:
-- quick notes from lessons
-- experiments and mini-prototypes
-- prompts, ideas, and TODOs
-- mistakes, learnings, and follow-up questions
+## Documentation
 
-## Quickstart (5 minutes)
-
-For a local, reproducible agent-dev setup with LiteLLM + Ollama:
-
-```bash
-cp container/compose/.env.example container/compose/.env
-make up
-make smoke-chat
-```
-
-Internal security note: from the `dev` container, backend services are reached via TLS through `caddy` (network-segmented compose setup).
-
-Open LiteLLM UI:
-
-```bash
-xdg-open "https://localhost:4000/ui"
-```
-
-Open JupyterLab (course notebooks under `src/assorted`; stack must be up via `make up`). LangGraph tracing lab: `src/assorted/session5/graphtrace.ipynb` (Phoenix project `langgraph-course`). URL uses `HOST_BIND_IP`, `DEV_JUPYTER_PORT`, and `JUPYTER_TOKEN` from `container/compose/.env`:
-
-```text
-http://<HOST_BIND_IP>:<DEV_JUPYTER_PORT>/lab?token=<JUPYTER_TOKEN>
-```
-
-Details (in-container checks, restart after token change): `container/dev-image/README.md` → **Notebook Mode**.
-
-If `smoke-chat` works, your local stack is ready for first agent experiments.
-
-### Error handling (course sketch)
-
-Teaching default **Mode C**: log and trace inside the pipeline; the graph may still
-complete when LLM output quality drifts.
-
-- **Guard** — raise on invalid input before an untrusted step.
-- **Observe** — warnings such as `leak_suspected` or `placeholder_violation`; pipeline continues.
-- **Library** — network/API errors from dependencies propagate (not swallowed).
-
-Always audit via project logs and Phoenix — not production compliance. Stricter egress
-(e.g. fatal before `demask`) is documented but not implemented yet. Normative detail:
-[`docs/auto-doc/adr/0012-course-error-mode-contract.md`](docs/auto-doc/adr/0012-course-error-mode-contract.md).
-
-Builds and operational stack commands are available from the repository root via `Makefile`.
-Compose internals stay in `container/compose`.
-`make up` builds the dev runtime image automatically before starting compose.
-
-## Workflow Notes
-
-Editor, Cursor, and agent-specific workflow conventions are documented in:
-
-- `docs/editor-and-agent-workflow.md`
-
-TL;DR:
-- Run code-related commands via `container/compose/scripts/dev/cmd.sh`.
-- Write all source code and all documentation in English.
-
-## ADR Note (Experimental)
-
-ADR usage in this repository is experimental and currently treated as side learning.
-It is intentionally separate from the official OpenCampus.sh course scope and materials.
-Entry points:
-- `docs/auto-doc/adr/README.md` for ADR conventions and summary format.
-- `docs/auto-doc/adr/raw-log.md` for append-only decision collection during implementation.
-- `docs/auto-doc/adr/0012-course-error-mode-contract.md` for course runtime error tiers.
-
-## User Value Log (Experimental)
-
-User value tracking is maintained as a lightweight, review-gated log.
-Entry points:
-- `docs/auto-doc/value/README.md` for process and format.
-- `docs/auto-doc/value/user-value-log.md` for review entries.
-
+- [Getting started](docs/getting-started.md) — start the agent lab, first Python exercise in `dev`
+- [Course pipeline and nodes](docs/course/pipeline-and-nodes.md) — WIP parent-graph sketch and modules
+- [Error handling (course)](docs/course/error-handling.md) — Guard / Observe / Library
+- [Editor and agent workflow](docs/editor-and-agent-workflow.md) — Cursor, dev-cmd, contributors
+- [Compose stack](container/compose/README.md) — runtime, env, chaos channel
+- [Full documentation index](docs/README.md)
 
 ## Original course description
 
@@ -90,7 +23,7 @@ Ramp-up course for the new fascinating capabilities of LLMs and the emerging app
 
 Throughout the course we will build multiple different applications on different levels of difficulty.
 
-There are severel tracks depending on your level of expertise:
+There are several tracks depending on your level of expertise:
 
 "Taster" : You take the course only to get an overview grasp of the concepts
 
@@ -114,7 +47,7 @@ There will be during the course some guest speakers invited to talk about their 
 
 Basic Programming Knowledge in Python!!
 
-A prequisite is Python skills, if you are lacking those first take the course: Python Programming: Beginner to Practitionier
+A prerequisite is Python skills, if you are lacking those first take the course: Python Programming: Beginner to Practitioner
 
 Otherwise that is all for the "Taster" and "Beginner" path. For the more advanced paths more programming and project experience is necessary and also familiarity with different software tools like git and docker.
 

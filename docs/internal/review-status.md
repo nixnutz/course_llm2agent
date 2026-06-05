@@ -1,15 +1,15 @@
 ## branch: main
-- last_reviewed_commit: 07dfacd
-- last_reviewed_at: 2026-06-05T15:35:00+02:00
-- last_review_context: post-commit review L6 chaos exemplars; ceaf5ed marked handled per prior review (ADR 0012); F1–F3 fixed in amend
+- last_reviewed_commit: d27e51d
+- last_reviewed_at: 2026-06-05T18:00:00+02:00
+- last_review_context: pre-commit working-tree review — doc restructure (getting-started, course hub, WIP framing, ADR 0007/index, compose/dev-image README sync); user intent docs-only
 - last_action: pre_commit_review_complete
-- raw_log_decision: skip (trivial)
+- raw_log_decision: update existing
 - adr_file_decision: update existing
 - user_value_log_decision: skip (trivial)
-- raw_log_status: n/a
+- raw_log_status: done
 - adr_file_status: done
 - user_value_log_status: n/a
 - findings_resolved: yes
 - doc_decisions_made: yes
 - ready_to_commit: yes
-- notes: Amended without Cursor co-author. Exclude cursor-profile-repair.sh. Sidecar plan-7 aligned. applied_review_skips 0.
+- notes: F1 resolved — docs-only commit; .env.example and models.sh left unstaged. F2 skipped via R-001. Exclude cursor-profile-repair.sh. Sidecar absent.

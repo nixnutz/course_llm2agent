@@ -20,6 +20,10 @@ Example:
 
 `R-001 | notebooks | notebook output churn | accepted as didactic | 2026-04-30`
 
+## Entries
+
+`R-001 | global | cursor-profile-repair.sh untracked | unrelated local tooling; exclude from commit reviews | 2026-06-05`
+
 Guidance:
 
 - Keep entries short and concrete.
