@@ -4,7 +4,7 @@ set -eu
 # Called by: one-shot container service "ollama_init_models".
 # Notes: behavior is controlled by OLLAMA_INIT_MODE and related env vars.
 
-MODELS_DEFAULT="nomic-embed-text:latest llama3.2:3b deepseek-r1:7b"
+MODELS_DEFAULT="nomic-embed-text:latest llama3.2:3b"
 MODELS="${OLLAMA_MODELS:-$MODELS_DEFAULT}"
 INIT_MODE="${OLLAMA_INIT_MODE:-pull_missing}"
 PULL_OPTIONS="${OLLAMA_PULL_OPTIONS:-}"

@@ -1,15 +1,15 @@
 ## branch: main
-- last_reviewed_commit: d27e51d
-- last_reviewed_at: 2026-06-05T18:00:00+02:00
-- last_review_context: pre-commit working-tree review — doc restructure (getting-started, course hub, WIP framing, ADR 0007/index, compose/dev-image README sync); user intent docs-only
+- last_reviewed_commit: 8410f95
+- last_reviewed_at: 2026-06-05T19:00:00+02:00
+- last_review_context: pre-commit — default OLLAMA_MODELS trim (embed + llama3.2:3b); GROQ_API_KEY in compose .env.example; ADR 0007 already updated in prior docs commit
 - last_action: pre_commit_review_complete
-- raw_log_decision: update existing
-- adr_file_decision: update existing
+- raw_log_decision: skip (trivial)
+- adr_file_decision: skip (trivial)
 - user_value_log_decision: skip (trivial)
-- raw_log_status: done
-- adr_file_status: done
+- raw_log_status: n/a
+- adr_file_status: n/a
 - user_value_log_status: n/a
 - findings_resolved: yes
 - doc_decisions_made: yes
 - ready_to_commit: yes
-- notes: F1 resolved — docs-only commit; .env.example and models.sh left unstaged. F2 skipped via R-001. Exclude cursor-profile-repair.sh. Sidecar absent.
+- notes: Operational follow-up to docs commit 8410f95. raw-log/ADR 0007 landed in docs commit. F2 skipped via R-001. Commit via commit-tree (no Co-authored-by).
