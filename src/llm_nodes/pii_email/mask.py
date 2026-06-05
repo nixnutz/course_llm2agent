@@ -1,7 +1,8 @@
 """Deterministic email masking pipeline (no LLM).
 
 Course sketch — not production PII tooling. See ``README.md`` in this package
-for scope and known limitations.
+for scope and known limitations. Runtime Observe-tier markers: ADR 0012
+(``docs/auto-doc/adr/0012-course-error-mode-contract.md``).
 
 Input: original text + LLM occurrences ``[{"span", "raw"}, ...]``.
 Output: a :class:`PIIEmail` with masked ``text``, ``salt``, ``emails`` and a

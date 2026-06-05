@@ -19,17 +19,20 @@ raw email addresses.
 | Limitation | Example | Test |
 |------------|---------|------|
 | Shape breaks regex (not detected) | `E0-a1b2c3d4` (hyphen, not `_`) vs allowed `E0_a1b2c3d4` | `test_malformed_separator_not_reported` |
-| Input recall not checked | Input has E0+E1, output only E0 | deferred (round 2) |
-| Failure policy undecided | violation logged, output still merged | round 2 |
+| Input recall not checked | Input has E0+E1, output only E0 | deferred |
+| Failure policy | violation logged, output still merged | Observe tier today; future egress strictening in ADR 0012 |
 
 Direct ``get_todo_list_node()`` / smoke invokes **bypass** subgraph audit — use compiled
 subgraph or parent bridge for allowlist enforcement.
 
-## Round 2 (separate)
+## Future egress strictening
 
-Reaction when ``unknown_tokens`` is non-empty (soft/hard/strip/block demask).
+When ``unknown_tokens`` is non-empty: today log only (Observe tier). Planned optional
+**fatal** gate at trusted restore — see
+``docs/auto-doc/adr/0012-course-error-mode-contract.md`` (boundary section; not implemented yet).
 
 ## References
 
 - Bridge derives allowlist: ``allowlist_from_pii_email`` in ``allowlist.py``
 - ADR: ``docs/auto-doc/adr/0009-pii-email-masking-pipeline.md``
+- Error-mode contract: ``docs/auto-doc/adr/0012-course-error-mode-contract.md``

@@ -1,9 +1,9 @@
 ## branch: main
-- last_reviewed_commit: 24cd7af
-- last_reviewed_at: 2026-06-04T12:00:00+02:00
-- last_review_context: staged — ADR 0011 test scope layers, todo_markdown L2 mock, parent graph L3 mock E2E, chaos pytest marker; demask L2 in prior commit 047ee5b
+- last_reviewed_commit: eb90ba5
+- last_reviewed_at: 2026-06-04T18:00:00+02:00
+- last_review_context: working tree — ADR 0012 course error-mode contract, cross-refs 0009/0011, public READMEs, session5 graphtrace teaching cells, docstrings; eb90ba5 marked handled per user choice A
 - last_action: pre_commit_review_complete
-- raw_log_decision: add
+- raw_log_decision: update existing
 - adr_file_decision: add
 - user_value_log_decision: skip (trivial)
 - raw_log_status: done
@@ -12,4 +12,4 @@
 - findings_resolved: yes
 - doc_decisions_made: yes
 - ready_to_commit: yes
-- notes: F1 review-status must stage with commit. applied_review_skips 0. Sidecar plan-5 aligned; do not commit sidecar.
+- notes: F1 stage untracked ADR 0012 with commit. Exclude cursor-profile-repair.sh. Sidecar plan-6 aligned; do not commit sidecar. applied_review_skips 0.

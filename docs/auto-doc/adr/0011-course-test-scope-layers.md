@@ -19,7 +19,7 @@ Use six layers. Each layer needs at least one **exemplar** test when the artifac
 | **L3** Graph mock E2E | Full in-process graph; LLMs mocked | `unit` | One test per compiled top-level graph |
 | **L4** Smoke | Real LLM, happy path | `integration`, `smoke` | Optional per LLM node on teaching path; skip without env |
 | **L5** Eval | Golden-set quality | `eval` | Per eval-worthy dimension ([ADR 0010](0010-eval-must-should-pytest-hooks.md)) |
-| **L6** Chaos/resilience | Real LLM via chaos channel ([ADR 0006](0006-toxiproxy-chaos-channel-architecture.md)) | `integration`, `chaos` | One exemplar per chaos-relevant path; **after** error-mode contract is defined |
+| **L6** Chaos/resilience | Real LLM via chaos channel ([ADR 0006](0006-toxiproxy-chaos-channel-architecture.md)) | `integration`, `chaos` | One exemplar per chaos-relevant path; runtime expectations in [ADR 0012](0012-course-error-mode-contract.md) |
 
 **L2 detail:** LLM nodes use a mocked OpenAI client. Trusted non-LLM nodes (e.g. `demask_node`) use no LLM mock — only state wiring; logic stays in L1.
 
@@ -27,7 +27,7 @@ Use six layers. Each layer needs at least one **exemplar** test when the artifac
 
 **Review vs commit:** Missing exemplar on the responsible layer = documentable review finding. Missing branch coverage = not a finding. **Commits without tests are allowed** when code is still moving; review notes the open layer and follow-up is enough. This ADR may land before all exemplar tests exist.
 
-**Non-goals:** coverage quotas; re-testing L1 logic inside L3; smoke instead of L3 mock E2E; building L6 before error-mode behavior is decided.
+**Non-goals:** coverage quotas; re-testing L1 logic inside L3; smoke instead of L3 mock E2E; requiring L6 chaos tests before an exemplar is added (runtime contract: [ADR 0012](0012-course-error-mode-contract.md)).
 
 Future MAS orchestrator graphs follow the same L3 rule as `build_parent_base_graph`.
 

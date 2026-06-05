@@ -36,6 +36,19 @@ Details (in-container checks, restart after token change): `container/dev-image/
 
 If `smoke-chat` works, your local stack is ready for first agent experiments.
 
+### Error handling (course sketch)
+
+Teaching default **Mode C**: log and trace inside the pipeline; the graph may still
+complete when LLM output quality drifts.
+
+- **Guard** — raise on invalid input before an untrusted step.
+- **Observe** — warnings such as `leak_suspected` or `placeholder_violation`; pipeline continues.
+- **Library** — network/API errors from dependencies propagate (not swallowed).
+
+Always audit via project logs and Phoenix — not production compliance. Stricter egress
+(e.g. fatal before `demask`) is documented but not implemented yet. Normative detail:
+[`docs/auto-doc/adr/0012-course-error-mode-contract.md`](docs/auto-doc/adr/0012-course-error-mode-contract.md).
+
 Builds and operational stack commands are available from the repository root via `Makefile`.
 Compose internals stay in `container/compose`.
 `make up` builds the dev runtime image automatically before starting compose.
@@ -57,6 +70,7 @@ It is intentionally separate from the official OpenCampus.sh course scope and ma
 Entry points:
 - `docs/auto-doc/adr/README.md` for ADR conventions and summary format.
 - `docs/auto-doc/adr/raw-log.md` for append-only decision collection during implementation.
+- `docs/auto-doc/adr/0012-course-error-mode-contract.md` for course runtime error tiers.
 
 ## User Value Log (Experimental)
 

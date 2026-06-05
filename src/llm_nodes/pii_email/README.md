@@ -18,7 +18,7 @@ learning goal; edge cases are documented and only lightly guarded.
 | Area | Behavior today | If it breaks |
 |------|----------------|--------------|
 | **Detection recall** | Python trusts LLM `occurrences`. Too few entries for duplicate spans masks only the first match; leftover text triggers `leak_suspected`. JSON order of identical spans does not matter (cursor + sort by position). | Check logs; fix prompt/eval recall — not auto-repair in `mask.py`. |
-| **Downstream LLM nodes** | After each TODO subgraph LLM step, ``placeholder_audit`` checks tokens against ``PlaceholderAllowlist`` (bridge-derived, no raw emails). | See ``src/llm_nodes/placeholder_audit/README.md``; reaction policy is round 2. |
+| **Downstream LLM nodes** | After each TODO subgraph LLM step, ``placeholder_audit`` checks tokens against ``PlaceholderAllowlist`` (bridge-derived, no raw emails). | See ``placeholder_audit/README.md``; Observe tier today ([ADR 0012](../../../docs/auto-doc/adr/0012-course-error-mode-contract.md)). |
 | **Restore** | `demask_pii_emails` uses exact `.replace`; no fuzzy match. | Broken or invented tokens stay in output. |
 
 Do not treat warnings (`leak_suspected`, `span_not_found`, …) as sufficient for
@@ -27,5 +27,6 @@ production compliance; they exist so you can see KI-Schlampigkeit during labs.
 ## References
 
 - ADR: `docs/auto-doc/adr/0009-pii-email-masking-pipeline.md`
+- Error-mode contract: `docs/auto-doc/adr/0012-course-error-mode-contract.md`
 - Post-LLM audit: `src/llm_nodes/placeholder_audit/README.md`
 - Module contract: docstring at top of `mask.py`

@@ -38,6 +38,6 @@ def audit_placeholder_texts(*texts: str, allowlist: PlaceholderAllowlist) -> Pla
 
 
 def log_placeholder_violations(result: PlaceholderAuditResult, *, node: str) -> None:
-    """Log each unknown token (round 1: observability only, no state change)."""
+    """Log each unknown token (Observe tier; see ADR 0012 — no state change today)."""
     for token in sorted(result.unknown_tokens):
         logger.warning("placeholder_violation node=%s token=%r", node, token)

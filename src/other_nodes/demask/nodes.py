@@ -1,4 +1,7 @@
-"""LangGraph node: restore PII placeholders in TODO markdown (trusted, no LLM)."""
+"""LangGraph node: restore PII placeholders in TODO markdown (trusted, no LLM).
+
+Future trusted egress boundary for strict error policy — see ADR 0012.
+"""
 
 from langchain_core.messages import AIMessage
 
