@@ -1,10 +1,10 @@
 ## branch: main
-- last_reviewed_commit: a31c68d
-- last_reviewed_at: 2026-06-04T23:30:00+02:00
-- last_review_context: working-tree — ParentBaseGraph, demask_node, session5 graphtrace, ADR 0009 compromise, demask unit tests; ruff pass
+- last_reviewed_commit: 24cd7af
+- last_reviewed_at: 2026-06-04T12:00:00+02:00
+- last_review_context: staged — ADR 0011 test scope layers, todo_markdown L2 mock, parent graph L3 mock E2E, chaos pytest marker; demask L2 in prior commit 047ee5b
 - last_action: pre_commit_review_complete
 - raw_log_decision: add
-- adr_file_decision: update existing
+- adr_file_decision: add
 - user_value_log_decision: skip (trivial)
 - raw_log_status: done
 - adr_file_status: done
@@ -12,4 +12,4 @@
 - findings_resolved: yes
 - doc_decisions_made: yes
 - ready_to_commit: yes
-- notes: F1–F5 closed. applied_review_skips 0.
+- notes: F1 review-status must stage with commit. applied_review_skips 0. Sidecar plan-5 aligned; do not commit sidecar.

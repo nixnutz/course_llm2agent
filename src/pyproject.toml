@@ -22,4 +22,5 @@ markers = [
     "smoke: marks tests as smoke tests",
     "integration: marks tests as integration tests",
     "eval: marks tests as eval/golden-set tests",
+    "chaos: marks chaos/resilience integration tests (ADR 0011 L6)",
 ]

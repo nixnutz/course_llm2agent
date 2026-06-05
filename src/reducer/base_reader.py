@@ -2,7 +2,7 @@
 
 Use this variant when the defense line should **monitor** inter-node traffic
 (log, count, alert) but leave message payloads unchanged in graph state.
-The course demo also appends ``message.copy()`` into the per-thread ``BaseVault``.
+The course demo also appends ``message.model_copy()`` into the per-thread ``BaseVault``.
 
 Wire graphs through ``reducer_session``, ``session_message_reducer``, and a
 ``factory`` that returns a **new** ``BaseReducerReader`` per session (not a
@@ -41,7 +41,7 @@ class BaseReducerReader(BaseReducer):
                 key = str(message.id)
             else:
                 key = ""
-            vault.append(key, message.copy())
+            vault.append(key, message.model_copy())
         else:
             logger.debug(
                 "observing message without content: %s",

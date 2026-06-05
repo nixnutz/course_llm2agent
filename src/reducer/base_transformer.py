@@ -11,7 +11,7 @@ the channel.
 
 Hook (this class)
 -----------------
-* ``on_transform_message`` — demo logging; appends ``message.copy()`` to the
+* ``on_transform_message`` — demo logging; appends ``message.model_copy()`` to the
   per-thread vault before edits. The course demo replaces ``Hi`` with ``Moin`` on
   ``HumanMessage`` and appends the transformed copy again. Returns the message
   LangGraph should merge (prefer ``model_copy``, not in-place mutation).
@@ -79,7 +79,7 @@ class BaseReducerTransformer(BaseReducer):
 
             vault = self.get_vault_for_thread(thread_id)
             key = str(message.id) if hasattr(message, "id") else ""
-            vault.append(key, message.copy())
+            vault.append(key, message.model_copy())
 
             if isinstance(message, HumanMessage) and "Hi" in message.content:
                 # Don't do in-place modifications on the message object, create a new one instead
@@ -90,7 +90,7 @@ class BaseReducerTransformer(BaseReducer):
                     message.content,
                     extra={"thread_id": thread_id},
                 )
-                vault.append(key, message.copy())
+                vault.append(key, message.model_copy())
 
         else:
             logger.debug(

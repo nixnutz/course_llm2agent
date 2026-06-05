@@ -3,6 +3,8 @@
 This area is intentionally an infrastructure sketch, not a complete testing platform.
 It is optimized for a single-developer workflow and local LLM usage.
 
+**Normative test scope:** [ADR 0011](../../docs/auto-doc/adr/0011-course-test-scope-layers.md) (six layers; tests are reminders, not exhaustive coverage).
+
 Current folder contract:
 - `conftest.py`: registers shared fixtures via `pytest_plugins` (see `common/fixtures.py`)
 - `common/`: minimal shared fixtures/utilities

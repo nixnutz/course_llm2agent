@@ -17,6 +17,7 @@ Goal: Continuously capture project context so reviews include not only the lates
   - Current operational decisions:
     - `docs/auto-doc/adr/0004-local-ollama-overload-guardrails.md`
     - `docs/auto-doc/adr/0005-define-ollama-runtime-control-surface.md`
+    - `docs/auto-doc/adr/0011-course-test-scope-layers.md`
 - Architecture/invariants track (`b`) is currently inactive because no clear need has appeared so far.
 
 ## Plan sidecar (one-off plans)
