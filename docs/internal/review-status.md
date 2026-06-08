@@ -1,15 +1,15 @@
 ## branch: main
-- last_reviewed_commit: 8410f95
-- last_reviewed_at: 2026-06-05T19:00:00+02:00
-- last_review_context: pre-commit — default OLLAMA_MODELS trim (embed + llama3.2:3b); GROQ_API_KEY in compose .env.example; ADR 0007 already updated in prior docs commit
+- last_reviewed_commit: 3286bf7
+- last_reviewed_at: 2026-06-08T12:00:00+02:00
+- last_review_context: pre-commit — typed guard exceptions (src/errors.py), tool_node_loop policy_exhausted + router fix; ADR 0012 + error-handling.md
 - last_action: pre_commit_review_complete
-- raw_log_decision: skip (trivial)
-- adr_file_decision: skip (trivial)
+- raw_log_decision: add (candidate; not written in this commit)
+- adr_file_decision: update existing (0012 staged)
 - user_value_log_decision: skip (trivial)
-- raw_log_status: n/a
-- adr_file_status: n/a
+- raw_log_status: pending
+- adr_file_status: done
 - user_value_log_status: n/a
 - findings_resolved: yes
 - doc_decisions_made: yes
 - ready_to_commit: yes
-- notes: Operational follow-up to docs commit 8410f95. raw-log/ADR 0007 landed in docs commit. F2 skipped via R-001. Commit via commit-tree (no Co-authored-by).
+- notes: F1–F4 resolved in staged diff. F5/F6 ok. F7 deferred. raw-log follow-up optional. cursor-profile-repair.sh excluded (R-001).

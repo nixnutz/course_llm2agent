@@ -4,6 +4,8 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
+from src.errors import PipelinePreconditionError, PipelineValidationError
+
 from ...llm_handle.local import AsyncClientProvider, ClientCachePolicy
 from ..global_state import GlobalState
 from ..placeholder_audit import (
@@ -63,7 +65,9 @@ def make_todo_markdown_subgraph_runner(todo_graph: CompiledStateGraph):
         config: RunnableConfig,
     ) -> dict:
         if not state.todo_list.items:
-            raise ValueError("Expected non-empty todo_list.items before TODO markdown subgraph")
+            raise PipelinePreconditionError(
+                "Expected non-empty todo_list.items before TODO markdown subgraph"
+            )
 
         todo_list_payload = TODOList.model_validate(state.todo_list).model_dump_json()
         allowlist = allowlist_from_pii_email(state.pii_email)
@@ -77,7 +81,7 @@ def make_todo_markdown_subgraph_runner(todo_graph: CompiledStateGraph):
         )
 
         if "todo_markdown" not in sub_result:
-            raise KeyError(
+            raise PipelineValidationError(
                 "TODO markdown subgraph result missing required key 'todo_markdown'. "
                 f"Available keys: {sorted(sub_result.keys())}"
             )

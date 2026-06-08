@@ -41,6 +41,8 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
+from src.errors import PipelinePreconditionError, PipelineValidationError
+
 from ...llm_handle.local import AsyncClientProvider, ClientCachePolicy
 from ..global_state import GlobalState
 from ..placeholder_audit import (
@@ -98,7 +100,9 @@ def make_todo_extract_subgraph_runner(todo_graph: CompiledStateGraph):
         config: RunnableConfig,
     ) -> dict:
         if not state.pii_email.text:
-            raise ValueError("Expected non-empty pii_email.text before TODO subgraph")
+            raise PipelinePreconditionError(
+                "Expected non-empty pii_email.text before TODO subgraph"
+            )
 
         allowlist = allowlist_from_pii_email(state.pii_email)
         sub_result = await todo_graph.ainvoke(
@@ -108,6 +112,12 @@ def make_todo_extract_subgraph_runner(todo_graph: CompiledStateGraph):
             },
             config=config,
         )
+
+        if "todo_list" not in sub_result:
+            raise PipelineValidationError(
+                "TODO extract subgraph result missing required key 'todo_list'. "
+                f"Available keys: {sorted(sub_result.keys())}"
+            )
 
         return {
             "todo_list": TODOList.model_validate(sub_result["todo_list"]),

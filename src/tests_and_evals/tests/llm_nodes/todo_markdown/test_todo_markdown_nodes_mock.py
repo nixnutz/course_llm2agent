@@ -12,6 +12,7 @@ import json
 from langchain_core.messages import AIMessage
 import pytest
 
+from src.errors import PipelinePreconditionError
 from src.llm_nodes.todo_markdown.models import TODOMarkdownState
 from src.llm_nodes.todo_markdown.nodes import get_todo_markdown_node
 
@@ -56,5 +57,5 @@ async def test_smoke_mocked_llm_fills_state(mock_openai_for_todo_markdown):
 async def test_raises_on_empty_todo_list_json(mocker):
     _, client_provider = _patch_openai(mocker, _LLM_MD)
     node = get_todo_markdown_node(model="test-model", client_provider=client_provider)
-    with pytest.raises(ValueError, match="non-empty todo_list_json"):
+    with pytest.raises(PipelinePreconditionError, match="non-empty todo_list_json"):
         await node(TODOMarkdownState())

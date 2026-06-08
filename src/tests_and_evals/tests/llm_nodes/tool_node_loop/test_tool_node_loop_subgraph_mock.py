@@ -13,6 +13,7 @@ from src.llm_nodes.tool_node_loop.graph import (
     _audit_placeholders,
     _bump_tool_policy,
     _finalize,
+    _policy_exhausted,
     route_after_agent,
 )
 from src.llm_nodes.tool_node_loop.models import ToolNodeLoopState
@@ -30,6 +31,7 @@ def _build_scripted_subgraph(agent_node):
     builder.add_node("agent", agent_node)
     builder.add_node("tools", get_tool_node_loop_tool_node())
     builder.add_node("bump_tool_policy", _bump_tool_policy)
+    builder.add_node("policy_exhausted", _policy_exhausted)
     builder.add_node("finalize", _finalize)
     builder.add_node("audit_placeholders", _audit_placeholders)
 
@@ -37,7 +39,7 @@ def _build_scripted_subgraph(agent_node):
     builder.add_conditional_edges(
         "agent",
         route_after_agent,
-        {"tools": "tools", "finalize": "finalize"},
+        {"tools": "tools", "policy_exhausted": "policy_exhausted", "finalize": "finalize"},
     )
     builder.add_edge("tools", "bump_tool_policy")
     builder.add_edge("bump_tool_policy", "agent")

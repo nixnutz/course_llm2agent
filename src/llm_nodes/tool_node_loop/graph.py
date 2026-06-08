@@ -5,6 +5,11 @@ from langchain_core.runnables import RunnableConfig
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 
+from src.errors import (
+    PipelinePreconditionError,
+    PipelineValidationError,
+    PolicyViolationError,
+)
 from src.logging_setup import get_logger
 
 from ...llm_handle.local import AsyncClientProvider, ClientCachePolicy
@@ -56,21 +61,25 @@ def _last_ai_message(messages: list[BaseMessage]) -> AIMessage | None:
 
 def route_after_agent(state: ToolNodeLoopState) -> str:
     """Route after agent: continue while the last AIMessage has tool_calls; else finalize."""
-    if state.tool_round >= MAX_TOOL_ROUNDS or state.tool_errors >= MAX_TOOL_ERRORS:
+    last_ai_msg = _last_ai_message(state.messages)
+    has_pending_tool_calls = bool(last_ai_msg and last_ai_msg.tool_calls)
+    policy_exhausted = state.tool_round >= MAX_TOOL_ROUNDS or state.tool_errors >= MAX_TOOL_ERRORS
+
+    if has_pending_tool_calls and policy_exhausted:
         logger.debug(
-            "route_after_agent: policy stop (tool_round=%s tool_errors=%s)",
+            "route_after_agent: policy stop (tool_round=%s tool_errors=%s pending_tool_calls=%s)",
             state.tool_round,
             state.tool_errors,
+            len(last_ai_msg.tool_calls) if last_ai_msg else 0,
         )
-        return "finalize"
+        return "policy_exhausted"
 
-    last_ai_msg = _last_ai_message(state.messages)
-    if last_ai_msg is not None and last_ai_msg.tool_calls:
+    if has_pending_tool_calls:
         logger.debug(
             "route_after_agent: -> tools (tool_round=%s tool_errors=%s tool_calls=%s)",
             state.tool_round,
             state.tool_errors,
-            len(last_ai_msg.tool_calls),
+            len(last_ai_msg.tool_calls) if last_ai_msg else 0,
         )
         return "tools"
 
@@ -98,7 +107,7 @@ def _extract_final_markdown(state: ToolNodeLoopState) -> str:
         if isinstance(msg, AIMessage) and msg.content and not msg.tool_calls:
             text = msg.content if isinstance(msg.content, str) else str(msg.content)
             return text.strip()
-    raise ValueError("No final AIMessage without tool_calls in messages")
+    raise PipelineValidationError("No final AIMessage without tool_calls in messages")
 
 
 def _validate_todo_text_against_json(
@@ -113,11 +122,13 @@ def _validate_todo_text_against_json(
     """
     items = TODOList.model_validate_json(todo_list_json).items
     if not items:
-        raise ValueError("Expected non-empty todo_list_json items before finalize")
+        raise PipelineValidationError("Expected non-empty todo_list_json items before finalize")
 
     missing = sorted(token for token in _required_who_placeholders(items) if token not in todo_text)
     if missing:
-        raise ValueError("todo_text missing placeholder who token(s): %s" % (", ".join(missing),))
+        raise PipelineValidationError(
+            "todo_text missing placeholder who token(s): %s" % (", ".join(missing),)
+        )
 
     if tool_errors > 0:
         logger.warning(
@@ -135,6 +146,17 @@ async def _finalize(state: ToolNodeLoopState) -> dict:
         tool_errors=state.tool_errors,
     )
     return {"todo_text": todo_text}
+
+
+async def _policy_exhausted(state: ToolNodeLoopState) -> dict:
+    """Guard node: policy exhausted before a valid final deliverable was produced."""
+    last_ai = _last_ai_message(state.messages)
+    pending_tool_calls = bool(last_ai and last_ai.tool_calls)
+    raise PolicyViolationError(
+        "tool_node_loop policy exhausted before deliverable: "
+        f"tool_round={state.tool_round}, tool_errors={state.tool_errors}, "
+        f"pending_tool_calls={pending_tool_calls}"
+    )
 
 
 async def _audit_placeholders(state: ToolNodeLoopState) -> dict:
@@ -166,6 +188,7 @@ def build_tool_node_loop_subgraph(
     )
     builder.add_node("tools", get_tool_node_loop_tool_node())
     builder.add_node("bump_tool_policy", _bump_tool_policy)
+    builder.add_node("policy_exhausted", _policy_exhausted)
     builder.add_node("finalize", _finalize)
     builder.add_node("audit_placeholders", _audit_placeholders)
 
@@ -173,7 +196,7 @@ def build_tool_node_loop_subgraph(
     builder.add_conditional_edges(
         "agent",
         route_after_agent,
-        {"tools": "tools", "finalize": "finalize"},
+        {"tools": "tools", "policy_exhausted": "policy_exhausted", "finalize": "finalize"},
     )
     builder.add_edge("tools", "bump_tool_policy")
     builder.add_edge("bump_tool_policy", "agent")
@@ -196,7 +219,9 @@ def make_tool_node_loop_subgraph_runner(tool_node_loop_graph: CompiledStateGraph
         config: RunnableConfig,
     ) -> dict:
         if not state.todo_list.items:
-            raise ValueError("Expected non-empty todo_list.items before tool_node_loop subgraph")
+            raise PipelinePreconditionError(
+                "Expected non-empty todo_list.items before tool_node_loop subgraph"
+            )
 
         todo_list_payload = TODOList.model_validate(state.todo_list).model_dump_json()
         allowlist = allowlist_from_pii_email(state.pii_email)
@@ -210,7 +235,7 @@ def make_tool_node_loop_subgraph_runner(tool_node_loop_graph: CompiledStateGraph
         )
 
         if "todo_text" not in sub_result:
-            raise KeyError(
+            raise PipelineValidationError(
                 "tool_node_loop subgraph result missing required key 'todo_text'. "
                 f"Available keys: {sorted(sub_result.keys())}"
             )

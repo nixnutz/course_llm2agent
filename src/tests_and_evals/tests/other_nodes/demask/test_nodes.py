@@ -9,6 +9,7 @@ Not exhaustive: course/WIP code.
 from langchain_core.messages import AIMessage
 import pytest
 
+from src.errors import PipelinePreconditionError
 from src.llm_nodes.global_state import GlobalState
 from src.llm_nodes.pii_email.mask import mask_pii_emails
 from src.llm_nodes.todo_markdown.models import TODOMarkdown
@@ -19,7 +20,7 @@ from src.other_nodes.demask.nodes import demask_todo_markdown_node, get_demask_n
 @pytest.mark.asyncio
 async def test_raises_on_empty_todo_markdown():
     state = GlobalState(todo_markdown=TODOMarkdown(markdown=""))
-    with pytest.raises(ValueError, match="non-empty todo_markdown"):
+    with pytest.raises(PipelinePreconditionError, match="non-empty todo_markdown"):
         await demask_todo_markdown_node(state)
 
 

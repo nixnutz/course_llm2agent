@@ -18,12 +18,25 @@ Normative contract: [ADR 0012 — course error-mode contract](../auto-doc/adr/00
 
 | Tier | Reaction today | Examples |
 |------|----------------|----------|
-| **Guard** | `raise` on bad input before an untrusted step | Invalid state before LLM calls |
+| **Guard** | `raise` on bad input before an untrusted step | Invalid state before LLM calls; `PipelinePreconditionError`, `PipelineValidationError`, `PolicyViolationError` (`src/errors.py`) |
 | **Observe** | Warning logs (+ trace); pipeline continues | `leak_suspected`, `placeholder_violation`, `span_not_found`, `normalization_failed` |
 | **Library** | Dependency errors propagate (not swallowed) | Network/API failures from LiteLLM, Ollama, httpx |
 
 Mode C means Guard and Observe use **log + trace** inside the graph; Library-tier failures
 still abort the run.
+
+### Guard exception types (`src/errors.py`)
+
+| Type | Base | Typical cause |
+|------|------|----------------|
+| `PipelinePreconditionError` | `ValueError` | Missing or empty required state before a step |
+| `PipelineValidationError` | `ValueError` | Deterministic check on a produced deliverable failed |
+| `PolicyViolationError` | `Exception` | Loop/policy limit hit while work is still pending |
+
+`PipelinePreconditionError` and `PipelineValidationError` remain catchable via
+`except ValueError`. `PolicyViolationError` is intentionally separate — a broad
+`except ValueError` does not catch policy exhaustion; handle it explicitly in tests
+and graph callers.
 
 ## Where to see it
 

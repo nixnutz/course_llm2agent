@@ -24,6 +24,8 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import ToolNode
 
+from src.errors import PipelinePreconditionError
+
 from ...llm_handle.local import (
     AsyncClientProvider,
     ClientCachePolicy,
@@ -62,7 +64,7 @@ class ToolNodeLoopAgent:
 
     async def __call__(self, state: ToolNodeLoopState) -> dict:
         if not state.todo_list_json:
-            raise ValueError("Expected non-empty todo_list_json")
+            raise PipelinePreconditionError("Expected non-empty todo_list_json")
 
         prompt_value = self._template.invoke({"input": state.todo_list_json})
         system_and_user = prompt_value.to_messages()

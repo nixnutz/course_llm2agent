@@ -20,6 +20,7 @@ import json
 from langchain_core.messages import AIMessage
 import pytest
 
+from src.errors import PipelinePreconditionError, PipelineValidationError
 from src.llm_nodes.todo_extract.models import TODOState
 from src.llm_nodes.todo_extract.nodes import get_todo_list_node
 
@@ -66,7 +67,7 @@ async def test_smoke_mocked_llm_fills_state(mock_openai_for_todo):
 async def test_raises_on_empty_text(mocker):
     _, client_provider = _patch_openai(mocker, _LLM_JSON)
     node = get_todo_list_node(model="test-model", client_provider=client_provider)
-    with pytest.raises(ValueError, match="Expected non-empty text"):
+    with pytest.raises(PipelinePreconditionError, match="Expected non-empty text"):
         await node(TODOState())
 
 
@@ -125,7 +126,7 @@ async def test_empty_items_are_accepted(mocker):
 async def test_raises_on_invalid_json_from_llm(mocker):
     _, client_provider = _patch_openai(mocker, "not json")
     node = get_todo_list_node(model="test-model", client_provider=client_provider)
-    with pytest.raises(ValueError, match="Invalid JSON from model"):
+    with pytest.raises(PipelineValidationError, match="Invalid JSON from model"):
         await node(TODOState(text=_INPUT_TEXT))
 
 
@@ -135,5 +136,5 @@ async def test_raises_when_items_is_not_a_list(mocker):
     bad = json.dumps({"items": "not-a-list"})
     _, client_provider = _patch_openai(mocker, bad)
     node = get_todo_list_node(model="test-model", client_provider=client_provider)
-    with pytest.raises(ValueError, match="JSON does not match schema"):
+    with pytest.raises(PipelineValidationError, match="JSON does not match schema"):
         await node(TODOState(text=_INPUT_TEXT))

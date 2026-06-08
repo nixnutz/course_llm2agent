@@ -3,6 +3,8 @@
 from langchain_core.messages import AIMessage, convert_to_openai_messages
 from langchain_core.prompts import ChatPromptTemplate
 
+from src.errors import PipelinePreconditionError
+
 from ...llm_handle.local import (
     AsyncClientProvider,
     ClientCachePolicy,
@@ -32,7 +34,7 @@ class LlmNodeTODOList:
 
     async def __call__(self, state: TODOState) -> dict:
         if not state.text:
-            raise ValueError("Expected non-empty text")
+            raise PipelinePreconditionError("Expected non-empty text")
 
         input_text = state.text
 

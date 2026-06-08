@@ -20,6 +20,7 @@ import json
 from langchain_core.messages import AIMessage, HumanMessage
 import pytest
 
+from src.errors import PipelinePreconditionError, PipelineValidationError
 from src.llm_nodes.global_state import GlobalState
 from src.llm_nodes.pii_email.nodes import get_pii_email_node
 
@@ -66,7 +67,7 @@ async def test_smoke_mocked_llm_fills_state(mock_openai_for_pii):
 async def test_raises_without_human_message(mocker):
     _, client_provider = _patch_openai(mocker, _LLM_JSON)
     node = get_pii_email_node(model="test-model", client_provider=client_provider)
-    with pytest.raises(ValueError, match="Expected at least one human message"):
+    with pytest.raises(PipelinePreconditionError, match="Expected at least one human message"):
         await node(GlobalState(messages=[]))
 
 
@@ -76,7 +77,7 @@ async def test_raises_when_human_content_not_string(mocker):
     _, client_provider = _patch_openai(mocker, _LLM_JSON)
     node = get_pii_email_node(model="test-model", client_provider=client_provider)
     state = GlobalState(messages=[HumanMessage(content=[{"type": "text", "text": "x"}])])
-    with pytest.raises(ValueError, match="Expected at least one human message"):
+    with pytest.raises(PipelinePreconditionError, match="Expected at least one human message"):
         await node(state)
 
 
@@ -150,7 +151,7 @@ async def test_raises_on_invalid_json_from_llm(mocker):
     _, client_provider = _patch_openai(mocker, "not json")
     node = get_pii_email_node(model="test-model", client_provider=client_provider)
     state = GlobalState(messages=[HumanMessage(content="Hello.")])
-    with pytest.raises(ValueError, match="Invalid JSON from model"):
+    with pytest.raises(PipelineValidationError, match="Invalid JSON from model"):
         await node(state)
 
 
@@ -161,5 +162,5 @@ async def test_raises_when_occurrences_not_a_list(mocker):
     _, client_provider = _patch_openai(mocker, bad)
     node = get_pii_email_node(model="test-model", client_provider=client_provider)
     state = GlobalState(messages=[HumanMessage(content="Hello.")])
-    with pytest.raises(ValueError, match="must be a list"):
+    with pytest.raises(PipelineValidationError, match="must be a list"):
         await node(state)

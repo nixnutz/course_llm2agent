@@ -3,6 +3,8 @@
 from langchain_core.messages import AIMessage, convert_to_openai_messages
 from langchain_core.prompts import ChatPromptTemplate
 
+from src.errors import PipelinePreconditionError, PipelineValidationError
+
 from ...llm_handle.local import (
     AsyncClientProvider,
     ClientCachePolicy,
@@ -37,7 +39,9 @@ class LlmNodePIIExtract:
             None,
         )
         if last_human is None or not isinstance(last_human.content, str):
-            raise ValueError("Expected at least one human message with string content")
+            raise PipelinePreconditionError(
+                "Expected at least one human message with string content"
+            )
 
         prompt_value = self._template.invoke({"input": last_human.content})
         openai_messages = convert_to_openai_messages(prompt_value.messages)
@@ -50,7 +54,7 @@ class LlmNodePIIExtract:
         raw = ParseLLMJson().parse_as_dict(answer)
         occurrences = raw.get("occurrences", [])
         if not isinstance(occurrences, list):
-            raise ValueError("LLM JSON field 'occurrences' must be a list")
+            raise PipelineValidationError("LLM JSON field 'occurrences' must be a list")
 
         parsed = mask_pii_emails(last_human.content, occurrences)
 

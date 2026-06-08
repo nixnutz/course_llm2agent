@@ -3,6 +3,8 @@
 from langchain_core.messages import AIMessage, convert_to_openai_messages
 from langchain_core.prompts import ChatPromptTemplate
 
+from src.errors import PipelinePreconditionError
+
 from ...llm_handle.local import (
     AsyncClientProvider,
     ClientCachePolicy,
@@ -31,7 +33,7 @@ class LlmNodeTODOMarkdown:
 
     async def __call__(self, state: TODOMarkdownState) -> dict:
         if not state.todo_list_json:
-            raise ValueError("Expected non-empty todo_list_json")
+            raise PipelinePreconditionError("Expected non-empty todo_list_json")
 
         prompt_value = self._template.invoke({"input": state.todo_list_json})
         openai_messages = convert_to_openai_messages(prompt_value.messages)

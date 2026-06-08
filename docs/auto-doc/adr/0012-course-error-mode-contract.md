@@ -22,7 +22,7 @@ This is a **course teaching sketch** — always log and enable audit via project
 | **Observe** | LLM quality / integrity drift with safe degradation | `logger.warning` / `logger.error`, **continue** |
 | **Library** | Client/network/schema failures from dependencies | **propagate** (no swallow) |
 
-Examples: `ValueError` and `ParseLLMJson` (Guard); `span_not_found`, `normalization_failed`, `leak_suspected` in `mask.py`, `placeholder_violation` in `placeholder_audit` (Observe); OpenAI/httpx errors on LLM calls, Pydantic `extra=forbid` on state (Library).
+Examples: `PipelinePreconditionError`, `PipelineValidationError`, and `PolicyViolationError` (Guard), plus `ParseLLMJson` schema/JSON checks; `span_not_found`, `normalization_failed`, `leak_suspected` in `mask.py`, `placeholder_violation` in `placeholder_audit` (Observe); OpenAI/httpx errors on LLM calls, Pydantic `extra=forbid` on state (Library).
 
 ### Trusted egress boundary (future — not a fourth tier today)
 

@@ -17,6 +17,7 @@ import json
 from pydantic import BaseModel, ValidationError
 import pytest
 
+from src.errors import PipelineValidationError
 from src.llm_nodes.parse_llm_json import ParseLLMJson
 
 _SAMPLE = {"answer": "ok", "count": 2}
@@ -48,13 +49,13 @@ def test_parse_as_dict_strips_outer_whitespace():
 
 @pytest.mark.unit
 def test_parse_as_dict_empty_raises_invalid_json():
-    with pytest.raises(ValueError, match="Invalid JSON from model"):
+    with pytest.raises(PipelineValidationError, match="Invalid JSON from model"):
         ParseLLMJson().parse_as_dict("")
 
 
 @pytest.mark.unit
 def test_parse_as_dict_whitespace_only_raises_invalid_json():
-    with pytest.raises(ValueError, match="Invalid JSON from model"):
+    with pytest.raises(PipelineValidationError, match="Invalid JSON from model"):
         ParseLLMJson().parse_as_dict("   \n  ")
 
 
@@ -76,6 +77,6 @@ def test_parse_as_model_valid():
 @pytest.mark.unit
 def test_parse_as_model_schema_mismatch():
     bad = json.dumps({"answer": "ok", "count": "not-a-number"})
-    with pytest.raises(ValueError, match="JSON does not match schema") as exc_info:
+    with pytest.raises(PipelineValidationError, match="JSON does not match schema") as exc_info:
         ParseLLMJson().parse_as_model(bad, _MiniModel)
     assert isinstance(exc_info.value.__cause__, ValidationError)
