@@ -18,7 +18,7 @@ Example::
         session.invoke(graph, state)
 """
 
-from langchain_core.messages import BaseMessage
+from langchain_core.messages import AIMessage, BaseMessage, ToolMessage
 
 from ..logging_setup import get_logger
 from .base import BaseReducer
@@ -29,22 +29,27 @@ logger = get_logger(__name__, __file__)
 class BaseReducerReader(BaseReducer):
     """Observe-only reducer: overrides ``on_read_message`` only (stdout demo)."""
 
+    def _vault_message(self, thread_id: str, message: BaseMessage) -> None:
+        vault = self.get_vault_for_thread(thread_id)
+        key = str(message.id) if hasattr(message, "id") else ""
+        vault.append(key, message.model_copy())
+
     def on_read_message(self, thread_id: str, message: BaseMessage) -> None:
-        if hasattr(message, "content") and isinstance(message.content, str):
+        extra = {"thread_id": thread_id}
+
+        if isinstance(message, AIMessage) and message.tool_calls:
+            logger.debug("observing tool_calls: %s", message.tool_calls, extra=extra)
+        elif isinstance(message, ToolMessage):
             logger.debug(
-                "observing message content: %s",
+                "observing tool result [%s] (id=%s): %s",
+                message.name,
+                message.tool_call_id,
                 message.content,
-                extra={"thread_id": thread_id},
+                extra=extra,
             )
-            vault = self.get_vault_for_thread(thread_id)
-            if hasattr(message, "id"):
-                key = str(message.id)
-            else:
-                key = ""
-            vault.append(key, message.model_copy())
+        elif hasattr(message, "content") and isinstance(message.content, str):
+            logger.debug("observing message content: %s", message.content, extra=extra)
         else:
-            logger.debug(
-                "observing message without content: %s",
-                message,
-                extra={"thread_id": thread_id},
-            )
+            logger.debug("observing message without content: %s", message, extra=extra)
+
+        self._vault_message(thread_id, message)

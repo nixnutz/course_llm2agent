@@ -45,6 +45,11 @@ def _create_httpx_async_client(timeout: float = 120.0) -> httpx.AsyncClient:
     return httpx.AsyncClient(verify=_verify_config, timeout=timeout)
 
 
+def create_httpx_async_client(timeout: float = 120.0) -> httpx.AsyncClient:
+    """Lab httpx client: trusts compose root CA at ``/certs/.caroot/rootCA.pem`` when present."""
+    return _create_httpx_async_client(timeout)
+
+
 def _create_openai_async_client(
     api_key: str, base_url: str, http_client: httpx.AsyncClient, max_retries: int = 0
 ) -> openai.AsyncOpenAI:

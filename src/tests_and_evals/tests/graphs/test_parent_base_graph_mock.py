@@ -15,9 +15,8 @@ from src.reducer.base_reader import BaseReducerReader
 from src.reducer.reducer_session import reducer_session
 
 _PLACEHOLDER_RE = re.compile(r"E\d+_[0-9a-f]+")
-_PII_JSON = json.dumps(
-    {"occurrences": [{"span": "alice@example.com", "raw": "alice@example.com"}]}
-)
+_PII_JSON = json.dumps({"occurrences": [{"span": "alice@example.com", "raw": "alice@example.com"}]})
+
 
 def _patch_openai_for_parent_graph(mocker):
     call_state = {"n": 0}
@@ -54,7 +53,9 @@ def _patch_openai_for_parent_graph(mocker):
     def provider():
         return mock_client
 
-    mocker.patch("src.graphs.parent_base_graph.make_async_openai_client_provider", return_value=provider)
+    mocker.patch(
+        "src.graphs.parent_base_graph.make_async_openai_client_provider", return_value=provider
+    )
     return mock_client
 
 

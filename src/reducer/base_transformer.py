@@ -58,7 +58,7 @@ Example::
         )
 """
 
-from langchain_core.messages import BaseMessage, HumanMessage
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, ToolMessage
 
 from ..logging_setup import get_logger
 from .base import BaseReducer
@@ -69,33 +69,41 @@ logger = get_logger(__name__, __file__)
 class BaseReducerTransformer(BaseReducer):
     """Course template: ``on_transform_message`` only; vault before/after demo transform."""
 
+    def _vault_message(self, thread_id: str, message: BaseMessage) -> None:
+        vault = self.get_vault_for_thread(thread_id)
+        key = str(message.id) if hasattr(message, "id") else ""
+        vault.append(key, message.model_copy())
+
     def on_transform_message(self, thread_id: str, message: BaseMessage) -> BaseMessage:
-        if hasattr(message, "content") and isinstance(message.content, str):
+        extra = {"thread_id": thread_id}
+
+        if isinstance(message, AIMessage) and message.tool_calls:
+            logger.debug("transforming tool_calls: %s", message.tool_calls, extra=extra)
+        elif isinstance(message, ToolMessage):
             logger.debug(
-                "transforming message content: %s",
+                "transforming tool result [%s] (id=%s): %s",
+                message.name,
+                message.tool_call_id,
                 message.content,
-                extra={"thread_id": thread_id},
+                extra=extra,
             )
-
-            vault = self.get_vault_for_thread(thread_id)
-            key = str(message.id) if hasattr(message, "id") else ""
-            vault.append(key, message.model_copy())
-
-            if isinstance(message, HumanMessage) and "Hi" in message.content:
-                # Don't do in-place modifications on the message object, create a new one instead
-                new_content = message.content.replace("Hi", "Moin")
-                message = message.model_copy(update={"content": new_content})
-                logger.debug(
-                    "replaced 'Hi' with 'Moin': %s",
-                    message.content,
-                    extra={"thread_id": thread_id},
-                )
-                vault.append(key, message.model_copy())
-
+        elif hasattr(message, "content") and isinstance(message.content, str):
+            logger.debug("transforming message content: %s", message.content, extra=extra)
         else:
-            logger.debug(
-                "transforming message without content: %s",
-                message,
-                extra={"thread_id": thread_id},
-            )
+            logger.debug("transforming message without content: %s", message, extra=extra)
+
+        self._vault_message(thread_id, message)
+
+        if (
+            isinstance(message, HumanMessage)
+            and hasattr(message, "content")
+            and isinstance(message.content, str)
+            and "Hi" in message.content
+        ):
+            # Don't do in-place modifications on the message object, create a new one instead
+            new_content = message.content.replace("Hi", "Moin")
+            message = message.model_copy(update={"content": new_content})
+            logger.debug("replaced 'Hi' with 'Moin': %s", message.content, extra=extra)
+            self._vault_message(thread_id, message)
+
         return message

@@ -9,7 +9,7 @@ from .models import PlaceholderAllowlist, PlaceholderAuditResult
 logger = get_logger(__name__, __file__)
 
 # Placeholder-like tokens in LLM output (salt-agnostic finder; allowlist is the gate).
-_PLACEHOLDER_LIKE_RE = re.compile(r"E\d+_[0-9a-f]+")
+PLACEHOLDER_LIKE_RE = re.compile(r"E\d+_[0-9a-f]+")
 
 
 def audit_placeholder_text(text: str, allowlist: PlaceholderAllowlist) -> PlaceholderAuditResult:
@@ -18,7 +18,7 @@ def audit_placeholder_text(text: str, allowlist: PlaceholderAllowlist) -> Placeh
         return PlaceholderAuditResult(frozenset(), frozenset())
 
     allowed = frozenset(allowlist.allowed_tokens)
-    candidates = frozenset(_PLACEHOLDER_LIKE_RE.findall(text))
+    candidates = frozenset(PLACEHOLDER_LIKE_RE.findall(text))
     unknown = candidates - allowed
     return PlaceholderAuditResult(candidates, unknown)
 
@@ -32,7 +32,7 @@ def audit_placeholder_texts(*texts: str, allowlist: PlaceholderAllowlist) -> Pla
     candidates: set[str] = set()
     for text in texts:
         if text:
-            candidates.update(_PLACEHOLDER_LIKE_RE.findall(text))
+            candidates.update(PLACEHOLDER_LIKE_RE.findall(text))
     frozen_candidates = frozenset(candidates)
     return PlaceholderAuditResult(frozen_candidates, frozen_candidates - allowed)
 
