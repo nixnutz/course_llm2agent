@@ -303,6 +303,7 @@ PHOENIX_PORT=6006
 PHOENIX_UI_TLS_PORT=6006
 PHOENIX_OTLP_GRPC_PORT=4317
 PHOENIX_WORKING_DIR=/mnt/data
+PHOENIX_DEFAULT_RETENTION_POLICY_DAYS=30
 PHOENIX_COLLECTOR_HTTP_ENDPOINT=http://phoenix:6006/v1/traces
 PHOENIX_PROJECT_NAME=litellm-proxy
 PHOENIX_PROJECT_NAME_CLEAN=litellm-clean
@@ -453,6 +454,18 @@ Virtual key startup sync is controlled via `KEYS_INIT_MODE`:
 LiteLLM container healthcheck uses `/health/readiness` (no model inference).
 UI spend logs are stored in Postgres and limited by LiteLLM retention settings
 (`maximum_spend_logs_retention_period: 7d`, cleanup interval `1d`).
+
+### Data retention (lab)
+
+| Component | Mechanism | Lab value | Notes |
+|-----------|-----------|-----------|-------|
+| Phoenix traces | `PHOENIX_DEFAULT_RETENTION_POLICY_DAYS` (required in `.env`) | `30d` | Only service with native trace-retention-days setting; Phoenix UI can override per project. |
+| LiteLLM spend logs | `maximum_spend_logs_retention_period` in `litellm.yaml` | `7d` | Shorter on purpose because spend logs may include prompts. |
+| Ollama | Model cache on disk + `OLLAMA_KEEP_ALIVE` | no age TTL | `OLLAMA_KEEP_ALIVE` unloads idle runners from RAM; it is not log/trace retention. |
+| Container stdout | Docker `json-file` rotation | `10m × 3` | Global in compose logging options. |
+| Full wipe | `make state-prune` | manual | Deletes `.state/*` including Postgres, Phoenix, and Ollama model cache. |
+
+Observability and model cache data are disposable lab state. Explicit TTLs are a safety net against silent growth, while `make state-prune` remains the intentional reset path.
 
 ## Start
 

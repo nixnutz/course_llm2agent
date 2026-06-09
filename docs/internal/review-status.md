@@ -1,8 +1,8 @@
 ## branch: main
-- last_reviewed_commit: 2947899
+- last_reviewed_commit: bc97cb5
 - last_reviewed_at: 2026-06-09T12:00:00+02:00
-- last_review_context: committed — tool_node_loop dynamic max_tool_rounds/max_tool_errors from todo_list_json; graph router uses state limits; policy tests updated
-- last_action: committed
+- last_review_context: pre-commit — staged only retention change (Phoenix trace retention env + fail-fast compose wiring + compose README retention matrix)
+- last_action: pre_commit_staged_review_complete
 - raw_log_decision: skip (trivial)
 - adr_file_decision: skip (trivial)
 - user_value_log_decision: skip (trivial)
@@ -12,4 +12,4 @@
 - findings_resolved: yes
 - doc_decisions_made: yes
 - ready_to_commit: yes
-- notes: O1 closed — prior commits (through da22c92) already reviewed. This commit: graph.py, models.py, test_tool_node_loop_policy.py only. Notebooks/errors_and_tests.ipynb/cursor-profile-repair.sh excluded.
+- notes: No pending commits since last reviewed commit (bc97cb5). Reviewed staged files only: container/compose/.env.example, container/compose/docker-compose.yml, container/compose/README.md, docs/internal/review-status.md. Unstaged notebook/raw-log churn and local tooling excluded.
