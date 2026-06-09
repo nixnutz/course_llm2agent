@@ -12,7 +12,7 @@ from src.errors import (
 )
 from src.logging_setup import get_logger
 
-from ...llm_handle.local import AsyncClientProvider, ClientCachePolicy
+from ...llm_handle.local import ChatModelProvider, ClientCachePolicy
 from ..global_state import GlobalState
 from ..placeholder_audit import (
     PLACEHOLDER_LIKE_RE,
@@ -179,7 +179,7 @@ async def _audit_placeholders(state: ToolNodeLoopState) -> dict:
 def build_tool_node_loop_subgraph(
     model: str,
     *,
-    client_provider: AsyncClientProvider | None = None,
+    chat_model_provider: ChatModelProvider | None = None,
     client_cache_policy: ClientCachePolicy = "cached",
 ) -> CompiledStateGraph:
     """Agent ↔ ToolNode loop on ToolNodeLoopState.messages."""
@@ -188,7 +188,7 @@ def build_tool_node_loop_subgraph(
         "agent",
         get_tool_node_loop_agent_node(
             model,
-            client_provider=client_provider,
+            chat_model_provider=chat_model_provider,
             client_cache_policy=client_cache_policy,
         ),
     )

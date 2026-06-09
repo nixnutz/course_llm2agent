@@ -9,6 +9,7 @@ from typing import Callable, Literal
 
 import httpx
 import openai
+from langchain_openai import ChatOpenAI
 
 CA_CERT_PATH = "/certs/.caroot/rootCA.pem"
 _verify_config = (
@@ -19,6 +20,7 @@ _verify_config = (
 _async_openai_clients: dict[tuple[str, str], openai.AsyncOpenAI] = {}
 ClientCachePolicy = Literal["cached", "none"]
 AsyncClientProvider = Callable[[], openai.AsyncOpenAI]
+ChatModelProvider = Callable[[], ChatOpenAI]
 
 
 def _resolve_base_url(*, chaos: bool) -> str:
@@ -99,6 +101,57 @@ def make_async_openai_client_provider(
             api_key=api_key,
             chaos=chaos,
             client_cache_policy=client_cache_policy,
+        )
+
+    return _provider
+
+
+def get_chat_openai_model(
+    model: str,
+    *,
+    api_key: str | None = None,
+    chaos: bool = False,
+    client_cache_policy: ClientCachePolicy = "cached",
+    temperature: float = 0.0,
+    timeout: float = 120.0,
+) -> ChatOpenAI:
+    """Return a ChatOpenAI model configured from local env/runtime settings.
+
+    ``client_cache_policy`` is accepted for API symmetry with AsyncOpenAI providers.
+    ChatOpenAI wrappers are intentionally not cached in this module.
+    """
+    if client_cache_policy not in ("cached", "none"):
+        raise ValueError(f"Unsupported client_cache_policy: {client_cache_policy}")
+    base_url = _resolve_base_url(chaos=chaos)
+    api_key = _resolve_api_key(api_key)
+    return ChatOpenAI(
+        model=model,
+        base_url=base_url,
+        api_key=api_key,
+        temperature=temperature,
+        http_async_client=_create_httpx_async_client(timeout),
+    )
+
+
+def make_chat_openai_model_provider(
+    model: str,
+    *,
+    api_key: str | None = None,
+    chaos: bool = False,
+    client_cache_policy: ClientCachePolicy = "cached",
+    temperature: float = 0.0,
+    timeout: float = 120.0,
+) -> ChatModelProvider:
+    """Build a zero-arg provider for delayed ChatOpenAI creation in nodes/tests."""
+
+    def _provider() -> ChatOpenAI:
+        return get_chat_openai_model(
+            model=model,
+            api_key=api_key,
+            chaos=chaos,
+            client_cache_policy=client_cache_policy,
+            temperature=temperature,
+            timeout=timeout,
         )
 
     return _provider

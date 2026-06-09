@@ -63,9 +63,6 @@ class ToolNodeLoopState(BaseState):
         if not self.todo_list_json.strip():
             return self
         max_rounds = compute_max_tool_rounds(self.todo_list_json)
-        return self.model_copy(
-            update={
-                "max_tool_rounds": max_rounds,
-                "max_tool_errors": compute_max_tool_errors(max_rounds),
-            }
-        )
+        self.max_tool_rounds = max_rounds
+        self.max_tool_errors = compute_max_tool_errors(max_rounds)
+        return self

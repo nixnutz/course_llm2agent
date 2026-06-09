@@ -2,15 +2,9 @@
 
 TODO (deferred decisions — course WIP, no ADR yet)
 -------------------------------------------------
-1. **LLM client layering (A vs B)** — ``ToolNodeLoopAgent`` builds ``ChatOpenAI``
-   while ``llm_handle.local`` caches ``openai.AsyncOpenAI``. We only reuse
-   ``base_url`` / ``api_key`` from the provider today; the AsyncOpenAI cache entry
-   is bypassed. Pick one target later:
-   - **A:** tool agent like ``todo_markdown`` — ``AsyncOpenAI`` + manual ``tools=``
-     and ``AIMessage(tool_calls=...)`` assembly.
-   - **B:** extend ``local.py`` with a cached ``ChatOpenAI`` (+ ``bind_tools``) factory
-     so nodes stay on the provider pattern without re-reading config.
-   Decision deferred until a real tool executor and loop policy are clearer.
+1. **Runtime boundary (current)** — transport/env wiring for ``ChatOpenAI`` is
+   delegated to ``llm_handle.local`` via ``ChatModelProvider``. This node keeps
+   domain ownership of ``bind_tools(...)`` and prompt policy.
 
 2. **Tool surface** — ``greet`` in ``tools.py`` is a symbolic ``@tool`` demo. A later
    ``tool_custom_loop`` package may swap ToolNode for a custom executor without
@@ -21,16 +15,14 @@ TODO (deferred decisions — course WIP, no ADR yet)
 """
 
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import ToolNode
 
 from src.errors import PipelinePreconditionError
 
 from ...llm_handle.local import (
-    AsyncClientProvider,
+    ChatModelProvider,
     ClientCachePolicy,
-    create_httpx_async_client,
-    make_async_openai_client_provider,
+    make_chat_openai_model_provider,
 )
 from .models import ToolNodeLoopState
 from .prompts import _tool_node_loop_prompt
@@ -44,22 +36,15 @@ class ToolNodeLoopAgent:
         self,
         model: str,
         template: ChatPromptTemplate,
-        client_provider: AsyncClientProvider | None = None,
+        chat_model_provider: ChatModelProvider | None = None,
         client_cache_policy: ClientCachePolicy = "cached",
     ):
-        provider = client_provider or make_async_openai_client_provider(
-            client_cache_policy=client_cache_policy
-        )
-        openai_client = provider()
-        # TODO: see module docstring — AsyncOpenAI cache vs ChatOpenAI (A/B deferred).
-        llm = ChatOpenAI(
+        provider = chat_model_provider or make_chat_openai_model_provider(
             model=model,
-            base_url=str(openai_client.base_url),
-            api_key=openai_client.api_key,
+            client_cache_policy=client_cache_policy,
             temperature=0.0,
-            http_async_client=create_httpx_async_client(),
         )
-        self._llm = llm.bind_tools(TOOLS, parallel_tool_calls=False)
+        self._llm = provider().bind_tools(TOOLS, parallel_tool_calls=False)
         self._template = template
 
     async def __call__(self, state: ToolNodeLoopState) -> dict:
@@ -76,13 +61,13 @@ class ToolNodeLoopAgent:
 
 def get_tool_node_loop_agent_node(
     model: str,
-    client_provider: AsyncClientProvider | None = None,
+    chat_model_provider: ChatModelProvider | None = None,
     client_cache_policy: ClientCachePolicy = "cached",
 ):
     return ToolNodeLoopAgent(
         model=model,
         template=_tool_node_loop_prompt,
-        client_provider=client_provider,
+        chat_model_provider=chat_model_provider,
         client_cache_policy=client_cache_policy,
     )
 

@@ -1,15 +1,15 @@
 ## branch: main
-- last_reviewed_commit: b61ae56
-- last_reviewed_at: 2026-06-09T12:00:00+02:00
-- last_review_context: pre-commit — staged only ADR raw-log entry for execution scope (mark prior commit as already reviewed)
+- last_reviewed_commit: 9016ba9
+- last_reviewed_at: 2026-06-09T11:15:00+02:00
+- last_review_context: pre-commit — staged-only refactor review accepted by user (F1 ignored; tests reported green)
 - last_action: pre_commit_staged_review_complete
-- raw_log_decision: update existing
+- raw_log_decision: skip (trivial)
 - adr_file_decision: skip (trivial)
 - user_value_log_decision: skip (trivial)
-- raw_log_status: done
+- raw_log_status: n/a
 - adr_file_status: n/a
 - user_value_log_status: n/a
 - findings_resolved: yes
 - doc_decisions_made: yes
 - ready_to_commit: yes
-- notes: User chose path A: mark pending commit b61ae56 as handled and continue staged-only review. Reviewed staged file only: docs/auto-doc/adr/raw-log.md (single append-only line). Unstaged notebook/tooling changes excluded.
+- notes: User explicitly accepted prior F1 scope mixing as intentional and reported additional local tests green. Review remains staged-only for current refactor batch.
