@@ -21,7 +21,7 @@ from ..placeholder_audit import (
     log_placeholder_violations,
 )
 from ..todo_extract.models import TODOItem, TODOList
-from .models import MAX_TOOL_ERRORS, MAX_TOOL_ROUNDS, ToolNodeLoopState
+from .models import ToolNodeLoopState
 from .nodes import get_tool_node_loop_agent_node, get_tool_node_loop_tool_node
 
 logger = get_logger(__name__, __file__)
@@ -63,13 +63,18 @@ def route_after_agent(state: ToolNodeLoopState) -> str:
     """Route after agent: continue while the last AIMessage has tool_calls; else finalize."""
     last_ai_msg = _last_ai_message(state.messages)
     has_pending_tool_calls = bool(last_ai_msg and last_ai_msg.tool_calls)
-    policy_exhausted = state.tool_round >= MAX_TOOL_ROUNDS or state.tool_errors >= MAX_TOOL_ERRORS
+    policy_exhausted = (
+        state.tool_round >= state.max_tool_rounds
+        or state.tool_errors >= state.max_tool_errors
+    )
 
     if has_pending_tool_calls and policy_exhausted:
         logger.debug(
-            "route_after_agent: policy stop (tool_round=%s tool_errors=%s pending_tool_calls=%s)",
+            "route_after_agent: policy stop (tool_round=%s/%s tool_errors=%s/%s pending_tool_calls=%s)",
             state.tool_round,
+            state.max_tool_rounds,
             state.tool_errors,
+            state.max_tool_errors,
             len(last_ai_msg.tool_calls) if last_ai_msg else 0,
         )
         return "policy_exhausted"
@@ -154,7 +159,8 @@ async def _policy_exhausted(state: ToolNodeLoopState) -> dict:
     pending_tool_calls = bool(last_ai and last_ai.tool_calls)
     raise PolicyViolationError(
         "tool_node_loop policy exhausted before deliverable: "
-        f"tool_round={state.tool_round}, tool_errors={state.tool_errors}, "
+        f"tool_round={state.tool_round}/{state.max_tool_rounds}, "
+        f"tool_errors={state.tool_errors}/{state.max_tool_errors}, "
         f"pending_tool_calls={pending_tool_calls}"
     )
 
