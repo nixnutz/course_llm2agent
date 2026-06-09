@@ -17,6 +17,7 @@ endif
 CURL_TLS_FLAGS ?= -k
 MIN_DOCKER_ENGINE_VERSION ?= 25.0.0
 MIN_DOCKER_COMPOSE_VERSION ?= 2.20.0
+REPO_ROOT := $(abspath ../..)
 
 help:
 	@echo "Available targets:"
@@ -59,7 +60,7 @@ help:
 	@echo ""
 	@echo "  Code Quality:"
 	@echo "    make ruff-check               Run ruff lint (check only) on src/ Python files (no .ipynb)"
-	@echo "    make ruff                     Run ruff lint --fix and format on src/ Python files (no .ipynb)"
+	@echo "    make ruff                     Run ruff lint --fix and format on src/ Python files (no .ipynb); list modified files"
 	@echo ""
 	@echo "  Toxiproxy:"
 	@echo "    make toxiproxy-bootstrap   Ensure edge/provider proxies exist in Toxiproxy"
@@ -220,8 +221,24 @@ ruff-check:
 	./scripts/dev/cmd.sh ruff check .
 
 ruff:
-	./scripts/dev/cmd.sh ruff check --fix .
-	./scripts/dev/cmd.sh ruff format .
+	@snap=$$(mktemp -d); \
+	trap 'rm -rf "$$snap"' EXIT; \
+	( cd "$(REPO_ROOT)" && git ls-files -z 'src/*.py' 'src/**/*.py' | LC_ALL=C sort -z | while IFS= read -r -d '' f; do \
+		printf '%s %s\n' "$$(git hash-object "$$f")" "$$f"; \
+	done ) > "$$snap/before"; \
+	./scripts/dev/cmd.sh ruff check --fix .; \
+	./scripts/dev/cmd.sh ruff format .; \
+	( cd "$(REPO_ROOT)" && git ls-files -z 'src/*.py' 'src/**/*.py' | LC_ALL=C sort -z | while IFS= read -r -d '' f; do \
+		printf '%s %s\n' "$$(git hash-object "$$f")" "$$f"; \
+	done ) > "$$snap/after"; \
+	changed=$$(awk 'NR==FNR {h[$$2]=$$1; next} $$2 in h && h[$$2]!=$$1 {print $$2}' "$$snap/before" "$$snap/after"); \
+	if [ -n "$$changed" ]; then \
+		echo "Modified files:"; \
+		echo "$$changed" | sed 's/^/  /'; \
+	else \
+		echo "No files modified."; \
+	fi; \
+	echo "Note: only git-tracked .py files under src/ are reported."
 
 trust-certs-host:
 	@if ! command -v mkcert >/dev/null 2>&1; then echo "mkcert not found on host; skipping trust step."; exit 0; fi

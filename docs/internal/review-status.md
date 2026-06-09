@@ -1,7 +1,7 @@
 ## branch: main
-- last_reviewed_commit: 9016ba9
-- last_reviewed_at: 2026-06-09T11:15:00+02:00
-- last_review_context: pre-commit — staged-only refactor review accepted by user (F1 ignored; tests reported green)
+- last_reviewed_commit: 26f6612
+- last_reviewed_at: 2026-06-09T12:30:00+02:00
+- last_review_context: pre-commit — staged-only make ruff output sharpening (Makefile + container/compose/Makefile)
 - last_action: pre_commit_staged_review_complete
 - raw_log_decision: skip (trivial)
 - adr_file_decision: skip (trivial)
@@ -12,4 +12,4 @@
 - findings_resolved: yes
 - doc_decisions_made: yes
 - ready_to_commit: yes
-- notes: User explicitly accepted prior F1 scope mixing as intentional and reported additional local tests green. Review remains staged-only for current refactor batch.
+- notes: Staged scope verified — only Makefile and container/compose/Makefile. Pending unpushed commit b59f579 (tool-node refactor) not part of this review; user requested staged-only make-ruff batch. Sidecar plan-1 (execution model) unrelated to this diff.

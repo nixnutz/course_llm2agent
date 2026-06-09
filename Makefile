@@ -59,7 +59,7 @@ help:
 	@echo ""
 	@echo "Code Quality (requires running dev container):"
 	@echo "  make ruff-check               Run ruff lint (check only) on src/ Python files (no .ipynb)"
-	@echo "  make ruff                     Run ruff lint --fix and format on src/ Python files (no .ipynb)"
+	@echo "  make ruff                     Run ruff lint --fix and format on src/ Python files (no .ipynb); list modified files"
 
 up:
 	$(MAKE) -C $(COMPOSE_DIR) preflight-up && $(MAKE) dev-image-build && $(MAKE) -C $(COMPOSE_DIR) up-no-preflight
