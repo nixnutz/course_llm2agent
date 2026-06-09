@@ -1,15 +1,15 @@
 ## branch: main
-- last_reviewed_commit: bc97cb5
+- last_reviewed_commit: b61ae56
 - last_reviewed_at: 2026-06-09T12:00:00+02:00
-- last_review_context: pre-commit — staged only retention change (Phoenix trace retention env + fail-fast compose wiring + compose README retention matrix)
+- last_review_context: pre-commit — staged only ADR raw-log entry for execution scope (mark prior commit as already reviewed)
 - last_action: pre_commit_staged_review_complete
-- raw_log_decision: skip (trivial)
+- raw_log_decision: update existing
 - adr_file_decision: skip (trivial)
 - user_value_log_decision: skip (trivial)
-- raw_log_status: n/a
+- raw_log_status: done
 - adr_file_status: n/a
 - user_value_log_status: n/a
 - findings_resolved: yes
 - doc_decisions_made: yes
 - ready_to_commit: yes
-- notes: No pending commits since last reviewed commit (bc97cb5). Reviewed staged files only: container/compose/.env.example, container/compose/docker-compose.yml, container/compose/README.md, docs/internal/review-status.md. Unstaged notebook/raw-log churn and local tooling excluded.
+- notes: User chose path A: mark pending commit b61ae56 as handled and continue staged-only review. Reviewed staged file only: docs/auto-doc/adr/raw-log.md (single append-only line). Unstaged notebook/tooling changes excluded.
