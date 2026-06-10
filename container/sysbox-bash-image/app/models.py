@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class SessionCreateRequest(BaseModel):
     """Trusted session-level correlation supplied by future LangGraph code."""
+
+    model_config = ConfigDict(extra="forbid")
 
     graph_invoke_id: str | None = None
     thread_id: str | None = None
@@ -24,6 +26,8 @@ class SessionCreateResponse(BaseModel):
 
 
 class ExecRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     script: str = Field(..., min_length=1)
     request_id: str | None = None
     tool_round: int | None = Field(default=None, ge=0)

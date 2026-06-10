@@ -33,6 +33,8 @@ from models import (
 
 SANDBOX_UID = 1001
 SANDBOX_GID = 1001
+TIMEOUT_EXIT_CODE = 124
+OUTPUT_LIMIT_EXIT_CODE = 137
 
 
 class SessionNotFoundError(RuntimeError):
@@ -40,11 +42,20 @@ class SessionNotFoundError(RuntimeError):
 
 
 class ScriptTooLargeError(RuntimeError):
-    pass
+    def __init__(self, actual_bytes: int, limit_bytes: int) -> None:
+        super().__init__(f"script is {actual_bytes} bytes; limit is {limit_bytes}")
+        self.actual_bytes = actual_bytes
+        self.limit_bytes = limit_bytes
 
 
 class TimeoutLimitError(RuntimeError):
-    pass
+    def __init__(self, requested_seconds: int, limit_seconds: int) -> None:
+        super().__init__(
+            "timeout_seconds may not exceed SBASH_DEFAULT_TIMEOUT_SECONDS "
+            f"({limit_seconds}); requested {requested_seconds}"
+        )
+        self.requested_seconds = requested_seconds
+        self.limit_seconds = limit_seconds
 
 
 def _now() -> str:
@@ -135,15 +146,13 @@ class SessionManager:
     def execute(self, session_id: str, request: ExecRequest) -> ExecResponse:
         script_bytes = request.script.encode("utf-8")
         if len(script_bytes) > self.settings.max_script_bytes:
-            raise ScriptTooLargeError(
-                f"script is {len(script_bytes)} bytes; limit is {self.settings.max_script_bytes}"
-            )
+            raise ScriptTooLargeError(len(script_bytes), self.settings.max_script_bytes)
 
         timeout_seconds = request.timeout_seconds or self.settings.default_timeout_seconds
         if timeout_seconds > self.settings.default_timeout_seconds:
             raise TimeoutLimitError(
-                "timeout_seconds may not exceed SBASH_DEFAULT_TIMEOUT_SECONDS "
-                f"({self.settings.default_timeout_seconds})"
+                requested_seconds=timeout_seconds,
+                limit_seconds=self.settings.default_timeout_seconds,
             )
 
         session_data = self._load_session(session_id)
@@ -193,6 +202,7 @@ class SessionManager:
         started_monotonic = time.monotonic()
         timed_out = False
         output_limit_exceeded = False
+        termination_reason = "completed"
 
         process = subprocess.Popen(
             command,
@@ -209,10 +219,12 @@ class SessionManager:
                 or stderr_bytes > self.settings.max_stderr_bytes
             ):
                 output_limit_exceeded = True
+                termination_reason = "output_limit_exceeded"
                 terminate_sandbox_processes(container_name)
                 break
             if time.monotonic() - started_monotonic > timeout_seconds:
                 timed_out = True
+                termination_reason = "timeout"
                 terminate_sandbox_processes(container_name)
                 break
             if returncode is not None:
@@ -236,8 +248,14 @@ class SessionManager:
             or stderr_bytes > self.settings.max_stderr_bytes
         ):
             output_limit_exceeded = True
+            termination_reason = "output_limit_exceeded"
 
-        exit_code = None if timed_out or output_limit_exceeded else process.returncode
+        if timed_out:
+            exit_code = TIMEOUT_EXIT_CODE
+        elif output_limit_exceeded:
+            exit_code = OUTPUT_LIMIT_EXIT_CODE
+        else:
+            exit_code = process.returncode
         metadata = {
             "session_id": session_id,
             "run_id": run_id,
@@ -256,9 +274,8 @@ class SessionManager:
             "inner_container_id": session_data.get("container_id"),
             "inner_container_name": container_name,
             "sandbox_service_hostname": socket.gethostname(),
-            "process_pid": process.pid,
-            "process_group_id": None,
             "command": command,
+            "command_kind": "docker_exec_script_file",
             "script_path": str(script_path),
             "script_size_bytes": len(script_bytes),
             "script_sha256": hashlib.sha256(script_bytes).hexdigest(),
@@ -269,7 +286,9 @@ class SessionManager:
             "exit_code": exit_code,
             "timed_out": timed_out,
             "output_limit_exceeded": output_limit_exceeded,
+            "termination_reason": termination_reason,
             "timeout_seconds": timeout_seconds,
+            "max_script_bytes": self.settings.max_script_bytes,
             "max_stdout_bytes": self.settings.max_stdout_bytes,
             "max_stderr_bytes": self.settings.max_stderr_bytes,
         }

@@ -25,6 +25,8 @@ The FastAPI service exposes the Sandbox HTTP API on the internal Compose network
 | `POST /sessions/{session_id}/exec` | Execute one Bash script in an existing session |
 | `DELETE /sessions/{session_id}` | Remove a session container and its runtime state |
 
+There is intentionally no `GET /sessions` endpoint. Use the host-side `make sysbox-bash-sessions` helper for lab visibility.
+
 `POST /sessions` accepts optional trusted session correlation fields:
 `graph_invoke_id`, `thread_id`, `subgraph_name`, `node_name`, and `caller_label`.
 
@@ -51,7 +53,12 @@ Required API runtime variables:
 - `SBASH_MAX_STDERR_BYTES`
 - `SBASH_DEFAULT_TIMEOUT_SECONDS`
 
-The API enforces `SBASH_MAX_SCRIPT_BYTES`, `SBASH_MAX_STDOUT_BYTES`, `SBASH_MAX_STDERR_BYTES`, and `SBASH_DEFAULT_TIMEOUT_SECONDS`. Optional per-run `timeout_seconds` may only reduce the timeout below the default.
+The API enforces `SBASH_MAX_SCRIPT_BYTES`, `SBASH_MAX_STDOUT_BYTES`, `SBASH_MAX_STDERR_BYTES`, and `SBASH_DEFAULT_TIMEOUT_SECONDS`. Optional per-run `timeout_seconds` may only reduce the timeout below the default; requests above the default return a 4xx response instead of being silently clamped.
+
+Timeout and output-limit responses are structured lab conventions:
+
+- timeout: `timed_out=true`, `exit_code=124`, `metadata.termination_reason="timeout"`
+- output cap: `output_limit_exceeded=true`, `exit_code=137`, `metadata.termination_reason="output_limit_exceeded"`
 
 ## Verification
 
@@ -62,7 +69,7 @@ make sysbox-bash-api-smoke
 make sysbox-bash-sessions
 ```
 
-The smoke test covers the API without LangGraph: health, session start, same-session state, non-zero exit, timeout, script-size rejection, stdout/stderr output limits, correlation metadata, and cleanup.
+The smoke test covers the API without LangGraph: health, session start, same-session state, non-zero exit, timeout, over-default timeout rejection, script-size rejection, stdout/stderr output limits, dummy and omitted correlation metadata, absence of `GET /sessions`, and cleanup.
 
 `make sysbox-bash-sessions` is not part of the Sandbox HTTP API. It is a host-side lab helper that uses `docker compose exec sysbox_bash docker ps` to inspect managed inner containers.
 

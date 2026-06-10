@@ -66,9 +66,25 @@ def execute_in_session(session_id: str, request: ExecRequest) -> ExecResponse:
     except SessionNotFoundError as exc:
         raise HTTPException(status_code=404, detail=f"unknown session_id: {session_id}") from exc
     except ScriptTooLargeError as exc:
-        raise HTTPException(status_code=413, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=413,
+            detail={
+                "error": "script_too_large",
+                "message": str(exc),
+                "actual_bytes": exc.actual_bytes,
+                "limit_bytes": exc.limit_bytes,
+            },
+        ) from exc
     except TimeoutLimitError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "error": "timeout_limit_exceeded",
+                "message": str(exc),
+                "requested_seconds": exc.requested_seconds,
+                "limit_seconds": exc.limit_seconds,
+            },
+        ) from exc
     except DockerCommandError as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
