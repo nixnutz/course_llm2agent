@@ -416,6 +416,40 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  sysbox_bash:
+    image: ${SBASH_IMAGE_NAME:-course-llm-sysbox-bash:dev}
+    hostname: sysbox_bash
+    runtime: sysbox-runc
+    cpus: "${SBASH_CPUS:-2.0}"
+    mem_limit: ${SBASH_MEM_LIMIT:-4g}
+    memswap_limit: ${SBASH_MEMSWAP_LIMIT:-4g}
+    networks:
+      - backend_core
+    volumes:
+      - ./.state/sysbox_bash/images:/var/lib/sysbox_bash/images:ro,z
+    environment:
+      SBASH_PORT: "${SBASH_PORT:-8080}"
+      SBASH_EXEC_IMAGE_NAME: "${SBASH_EXEC_IMAGE_NAME:-course-llm-sysbox-bash-exec:dev}"
+      SBASH_EXEC_IMAGE_ARCHIVE: "/var/lib/sysbox_bash/images/sysbox-bash-exec-image.tar"
+      SBASH_MAX_SCRIPT_BYTES: "${SBASH_MAX_SCRIPT_BYTES:-32768}"
+      SBASH_MAX_STDOUT_BYTES: "${SBASH_MAX_STDOUT_BYTES:-262144}"
+      SBASH_MAX_STDERR_BYTES: "${SBASH_MAX_STDERR_BYTES:-262144}"
+      SBASH_DEFAULT_TIMEOUT_SECONDS: "${SBASH_DEFAULT_TIMEOUT_SECONDS:-30}"
+    healthcheck:
+      test: [ "CMD-SHELL", "/opt/sysbox-bash-venv/bin/python -c \"import urllib.request; r=urllib.request.urlopen('http://localhost:$${SBASH_PORT:-8080}/health', timeout=2); exit(0 if r.status==200 else 1)\"" ]
+      interval: "${HEALTHCHECK_INTERVAL}"
+      start_interval: "${HEALTHCHECK_INTERVAL_BOOT:-3s}"
+      timeout: 5s
+      retries: 60
+      start_period: 120s
+    stop_grace_period: 30s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   dev:
     image: ${DEV_IMAGE_NAME:-course-llm-dev:v1}
     hostname: dev
@@ -438,6 +472,8 @@ services:
         condition: service_started
       phoenix:
         condition: service_started
+      sysbox_bash:
+        condition: service_healthy
     working_dir: /workspace/src
     ports:
       - "${HOST_BIND_IP}:${DEV_JUPYTER_PORT:-8888}:8888"
@@ -466,6 +502,7 @@ services:
       POSTGRES_TOOLBERT_PASSWORD: "${POSTGRES_TOOLBERT_PASSWORD}"
       PHOENIX_COLLECTOR_ENDPOINT: "${PHOENIX_COLLECTOR_ENDPOINT:?Set PHOENIX_COLLECTOR_ENDPOINT in container/compose/.env}"
       PHOENIX_PROJECT_NAME: "${PHOENIX_APP_PROJECT_NAME:?Set PHOENIX_APP_PROJECT_NAME in container/compose/.env}"
+      SBASH_BASE_URL: "http://sysbox_bash:${SBASH_PORT:-8080}"
     restart: unless-stopped
     stop_grace_period: 10s
     logging:

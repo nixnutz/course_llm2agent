@@ -1,0 +1,13 @@
+[Unit]
+Description=Load sysbox_bash per-session exec image into inner Docker
+After=docker.service
+Requires=docker.service
+ConditionPathExists=/var/lib/sysbox_bash/images/sysbox-bash-exec-image.tar
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/lib/sysbox-bash/load-exec-image.sh
+
+[Install]
+WantedBy=multi-user.target

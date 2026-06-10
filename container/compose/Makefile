@@ -105,7 +105,8 @@ preflight-up:
 	if [ "$$(printf '%s\n%s\n' "$${min_compose}" "$${compose_version}" | sort -V | head -n1)" != "$${min_compose}" ]; then \
 		echo "ERROR: Docker Compose >= $${min_compose} required (found $${compose_version})." >&2; \
 		exit 1; \
-	fi
+	fi; \
+	./scripts/sysbox_bash/preflight.sh
 
 up: preflight-up up-no-preflight
 
@@ -195,7 +196,7 @@ toxiproxy-reset:
 	bash ./scripts/toxiproxy/reset.sh
 
 state-init:
-	@mkdir -p ".state" ".state/postgres_data" ".state/ollama_data" ".state/certs" ".state/.tmp" ".state/keys" ".state/phoenix_data"
+	@mkdir -p ".state" ".state/postgres_data" ".state/ollama_data" ".state/certs" ".state/.tmp" ".state/keys" ".state/phoenix_data" ".state/sysbox_bash/images"
 	@if [ ! -f ".state/.gitignore" ]; then printf '*\n!/.gitignore\n' > ".state/.gitignore"; fi
 	@if [ -d "$(KEYS_LOCAL_FILE)" ]; then rm -rf "$(KEYS_LOCAL_FILE)"; fi
 	@if [ ! -f "$(KEYS_LOCAL_FILE)" ]; then printf '{\n  "keys": []\n}\n' > "$(KEYS_LOCAL_FILE)"; fi

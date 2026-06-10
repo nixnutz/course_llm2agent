@@ -7,10 +7,14 @@
 	keys-generate keys-overwrite keys-show keys-sync litellm-recreate ollama-expose \
 	phoenix-health smoke-chat smoke-embeddings state-init state-prune streamlit-run trust-certs-host \
 	dev-image-build dev-image-rebuild dev-image-reset-project-venv dev-container-restart review-manual \
+	sysbox-bash-image-build sysbox-bash-image-rebuild sysbox-bash-service-restart \
 	ruff ruff-check
 
 COMPOSE_DIR := container/compose
 DEV_IMAGE_NAME ?= course-llm-dev:v1
+SBASH_IMAGE_NAME ?= course-llm-sysbox-bash:dev
+SBASH_EXEC_IMAGE_NAME ?= course-llm-sysbox-bash-exec:dev
+SBASH_EXEC_IMAGE_ARCHIVE ?= container/compose/.state/sysbox_bash/images/sysbox-bash-exec-image.tar
 
 help:
 	@echo "Available targets:"
@@ -54,6 +58,13 @@ help:
 	@echo "Development Container Lifecycle:"
 	@echo "  make dev-container-restart    Recreate dev container (no image build)"
 	@echo ""
+	@echo "Sysbox Bash Image (container/sysbox-bash-image):"
+	@echo "  make sysbox-bash-image-build   Build sysbox + exec images and save exec tar"
+	@echo "  make sysbox-bash-image-rebuild Rebuild sysbox + exec images without cache"
+	@echo ""
+	@echo "Sysbox Bash Service:"
+	@echo "  make sysbox-bash-service-restart Recreate sysbox_bash Compose service"
+	@echo ""
 	@echo "Review Workflow:"
 	@echo "  make review-manual            Show fixed manual review checklist and context"
 	@echo ""
@@ -62,7 +73,7 @@ help:
 	@echo "  make ruff                     Run ruff lint --fix and format on src/ Python files (no .ipynb); list modified files"
 
 up:
-	$(MAKE) -C $(COMPOSE_DIR) preflight-up && $(MAKE) dev-image-build && $(MAKE) -C $(COMPOSE_DIR) up-no-preflight
+	$(MAKE) -C $(COMPOSE_DIR) preflight-up && $(MAKE) dev-image-build && $(MAKE) sysbox-bash-image-build && $(MAKE) -C $(COMPOSE_DIR) up-no-preflight
 
 down ps top logs logs-all logs-init-keys logs-init-models certs-generate \
 dev-container-smoke dev-container-smoke-wrapper dev-container-smoke-clean \
@@ -92,6 +103,40 @@ dev-image-reset-project-venv:
 
 dev-container-restart:
 	cd $(COMPOSE_DIR) && docker compose up -d --no-deps --force-recreate dev
+
+sysbox-bash-image-build:
+	$(MAKE) -C $(COMPOSE_DIR) state-init
+	docker build -t $(SBASH_IMAGE_NAME) -f container/sysbox-bash-image/Dockerfile .
+	docker build -t $(SBASH_EXEC_IMAGE_NAME) -f container/sysbox-bash-exec-image/Dockerfile .
+	@$(MAKE) _sysbox-bash-exec-image-export
+
+sysbox-bash-image-rebuild:
+	$(MAKE) -C $(COMPOSE_DIR) state-init
+	docker build --no-cache -t $(SBASH_IMAGE_NAME) -f container/sysbox-bash-image/Dockerfile .
+	docker build --no-cache -t $(SBASH_EXEC_IMAGE_NAME) -f container/sysbox-bash-exec-image/Dockerfile .
+	@$(MAKE) _sysbox-bash-exec-image-export
+
+_sysbox-bash-exec-image-export:
+	@set -eu; \
+	archive="$(SBASH_EXEC_IMAGE_ARCHIVE)"; \
+	dir="$$(dirname "$$archive")"; \
+	tmp="$$dir/sysbox-bash-exec-image.tar.tmp"; \
+	bak="$$dir/sysbox-bash-exec-image.tar.bak"; \
+	mkdir -p "$$dir"; \
+	docker image inspect "$(SBASH_EXEC_IMAGE_NAME)" >/dev/null; \
+	rm -f "$$bak"; \
+	if [ -f "$$archive" ]; then mv "$$archive" "$$bak"; fi; \
+	rm -f "$$tmp"; \
+	if docker save "$(SBASH_EXEC_IMAGE_NAME)" -o "$$tmp"; then \
+		mv "$$tmp" "$$archive"; \
+	else \
+		rm -f "$$tmp"; \
+		echo "ERROR: docker save failed for $(SBASH_EXEC_IMAGE_NAME)" >&2; \
+		exit 1; \
+	fi
+
+sysbox-bash-service-restart:
+	cd $(COMPOSE_DIR) && docker compose up -d --no-deps --force-recreate sysbox_bash
 
 review-manual:
 	./scripts/review-manual.sh

@@ -17,6 +17,7 @@ together:
 
 - **Linux** — developed and tested on Linux only
 - **Docker Engine** ≥ 25 and **Docker Compose** ≥ 2.20
+- **Sysbox** (`sysbox-runc`) — required for the `sysbox_bash` sandbox service (`make up` checks via preflight)
 - **Git** — clone this repository
 - **Host tools** — terminal; a code editor (Cursor or VS Code recommended); a browser as fallback for JupyterLab
 - **Python / ML stack** — runs inside **`dev`**, not on the host

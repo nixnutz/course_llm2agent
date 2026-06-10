@@ -1,15 +1,15 @@
 ## branch: main
-- last_reviewed_commit: c52ff53
-- last_reviewed_at: 2026-06-10T14:00:00+02:00
-- last_review_context: review-w-auto-doc — partial agent→llm_with_tools rename (graph/router/tests/notebook); ToolNodeLoopAgent deferred
-- last_action: committed
+- last_reviewed_commit: 8abe3ca
+- last_reviewed_at: 2026-06-10T14:29:00+02:00
+- last_review_context: review-w-auto-doc — staged Runtime Foundation Slice started contents from runtime_foundation_slice_af964dec.plan.md
+- last_action: working-tree review
 - raw_log_decision: add
 - adr_file_decision: skip (trivial)
-- user_value_log_decision: skip (trivial)
+- user_value_log_decision: add
 - raw_log_status: done
 - adr_file_status: n/a
-- user_value_log_status: n/a
+- user_value_log_status: done
 - findings_resolved: yes
 - doc_decisions_made: yes
 - ready_to_commit: yes
-- notes: F1 (class/factory rename) accepted deferred; user commits on main without branch. Sidecar plan-1 unrelated. Exclude cursor-profile-repair.sh and errors_and_tests.ipynb from commit.
+- notes: Pending commit 8abe3ca treated as already handled after user skipped choice prompt; review scope limited to staged sysbox_bash runtime foundation files. Sidecar plan-1 unrelated to this diff. Exclude cursor-profile-repair.sh and errors_and_tests.ipynb from commit.

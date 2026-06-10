@@ -1,0 +1,13 @@
+[Unit]
+Description=Sysbox Bash Sandbox HTTP API
+After=sysbox-bash-load-exec-image.service docker.service
+Requires=sysbox-bash-load-exec-image.service docker.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/lib/sysbox-bash/run-api.sh
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
