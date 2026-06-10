@@ -17,6 +17,7 @@ Raw collection log: [raw-log.md](raw-log.md). Process: [auto-doc README](../READ
 | [0010](0010-eval-must-should-pytest-hooks.md) | Eval MUST/SHOULD pytest hooks |
 | [0011](0011-course-test-scope-layers.md) | Course test scope layers (L1–L6) |
 | [0012](0012-course-error-mode-contract.md) | Course error-mode contract (Mode C) |
+| [0014](0014-tool-node-sysbox-bash-langgraph-bridge.md) | tool_node_sysbox_bash LangGraph bridge and sandbox session lifecycle |
 
 Course-facing pointers: [pipeline and nodes](../../course/pipeline-and-nodes.md),
 [error handling](../../course/error-handling.md).

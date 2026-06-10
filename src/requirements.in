@@ -2,6 +2,7 @@ ruff
 pylint
 ipykernel
 jupyterlab
+httpx
 openai
 langchain[openai]
 langgraph

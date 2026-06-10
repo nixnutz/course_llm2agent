@@ -1,7 +1,7 @@
 ## branch: main
-- last_reviewed_commit: 1cb8e91
-- last_reviewed_at: 2026-06-10T15:14:00+02:00
-- last_review_context: review-w-auto-doc — staged Sandbox HTTP API Slice 2 from sandbox_http_api_2a809234.plan.md
+- last_reviewed_commit: fece387
+- last_reviewed_at: 2026-06-10T21:41:00+02:00
+- last_review_context: review-w-auto-doc — staged Slice 3 tool_node_sysbox_bash from slice_3_sysbox_toolnode_786358bd.plan.md
 - last_action: working-tree review
 - raw_log_decision: add
 - adr_file_decision: add
@@ -12,4 +12,4 @@
 - findings_resolved: yes
 - doc_decisions_made: yes
 - ready_to_commit: yes
-- notes: Last commit 1cb8e91 treated as already reviewed per user. Review scope limited to staged Sandbox HTTP API files. F1 resolved by explicitly updating protected local container/compose/.env with SBASH_SESSIONS_ROOT after user approval. Runtime follow-ups fixed Python 3.10 datetime/chown compatibility, same-session working directory semantics, and Docker-hostname-safe hex session IDs in sessions.py after sysbox-bash-api smoke failures. Sidecar plan-1 unrelated. Untracked local files ignored.
+- notes: Repeat review after model switch. HEAD unchanged at fece387; review scope remains staged Slice 3 LangGraph bridge + bundled Sandbox API finish. F2 remains resolved (owned SandboxClient closes in outer finally, including start_session failures). No sidecar present. 5 unit tests green via dev-cmd. sysbox-bash-api-smoke not run. Untracked cursor-profile-repair.sh and session5/errors_and_tests.ipynb excluded per R-001 / out of scope.

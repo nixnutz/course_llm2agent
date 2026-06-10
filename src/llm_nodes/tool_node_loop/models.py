@@ -1,4 +1,3 @@
-import math
 from typing import Annotated, Self
 
 from langchain_core.messages import BaseMessage
@@ -8,12 +7,12 @@ from ...reducer.reducer_session import session_message_reducer
 from ..base_state import BaseState
 from ..placeholder_audit.models import PlaceholderAllowlist
 from ..todo_extract.models import TODOList
-
-MIN_MAX_TOOL_ROUNDS = 2
-MIN_MAX_TOOL_ERRORS = 1
-TOOL_ROUND_TOLERANCE_FACTOR = 1.20
-TOOL_ERROR_BUDGET_FRACTION = 0.10
-
+from ..tool_node_policy import (
+    MIN_MAX_TOOL_ERRORS,
+    MIN_MAX_TOOL_ROUNDS,
+    compute_max_tool_errors,
+    compute_max_tool_rounds_with_headroom,
+)
 
 def unique_who_count(todo_list_json: str) -> int:
     """Count distinct non-empty ``who`` values in the TODO JSON."""
@@ -25,16 +24,7 @@ def unique_who_count(todo_list_json: str) -> int:
 
 def compute_max_tool_rounds(todo_list_json: str) -> int:
     """One greet per unique ``who``, plus 20% headroom when the LLM misses uniqueness."""
-    unique_who = unique_who_count(todo_list_json)
-    base = max(unique_who, 1)
-    with_tolerance = math.ceil(base * TOOL_ROUND_TOLERANCE_FACTOR)
-    return max(MIN_MAX_TOOL_ROUNDS, with_tolerance)
-
-
-def compute_max_tool_errors(max_tool_rounds: int) -> int:
-    """Up to 10% of ``max_tool_rounds`` tool failures before policy stop."""
-    budget = math.floor(max_tool_rounds * TOOL_ERROR_BUDGET_FRACTION)
-    return max(MIN_MAX_TOOL_ERRORS, budget)
+    return compute_max_tool_rounds_with_headroom(unique_who_count(todo_list_json))
 
 
 class ToolNodeLoopState(BaseState):
