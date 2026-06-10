@@ -1,4 +1,4 @@
-"""Chat prompts for the tool_node_loop agent."""
+"""Chat prompts for the tool_node_loop llm_with_tools node."""
 
 from langchain_core.prompts import ChatPromptTemplate
 

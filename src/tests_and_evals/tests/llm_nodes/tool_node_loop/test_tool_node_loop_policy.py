@@ -12,7 +12,7 @@ from src.errors import PipelineValidationError, PolicyViolationError
 from src.llm_nodes.tool_node_loop.graph import (
     _policy_exhausted,
     _validate_todo_text_against_json,
-    route_after_agent,
+    route_after_llm_with_tools,
 )
 from src.llm_nodes.tool_node_loop.models import (
     MIN_MAX_TOOL_ERRORS,
@@ -38,7 +38,7 @@ _TODO_JSON = json.dumps({"items": [{"who": _WHO, "what": "feed the cat", "when":
 #   max_tool_errors = max(MIN_MAX_TOOL_ERRORS, floor(max_tool_rounds * 0.10))
 #   MIN_MAX_TOOL_ERRORS = 1; up to 10% of the round budget may fail, then stop.
 #
-# Router policy stop (``route_after_agent``): only when the last AIMessage still
+# Router policy stop (``route_after_llm_with_tools``): only when the last AIMessage still
 # has pending tool_calls AND (tool_round >= max_tool_rounds OR
 # tool_errors >= max_tool_errors). Without pending tool_calls → finalize even at
 # the limit.
@@ -76,7 +76,7 @@ def test_state_derives_policy_limits_from_todo_list_json():
 
 
 @pytest.mark.unit
-def test_route_after_agent_tools_vs_finalize():
+def test_route_after_llm_with_tools_tools_vs_finalize():
     with_tool_calls = ToolNodeLoopState(
         messages=[
             AIMessage(
@@ -87,10 +87,10 @@ def test_route_after_agent_tools_vs_finalize():
             )
         ]
     )
-    assert route_after_agent(with_tool_calls) == "tools"
+    assert route_after_llm_with_tools(with_tool_calls) == "tools"
 
     final_only = ToolNodeLoopState(messages=[AIMessage(content="# Salve, E0_a1b2c3d4!")])
-    assert route_after_agent(final_only) == "finalize"
+    assert route_after_llm_with_tools(final_only) == "finalize"
 
 
 @pytest.mark.unit
@@ -104,13 +104,13 @@ def test_validate_todo_text_raises_on_missing_who():
 
 
 @pytest.mark.unit
-def test_route_after_agent_allows_finalize_when_policy_exhausted_but_no_tool_calls():
+def test_route_after_llm_with_tools_allows_finalize_when_policy_exhausted_but_no_tool_calls():
     # tool_round at limit, but no pending tool_calls → finalize (see policy comment above).
     state = ToolNodeLoopState(
         tool_round=MIN_MAX_TOOL_ROUNDS,
         messages=[AIMessage(content="# Salve, E0_a1b2c3d4!\n- [ ] feed the cat (by today)")],
     )
-    assert route_after_agent(state) == "finalize"
+    assert route_after_llm_with_tools(state) == "finalize"
 
 
 @pytest.mark.unit
@@ -128,7 +128,7 @@ async def test_policy_exhausted_raises_policy_violation_error():
             )
         ],
     )
-    assert route_after_agent(state) == "policy_exhausted"
+    assert route_after_llm_with_tools(state) == "policy_exhausted"
     with pytest.raises(PolicyViolationError, match="policy exhausted"):
         await _policy_exhausted(state)
 
@@ -148,6 +148,6 @@ async def test_policy_exhausted_raises_policy_violation_error_on_max_rounds():
             )
         ],
     )
-    assert route_after_agent(state) == "policy_exhausted"
+    assert route_after_llm_with_tools(state) == "policy_exhausted"
     with pytest.raises(PolicyViolationError, match="policy exhausted"):
         await _policy_exhausted(state)

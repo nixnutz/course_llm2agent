@@ -59,18 +59,17 @@ def _last_ai_message(messages: list[BaseMessage]) -> AIMessage | None:
     return None
 
 
-def route_after_agent(state: ToolNodeLoopState) -> str:
-    """Route after agent: continue while the last AIMessage has tool_calls; else finalize."""
+def route_after_llm_with_tools(state: ToolNodeLoopState) -> str:
+    """Route after llm_with_tools: continue while the last AIMessage has tool_calls; else finalize."""
     last_ai_msg = _last_ai_message(state.messages)
     has_pending_tool_calls = bool(last_ai_msg and last_ai_msg.tool_calls)
     policy_exhausted = (
-        state.tool_round >= state.max_tool_rounds
-        or state.tool_errors >= state.max_tool_errors
+        state.tool_round >= state.max_tool_rounds or state.tool_errors >= state.max_tool_errors
     )
 
     if has_pending_tool_calls and policy_exhausted:
         logger.debug(
-            "route_after_agent: policy stop (tool_round=%s/%s tool_errors=%s/%s pending_tool_calls=%s)",
+            "route_after_llm_with_tools: policy stop (tool_round=%s/%s tool_errors=%s/%s pending_tool_calls=%s)",
             state.tool_round,
             state.max_tool_rounds,
             state.tool_errors,
@@ -81,7 +80,7 @@ def route_after_agent(state: ToolNodeLoopState) -> str:
 
     if has_pending_tool_calls:
         logger.debug(
-            "route_after_agent: -> tools (tool_round=%s tool_errors=%s tool_calls=%s)",
+            "route_after_llm_with_tools: -> tools (tool_round=%s tool_errors=%s tool_calls=%s)",
             state.tool_round,
             state.tool_errors,
             len(last_ai_msg.tool_calls) if last_ai_msg else 0,
@@ -89,7 +88,7 @@ def route_after_agent(state: ToolNodeLoopState) -> str:
         return "tools"
 
     logger.debug(
-        "route_after_agent: -> finalize (tool_round=%s tool_errors=%s)",
+        "route_after_llm_with_tools: -> finalize (tool_round=%s tool_errors=%s)",
         state.tool_round,
         state.tool_errors,
     )
@@ -182,10 +181,10 @@ def build_tool_node_loop_subgraph(
     chat_model_provider: ChatModelProvider | None = None,
     client_cache_policy: ClientCachePolicy = "cached",
 ) -> CompiledStateGraph:
-    """Agent ↔ ToolNode loop on ToolNodeLoopState.messages."""
+    """llm_with_tools ↔ ToolNode loop on ToolNodeLoopState.messages."""
     builder = StateGraph(ToolNodeLoopState)
     builder.add_node(
-        "agent",
+        "llm_with_tools",
         get_tool_node_loop_agent_node(
             model,
             chat_model_provider=chat_model_provider,
@@ -198,14 +197,14 @@ def build_tool_node_loop_subgraph(
     builder.add_node("finalize", _finalize)
     builder.add_node("audit_placeholders", _audit_placeholders)
 
-    builder.add_edge(START, "agent")
+    builder.add_edge(START, "llm_with_tools")
     builder.add_conditional_edges(
-        "agent",
-        route_after_agent,
+        "llm_with_tools",
+        route_after_llm_with_tools,
         {"tools": "tools", "policy_exhausted": "policy_exhausted", "finalize": "finalize"},
     )
     builder.add_edge("tools", "bump_tool_policy")
-    builder.add_edge("bump_tool_policy", "agent")
+    builder.add_edge("bump_tool_policy", "llm_with_tools")
     builder.add_edge("finalize", "audit_placeholders")
     builder.add_edge("audit_placeholders", END)
 

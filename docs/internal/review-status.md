@@ -1,15 +1,15 @@
 ## branch: main
-- last_reviewed_commit: 26f6612
-- last_reviewed_at: 2026-06-09T12:30:00+02:00
-- last_review_context: pre-commit — staged-only make ruff output sharpening (Makefile + container/compose/Makefile)
-- last_action: pre_commit_staged_review_complete
-- raw_log_decision: skip (trivial)
+- last_reviewed_commit: c52ff53
+- last_reviewed_at: 2026-06-10T14:00:00+02:00
+- last_review_context: review-w-auto-doc — partial agent→llm_with_tools rename (graph/router/tests/notebook); ToolNodeLoopAgent deferred
+- last_action: committed
+- raw_log_decision: add
 - adr_file_decision: skip (trivial)
 - user_value_log_decision: skip (trivial)
-- raw_log_status: n/a
+- raw_log_status: done
 - adr_file_status: n/a
 - user_value_log_status: n/a
 - findings_resolved: yes
 - doc_decisions_made: yes
 - ready_to_commit: yes
-- notes: Staged scope verified — only Makefile and container/compose/Makefile. Pending unpushed commit b59f579 (tool-node refactor) not part of this review; user requested staged-only make-ruff batch. Sidecar plan-1 (execution model) unrelated to this diff.
+- notes: F1 (class/factory rename) accepted deferred; user commits on main without branch. Sidecar plan-1 unrelated. Exclude cursor-profile-repair.sh and errors_and_tests.ipynb from commit.

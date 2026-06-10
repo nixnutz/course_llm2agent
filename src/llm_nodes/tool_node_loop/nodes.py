@@ -1,17 +1,19 @@
-"""LangGraph nodes for the tool_node_loop subgraph (agent + LangGraph ToolNode).
+"""LangGraph nodes for the tool_node_loop subgraph (llm_with_tools + ToolNode).
 
-TODO (deferred decisions — course WIP, no ADR yet)
--------------------------------------------------
+Current scope and extension points
+----------------------------------
 1. **Runtime boundary (current)** — transport/env wiring for ``ChatOpenAI`` is
-   delegated to ``llm_handle.local`` via ``ChatModelProvider``. This node keeps
-   domain ownership of ``bind_tools(...)`` and prompt policy.
+   delegated to ``llm_handle.local`` via ``ChatModelProvider``. This node owns
+   domain behavior such as ``bind_tools(...)`` and prompt policy.
 
-2. **Tool surface** — ``greet`` in ``tools.py`` is a symbolic ``@tool`` demo. A later
-   ``tool_custom_loop`` package may swap ToolNode for a custom executor without
-   changing this reference loop.
+2. **Tool surface (symbolic by design)** — ``greet`` in ``tools.py`` is a minimal
+   ``@tool`` demo. The same loop shape can later run with a custom executor
+   (for example bash/sysbox) without changing the core ``llm_with_tools`` contract.
 
-3. **Tool-loop exit policy** — ``route_after_agent`` covers max rounds/errors plus
-   ``tool_calls``; not yet: wall-clock budget, human-in-the-loop, per-tool caps.
+3. **Exit/control policy (extensible)** — ``route_after_llm_with_tools`` already
+   enforces round/error limits plus ``tool_calls`` flow control. The same framework
+   can be extended with, for example, a runtime budget, human-in-the-loop gates,
+   and per-tool caps.
 """
 
 from langchain_core.prompts import ChatPromptTemplate
@@ -30,7 +32,7 @@ from .tools import TOOLS
 
 
 class ToolNodeLoopAgent:
-    """LLM node with tools bound; may return tool_calls for LangGraph ToolNode."""
+    """LLM-with-tools turn for the tool_node_loop subgraph; may return tool_calls for ToolNode."""
 
     def __init__(
         self,
@@ -44,6 +46,10 @@ class ToolNodeLoopAgent:
             client_cache_policy=client_cache_policy,
             temperature=0.0,
         )
+        # One tool_call per LLM turn (course default): simpler Phoenix traces, easier
+        # tool_round/error policy, and steadier behavior on small models (e.g. 3B lab runs).
+        # Also keeps the ReAct loop legible step-by-step. Trade-off: more LLM round-trips
+        # and higher token cost than batching multiple greets per turn.
         self._llm = provider().bind_tools(TOOLS, parallel_tool_calls=False)
         self._template = template
 
