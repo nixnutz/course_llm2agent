@@ -14,6 +14,58 @@ make sysbox-bash-image-build
 
 Requires Docker on the host. The Compose service also requires `sysbox-runc` (see `container/compose/scripts/sysbox_bash/preflight.sh`).
 
+## API contract (Slice 2)
+
+The FastAPI service exposes the Sandbox HTTP API on the internal Compose network:
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /health` | Readiness probe; returns 503 until inner Docker and the exec image are ready |
+| `POST /sessions` | Start a stateful inner Bash session container |
+| `POST /sessions/{session_id}/exec` | Execute one Bash script in an existing session |
+| `DELETE /sessions/{session_id}` | Remove a session container and its runtime state |
+
+`POST /sessions` accepts optional trusted session correlation fields:
+`graph_invoke_id`, `thread_id`, `subgraph_name`, `node_name`, and `caller_label`.
+
+`POST /sessions/{session_id}/exec` accepts optional trusted run correlation fields:
+`request_id`, `tool_round`, and `tool_call_id`.
+
+Slice 2 stores these values in run metadata. Slice 3 is responsible for filling them from LangGraph `RunnableConfig`, graph state, and tool-call context.
+
+Each run uses script-as-file execution and writes artifacts under the service-local session tree:
+
+- `script.sh`
+- `stdout.txt`
+- `stderr.txt`
+- `metadata.json`
+
+The API reads required runtime configuration from environment variables and fails fast when any required value is missing or invalid. Compose should provide these explicitly from `.env` / `.env.example`; the app does not keep hidden fallback defaults.
+
+Required API runtime variables:
+
+- `SBASH_EXEC_IMAGE_NAME`
+- `SBASH_SESSIONS_ROOT`
+- `SBASH_MAX_SCRIPT_BYTES`
+- `SBASH_MAX_STDOUT_BYTES`
+- `SBASH_MAX_STDERR_BYTES`
+- `SBASH_DEFAULT_TIMEOUT_SECONDS`
+
+The API enforces `SBASH_MAX_SCRIPT_BYTES`, `SBASH_MAX_STDOUT_BYTES`, `SBASH_MAX_STDERR_BYTES`, and `SBASH_DEFAULT_TIMEOUT_SECONDS`. Optional per-run `timeout_seconds` may only reduce the timeout below the default.
+
+## Verification
+
+From repository root, after the stack is up and `sysbox_bash` is healthy:
+
+```bash
+make sysbox-bash-api-smoke
+make sysbox-bash-sessions
+```
+
+The smoke test covers the API without LangGraph: health, session start, same-session state, non-zero exit, timeout, script-size rejection, stdout/stderr output limits, correlation metadata, and cleanup.
+
+`make sysbox-bash-sessions` is not part of the Sandbox HTTP API. It is a host-side lab helper that uses `docker compose exec sysbox_bash docker ps` to inspect managed inner containers.
+
 ## Spike verification (Slice 1)
 
 | Spike | Check |

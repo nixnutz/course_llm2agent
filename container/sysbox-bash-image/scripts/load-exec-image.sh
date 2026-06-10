@@ -5,8 +5,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/load-container-env.sh
 source "${SCRIPT_DIR}/lib/load-container-env.sh"
 
-archive="${SBASH_EXEC_IMAGE_ARCHIVE:-/var/lib/sysbox_bash/images/sysbox-bash-exec-image.tar}"
-name="${SBASH_EXEC_IMAGE_NAME:-course-llm-sysbox-bash-exec:dev}"
+: "${SBASH_EXEC_IMAGE_ARCHIVE:?Missing required environment variable: SBASH_EXEC_IMAGE_ARCHIVE}"
+: "${SBASH_EXEC_IMAGE_NAME:?Missing required environment variable: SBASH_EXEC_IMAGE_NAME}"
+archive="${SBASH_EXEC_IMAGE_ARCHIVE}"
+name="${SBASH_EXEC_IMAGE_NAME}"
 
 waited=0
 until docker info >/dev/null 2>&1; do

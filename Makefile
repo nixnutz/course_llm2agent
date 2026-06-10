@@ -7,7 +7,7 @@
 	keys-generate keys-overwrite keys-show keys-sync litellm-recreate ollama-expose \
 	phoenix-health smoke-chat smoke-embeddings state-init state-prune streamlit-run trust-certs-host \
 	dev-image-build dev-image-rebuild dev-image-reset-project-venv dev-container-restart review-manual \
-	sysbox-bash-image-build sysbox-bash-image-rebuild sysbox-bash-service-restart \
+	sysbox-bash-api-smoke sysbox-bash-image-build sysbox-bash-image-rebuild sysbox-bash-service-restart sysbox-bash-sessions \
 	ruff ruff-check
 
 COMPOSE_DIR := container/compose
@@ -63,7 +63,9 @@ help:
 	@echo "  make sysbox-bash-image-rebuild Rebuild sysbox + exec images without cache"
 	@echo ""
 	@echo "Sysbox Bash Service:"
+	@echo "  make sysbox-bash-api-smoke       Run Sandbox API smoke test through dev"
 	@echo "  make sysbox-bash-service-restart Recreate sysbox_bash Compose service"
+	@echo "  make sysbox-bash-sessions        List active sysbox_bash sessions"
 	@echo ""
 	@echo "Review Workflow:"
 	@echo "  make review-manual            Show fixed manual review checklist and context"
@@ -79,6 +81,9 @@ down ps top logs logs-all logs-init-keys logs-init-models certs-generate \
 dev-container-smoke dev-container-smoke-wrapper dev-container-smoke-clean \
 keys-generate keys-overwrite keys-show keys-sync litellm-recreate ollama-expose \
 phoenix-health smoke-chat smoke-embeddings state-init state-prune streamlit-run trust-certs-host ruff ruff-check:
+	$(MAKE) -C $(COMPOSE_DIR) $@
+
+sysbox-bash-api-smoke sysbox-bash-sessions:
 	$(MAKE) -C $(COMPOSE_DIR) $@
 
 # Backward-compatible aliases (deprecated naming).

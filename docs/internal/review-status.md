@@ -1,15 +1,15 @@
 ## branch: main
-- last_reviewed_commit: 8abe3ca
-- last_reviewed_at: 2026-06-10T14:29:00+02:00
-- last_review_context: review-w-auto-doc — staged Runtime Foundation Slice started contents from runtime_foundation_slice_af964dec.plan.md
+- last_reviewed_commit: 1cb8e91
+- last_reviewed_at: 2026-06-10T15:14:00+02:00
+- last_review_context: review-w-auto-doc — staged Sandbox HTTP API Slice 2 from sandbox_http_api_2a809234.plan.md
 - last_action: working-tree review
 - raw_log_decision: add
-- adr_file_decision: skip (trivial)
+- adr_file_decision: add
 - user_value_log_decision: add
 - raw_log_status: done
-- adr_file_status: n/a
+- adr_file_status: done
 - user_value_log_status: done
 - findings_resolved: yes
 - doc_decisions_made: yes
 - ready_to_commit: yes
-- notes: Pending commit 8abe3ca treated as already handled after user skipped choice prompt; review scope limited to staged sysbox_bash runtime foundation files. Sidecar plan-1 unrelated to this diff. Exclude cursor-profile-repair.sh and errors_and_tests.ipynb from commit.
+- notes: Last commit 1cb8e91 treated as already reviewed per user. Review scope limited to staged Sandbox HTTP API files. F1 resolved by explicitly updating protected local container/compose/.env with SBASH_SESSIONS_ROOT after user approval. Runtime follow-ups fixed Python 3.10 datetime/chown compatibility, same-session working directory semantics, and Docker-hostname-safe hex session IDs in sessions.py after sysbox-bash-api smoke failures. Sidecar plan-1 unrelated. Untracked local files ignored.

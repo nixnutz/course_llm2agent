@@ -12,7 +12,7 @@ endif
 # 4) Single non-group targets (if any) at the end
 # This is primarily for readability/discoverability and avoids accidental order drift.
 
-.PHONY: help preflight-up up up-no-preflight down ps top logs logs-all logs-init-keys logs-init-models certs-generate dev-container-smoke dev-container-smoke-clean dev-container-smoke-wrapper devcontainer-smoke devcontainer-smoke-clean devcontainer-smoke-wrapper keys-generate keys-overwrite keys-show keys-sync litellm-recreate ollama-expose phoenix-health smoke-chat smoke-embeddings state-init state-prune streamlit-run ruff ruff-check toxiproxy-bootstrap toxiproxy-reset trust-certs-host
+.PHONY: help preflight-up up up-no-preflight down ps top logs logs-all logs-init-keys logs-init-models certs-generate dev-container-smoke dev-container-smoke-clean dev-container-smoke-wrapper devcontainer-smoke devcontainer-smoke-clean devcontainer-smoke-wrapper keys-generate keys-overwrite keys-show keys-sync litellm-recreate ollama-expose phoenix-health smoke-chat smoke-embeddings state-init state-prune streamlit-run sysbox-bash-api-smoke sysbox-bash-sessions ruff ruff-check toxiproxy-bootstrap toxiproxy-reset trust-certs-host
 
 CURL_TLS_FLAGS ?= -k
 MIN_DOCKER_ENGINE_VERSION ?= 25.0.0
@@ -53,6 +53,8 @@ help:
 	@echo "    make phoenix-health        Check local Phoenix UI TLS endpoint"
 	@echo "    make smoke-chat            Run authenticated chat completion smoke test"
 	@echo "    make smoke-embeddings      Run authenticated embeddings smoke test"
+	@echo "    make sysbox-bash-api-smoke Run Sandbox API smoke test through dev"
+	@echo "    make sysbox-bash-sessions  List active sysbox_bash sessions"
 	@echo ""
 	@echo "  Streamlit:"
 	@echo "    make streamlit-run          Run a Streamlit app inside the dev container"
@@ -182,6 +184,14 @@ smoke-embeddings:
 		-H "Content-Type: application/json" \
 		-H "Authorization: Bearer $(LITELLM_MASTER_KEY)" \
 		-d '{"model":"ollama/nomic-embed-text:latest","input":"litellm + ollama MVP"}'
+
+sysbox-bash-api-smoke:
+	./scripts/dev/cmd.sh bash /workspace/compose-scripts/sysbox_bash/api-smoke.sh
+
+sysbox-bash-sessions:
+	docker compose exec sysbox_bash docker ps -a \
+		--filter "label=course.llm2agent.sysbox_bash.managed=true" \
+		--format 'table {{.Names}}\t{{.Status}}\t{{.Label "course.llm2agent.sysbox_bash.session_id"}}'
 
 toxiproxy-bootstrap:
 	TOXIPROXY_URL="http://localhost:$${TOXIPROXY_ADMIN_PORT:-8474}" \
