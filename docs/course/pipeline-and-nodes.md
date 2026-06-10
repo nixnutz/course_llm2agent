@@ -69,6 +69,8 @@ Nodes use `src/llm_handle/local.py` (`get_async_openai_client`, `openai_client_c
 | PII email | `src/llm_nodes/pii_email/README.md` |
 | Placeholder audit | `src/llm_nodes/placeholder_audit/README.md` |
 | TODO extract / markdown | `src/llm_nodes/todo_extract/graph.py`, `todo_markdown/graph.py` |
+| Tool loop (mock `greet`) | `src/llm_nodes/tool_node_loop/` — Session 6; not in parent sketch yet |
+| Tool loop (Sysbox `bash`) | `src/llm_nodes/tool_node_sysbox_bash/README.md` — Session 7; HTTP → `sysbox_bash` |
 | Demask | `src/other_nodes/demask/` |
 | Parent graph (WIP) | `src/graphs/parent_base_graph.py` |
 
@@ -79,6 +81,8 @@ Nodes use `src/llm_handle/local.py` (`get_async_openai_client`, `openai_client_c
 | 3 | LangGraph basics, reducer messages |
 | 4 | Parent graph assembly (notebook-led; `src/graphs/` mirrors when synced) |
 | 5 | Phoenix tracing on current parent-graph sketch — `session5/graphtrace.ipynb` (temporary first-run exercise in getting started) |
+| 6 | ReAct tool loop with mock `greet` — `session6/tool_node_basics.ipynb` (`tool_node_loop`; notebook-led, not in parent sketch) |
+| 7 | ReAct tool loop with Sysbox `bash` — `session7/tool_node_sysbox.ipynb` (`tool_node_sysbox_bash`; E2E smoke; teaching prose author-owned) |
 
 Index: `src/assorted/README.md`.
 
@@ -87,8 +91,10 @@ Index: `src/assorted/README.md`.
 | Layer | What |
 |-------|------|
 | L1–L2 | Unit / node mocks — `src/tests_and_evals/tests/llm_nodes/` |
-| L3 | Parent graph mock E2E — `test_parent_base_graph_mock.py` |
+| L3 | Parent graph mock E2E — `test_parent_base_graph_mock.py`; Sysbox subgraph mock — `tool_node_sysbox_bash/` |
 | L6 | Chaos via Toxiproxy — `test_parent_base_graph_chaos.py` |
+
+Sysbox Sandbox API contract (outside pytest layers): `make sysbox-bash-api-smoke`.
 
 Marker and env requirements: `src/tests_and_evals/README.md`.
 
@@ -97,3 +103,5 @@ Marker and env requirements: `src/tests_and_evals/README.md`.
 - [Error handling](error-handling.md) — Guard / Observe / Library on this pipeline
 - [Getting started](../getting-started.md) — start the agent lab and first exercise in `dev`
 - [ADR 0009 — PII pipeline](../auto-doc/adr/0009-pii-email-masking-pipeline.md)
+- [ADR 0014 — Sysbox LangGraph bridge](../auto-doc/adr/0014-tool-node-sysbox-bash-langgraph-bridge.md)
+- [ADR 0015 — Sandbox HTTP API](../auto-doc/adr/0015-sysbox-bash-sandbox-http-api.md)

@@ -30,4 +30,4 @@ This decision is currently in effect in production/dev workflow.
 
 - Operators must keep `sysbox_bash` healthy and `SBASH_BASE_URL` set in the dev runtime before the bridge runs.
 - Session leaks on hard kill remain a lab concern; normal subgraph exceptions still hit bridge `finally`.
-- A dedicated Sandbox HTTP ADR may still be added for Slice 2; this ADR covers only the LangGraph client/bridge contract.
+- Sandbox HTTP API contract and `SBASH_*` runtime controls are in [ADR 0015](0015-sysbox-bash-sandbox-http-api.md); this ADR covers only the LangGraph client/bridge contract.

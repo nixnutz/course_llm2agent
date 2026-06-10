@@ -18,6 +18,7 @@ Raw collection log: [raw-log.md](raw-log.md). Process: [auto-doc README](../READ
 | [0011](0011-course-test-scope-layers.md) | Course test scope layers (L1–L6) |
 | [0012](0012-course-error-mode-contract.md) | Course error-mode contract (Mode C) |
 | [0014](0014-tool-node-sysbox-bash-langgraph-bridge.md) | tool_node_sysbox_bash LangGraph bridge and sandbox session lifecycle |
+| [0015](0015-sysbox-bash-sandbox-http-api.md) | Sysbox Bash Sandbox HTTP API and runtime control surface |
 
 Course-facing pointers: [pipeline and nodes](../../course/pipeline-and-nodes.md),
 [error handling](../../course/error-handling.md).

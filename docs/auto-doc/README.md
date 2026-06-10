@@ -22,6 +22,8 @@ Goal: Continuously capture project context so reviews include not only the lates
     - `docs/auto-doc/adr/0005-define-ollama-runtime-control-surface.md`
     - `docs/auto-doc/adr/0011-course-test-scope-layers.md`
     - `docs/auto-doc/adr/0012-course-error-mode-contract.md`
+    - `docs/auto-doc/adr/0014-tool-node-sysbox-bash-langgraph-bridge.md`
+    - `docs/auto-doc/adr/0015-sysbox-bash-sandbox-http-api.md`
 - Architecture/invariants track (`b`) is currently inactive because no clear need has appeared so far.
 
 ## Plan sidecar (one-off plans)

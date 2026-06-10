@@ -1,15 +1,15 @@
 ## branch: main
-- last_reviewed_commit: fece387
-- last_reviewed_at: 2026-06-10T21:41:00+02:00
-- last_review_context: review-w-auto-doc — staged Slice 3 tool_node_sysbox_bash from slice_3_sysbox_toolnode_786358bd.plan.md
-- last_action: working-tree review
+- last_reviewed_commit: c9206a3
+- last_reviewed_at: 2026-06-10T23:45:00+02:00
+- last_review_context: review-w-auto-doc — Slice 5 closure committed (slice_5_sysbox_closure_39c84953.plan.md)
+- last_action: post-commit
 - raw_log_decision: add
 - adr_file_decision: add
-- user_value_log_decision: add
+- user_value_log_decision: update existing
 - raw_log_status: done
 - adr_file_status: done
 - user_value_log_status: done
 - findings_resolved: yes
 - doc_decisions_made: yes
-- ready_to_commit: yes
-- notes: Repeat review after model switch. HEAD unchanged at fece387; review scope remains staged Slice 3 LangGraph bridge + bundled Sandbox API finish. F2 remains resolved (owned SandboxClient closes in outer finally, including start_session failures). No sidecar present. 5 unit tests green via dev-cmd. sysbox-bash-api-smoke not run. Untracked cursor-profile-repair.sh and session5/errors_and_tests.ipynb excluded per R-001 / out of scope.
+- ready_to_commit: n/a
+- notes: Slice 5 docs committed (ADR 0015, limitations, course-map). session7 notebook unstaged (author-owned Slice 4). Branch ahead of origin — push pending. Sidecar plan-1 partial — sidecar retained.

@@ -21,3 +21,11 @@ tracing (also used as the temporary first-run exercise in getting started). Afte
 markers (`leak_suspected`, `placeholder_violation`, `span_not_found`,
 `normalization_failed`) — the graph can complete while soft-fail events are logged.
 Runtime contract: [`docs/auto-doc/adr/0012-course-error-mode-contract.md`](../../docs/auto-doc/adr/0012-course-error-mode-contract.md).
+
+## Session 6 — tool loop (mock `greet`)
+
+`session6/tool_node_basics.ipynb` — ReAct loop with `tool_node_loop` and `greet(who)`; notebook-led, not wired into the parent-graph sketch yet.
+
+## Session 7 — tool loop (Sysbox `bash`)
+
+`session7/tool_node_sysbox.ipynb` — E2E smoke for `tool_node_sysbox_bash` via `SBASH_BASE_URL`. Requires healthy `sysbox_bash` (`make sysbox-bash-api-smoke`). Teaching prose is author-owned (Slice 4 deferred).

@@ -92,6 +92,21 @@ Compose service name: `sysbox_bash`. Container env uses **`SBASH_*`** (not `SYSB
 - **Do not** set `init: true` on this service — systemd must remain PID 1
 - No `entrypoint` / `command` overrides
 
+## Known limitations (accepted for the lab)
+
+This Sandbox API is a **learning boundary**, not a production execution platform.
+See also [ADR 0015](../../docs/auto-doc/adr/0015-sysbox-bash-sandbox-http-api.md).
+
+| Area | Behavior today | If it breaks |
+|------|----------------|--------------|
+| **Isolation** | Sysbox DinD system container; lab-grade only | Treat Sysbox escape as serious; do not promise enterprise sandbox hardening |
+| **HTTP exposure** | Internal Compose network; no v1 auth; no host port by default | Do not expose the API outside the lab network without a separate security review |
+| **Script/output limits** | 32 KiB script; 256 KiB stdout/stderr per run; timeout may only reduce `SBASH_DEFAULT_TIMEOUT_SECONDS` | Over-limit runs stop with structured `timed_out` / `output_limit_exceeded` responses |
+| **Session leaks** | Crashes, partial HTTP failures, or hard kernel kill may leave inner containers | No automatic GC; recovery = `make sysbox-bash-service-restart` and `make sysbox-bash-sessions` |
+| **Fairness** | Single-user lab; service-level CPU/memory cap on `sysbox_bash` | Multiple sessions share the budget; per-session fairness is out of scope |
+| **Observability** | Basic run metadata only | Scripts/outputs may also appear in LangGraph messages, Phoenix traces, or notebook output |
+| **Network** | Outbound network allowed inside the session | Document clearly: not production-safe for untrusted code |
+
 ## Troubleshooting
 
 ```bash
