@@ -28,28 +28,27 @@ from ..placeholder_audit import (
 from ..todo_extract.models import TODOItem, TODOList
 from .client import SandboxClient, SessionCorrelation
 from .models import ToolNodeSysboxBashState
-from .nodes import get_run_tools_node, get_tool_node_sysbox_bash_agent_node
+from .nodes import (
+    get_llm_fence_retry_node,
+    get_run_fence_retry_node,
+    get_run_tools_node,
+    get_tool_node_sysbox_bash_agent_node,
+)
 
 logger = get_logger(__name__, __file__)
 
 SUBGRAPH_NAME = "tool_node_sysbox_bash"
 
-# Future policy / exec-path notes (documented learning from session7 E2E; not implemented):
+# Transport-retry side path (session7): run_tools → bump → llm_fence_retry → run_fence_retry
+# → bump → llm_with_bash. Happy path stays bind_tools + run_tools.
 #
-# 1) Script transport: LLMs often mangle nested quotes when filling bind_tools JSON
-#    (e.g. inline awk). A fence-based path (extract ```bash ... ``` from AIMessage
-#    content in run_tools / a thin pre-exec node) moves escaping to the bridge and
-#    keeps bash as the powerful surface — see design discussion, course wrap-up.
-#
-# 2) Failure taxonomy: today every non-zero exit / Error:-prefixed ToolMessage counts
-#    equally toward tool_errors. Session7 showed syntax errors (exit 2, stderr quoting)
-#    burning the budget before a fix retry. A follow-up could classify sandbox results
-#    (syntax vs runtime vs timeout) and either weight policy differently or let the LLM
-#    choose retry vs finalize from exit_code + stderr — measure in production first.
+# Future: failure taxonomy beyond transport syntax (runtime vs timeout weighting).
 
 
 def _tool_message_failed(msg: ToolMessage) -> bool:
     content = msg.content if isinstance(msg.content, str) else str(msg.content)
+    if content.startswith("Transport retry:"):
+        return False
     return content.startswith("Error") or "ToolInvocationError" in content
 
 
@@ -73,18 +72,31 @@ def _last_ai_message(messages: list[BaseMessage]) -> AIMessage | None:
     return None
 
 
-def route_after_llm_with_tools(state: ToolNodeSysboxBashState) -> str:
-    last_ai_msg = _last_ai_message(state.messages)
-    has_pending_tool_calls = bool(last_ai_msg and last_ai_msg.tool_calls)
-    policy_exhausted = (
+def _is_policy_exhausted(state: ToolNodeSysboxBashState) -> bool:
+    return (
         state.tool_round >= state.max_tool_rounds or state.tool_errors >= state.max_tool_errors
     )
 
-    if has_pending_tool_calls and policy_exhausted:
+
+def route_after_llm_with_bash(state: ToolNodeSysboxBashState) -> str:
+    """Happy-path LLM turn: tool_calls → run_tools, else finalize."""
+    last_ai_msg = _last_ai_message(state.messages)
+    has_pending_tool_calls = bool(last_ai_msg and last_ai_msg.tool_calls)
+
+    if has_pending_tool_calls and _is_policy_exhausted(state):
         return "policy_exhausted"
     if has_pending_tool_calls:
-        return "tools"
+        return "run_tools"
     return "finalize"
+
+
+def route_after_bump(state: ToolNodeSysboxBashState) -> str:
+    """After bump: transport-retry offer → llm_fence_retry, else main LLM loop."""
+    if state.awaiting_fence_retry:
+        if _is_policy_exhausted(state):
+            return "policy_exhausted"
+        return "llm_fence_retry"
+    return "llm_with_bash"
 
 
 def _required_who_placeholders(items: list[TODOItem]) -> frozenset[str]:
@@ -191,7 +203,16 @@ def build_tool_node_sysbox_bash_subgraph(
             client_cache_policy=client_cache_policy,
         ),
     )
-    builder.add_node("tools", get_run_tools_node(client))
+    builder.add_node("run_tools", get_run_tools_node(client))
+    builder.add_node(
+        "llm_fence_retry",
+        get_llm_fence_retry_node(
+            model,
+            chat_model_provider=chat_model_provider,
+            client_cache_policy=client_cache_policy,
+        ),
+    )
+    builder.add_node("run_fence_retry", get_run_fence_retry_node(client))
     builder.add_node("bump_tool_policy", _bump_tool_policy)
     builder.add_node("policy_exhausted", _policy_exhausted)
     builder.add_node("finalize", _finalize)
@@ -200,11 +221,25 @@ def build_tool_node_sysbox_bash_subgraph(
     builder.add_edge(START, "llm_with_bash")
     builder.add_conditional_edges(
         "llm_with_bash",
-        route_after_llm_with_tools,
-        {"tools": "tools", "policy_exhausted": "policy_exhausted", "finalize": "finalize"},
+        route_after_llm_with_bash,
+        {
+            "run_tools": "run_tools",
+            "policy_exhausted": "policy_exhausted",
+            "finalize": "finalize",
+        },
     )
-    builder.add_edge("tools", "bump_tool_policy")
-    builder.add_edge("bump_tool_policy", "llm_with_bash")
+    builder.add_edge("run_tools", "bump_tool_policy")
+    builder.add_conditional_edges(
+        "bump_tool_policy",
+        route_after_bump,
+        {
+            "llm_fence_retry": "llm_fence_retry",
+            "llm_with_bash": "llm_with_bash",
+            "policy_exhausted": "policy_exhausted",
+        },
+    )
+    builder.add_edge("llm_fence_retry", "run_fence_retry")
+    builder.add_edge("run_fence_retry", "bump_tool_policy")
     builder.add_edge("finalize", "audit_placeholders")
     builder.add_edge("audit_placeholders", END)
     builder.add_edge("policy_exhausted", END)

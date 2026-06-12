@@ -1,11 +1,15 @@
 """L1 exemplars for tool_node_sysbox_bash tool result formatting."""
 
-from langchain_core.messages import ToolMessage
+from unittest.mock import AsyncMock
+
+from langchain_core.messages import AIMessage, ToolMessage
 import pytest
 
 from src.llm_nodes.tool_node_sysbox_bash.client import ExecResponse, log_exec_observability
 from src.llm_nodes.tool_node_sysbox_bash.graph import _bump_tool_policy, _tool_message_failed
 from src.llm_nodes.tool_node_sysbox_bash.models import ToolNodeSysboxBashState
+from src.llm_nodes.tool_node_sysbox_bash.nodes import get_run_fence_retry_node
+from src.llm_nodes.tool_node_sysbox_bash.script_extract import FENCE_RETRY_TOOL_CALL_ID
 from src.llm_nodes.tool_node_sysbox_bash.tools import format_exec_result
 
 
@@ -70,6 +74,16 @@ def test_tool_message_failed_counts_prefixed_exec_result():
 
 
 @pytest.mark.unit
+def test_tool_message_failed_ignores_transport_retry_offer():
+    msg = ToolMessage(
+        content="Transport retry: bash parse/quote failure (likely tool JSON escaping).\n",
+        tool_call_id="c1",
+        name="bash",
+    )
+    assert _tool_message_failed(msg) is False
+
+
+@pytest.mark.unit
 @pytest.mark.asyncio
 async def test_bump_tool_policy_increments_on_nonzero_exit():
     content = format_exec_result(_exec_response(exit_code=2))
@@ -78,6 +92,68 @@ async def test_bump_tool_policy_increments_on_nonzero_exit():
         tool_round=0,
         tool_errors=0,
         messages=[ToolMessage(content=content, tool_call_id="c1", name="bash")],
+    )
+    bumped = await _bump_tool_policy(state)
+    assert bumped["tool_errors"] == 1
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_bump_tool_policy_skips_transport_retry_offer():
+    state = ToolNodeSysboxBashState(
+        sandbox_session_id="sess-1",
+        tool_round=0,
+        tool_errors=0,
+        messages=[
+            ToolMessage(
+                content="Transport retry: bash parse/quote failure.\n",
+                tool_call_id="c1",
+                name="bash",
+            )
+        ],
+    )
+    bumped = await _bump_tool_policy(state)
+    assert bumped["tool_errors"] == 0
+    assert bumped["tool_round"] == 1
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_run_fence_retry_errors_when_model_omits_bash_fence():
+    """Plan scenario C: retry turn without fence → Error + awaiting_fence_retry cleared."""
+    mock_client = AsyncMock()
+    run_fence_retry = get_run_fence_retry_node(mock_client)
+    state = ToolNodeSysboxBashState(
+        sandbox_session_id="sess-1",
+        awaiting_fence_retry=True,
+        messages=[AIMessage(content="I'll fix it in the next turn")],
+    )
+
+    result = await run_fence_retry(state, {})
+
+    assert result["awaiting_fence_retry"] is False
+    assert len(result["messages"]) == 1
+    msg = result["messages"][0]
+    assert isinstance(msg, ToolMessage)
+    assert msg.content == "Error: transport retry requires a single bash fence"
+    assert msg.tool_call_id == FENCE_RETRY_TOOL_CALL_ID
+    mock_client.execute_in_session.assert_not_awaited()
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_bump_tool_policy_counts_missing_fence_retry_error():
+    state = ToolNodeSysboxBashState(
+        sandbox_session_id="sess-1",
+        tool_round=0,
+        tool_errors=0,
+        messages=[
+            ToolMessage(
+                content="Error: transport retry requires a single bash fence",
+                tool_call_id=FENCE_RETRY_TOOL_CALL_ID,
+                name="bash",
+            )
+        ],
     )
     bumped = await _bump_tool_policy(state)
     assert bumped["tool_errors"] == 1

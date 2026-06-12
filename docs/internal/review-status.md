@@ -1,9 +1,9 @@
 ## branch: main
-- last_reviewed_commit: c9206a3
-- last_reviewed_at: 2026-06-12T14:30:00+02:00
-- last_review_context: review-w-auto-doc — staged only (11 files): HTTP metadata dedup, debug observability, format_exec_result Error prefix, prompt hardening, policy MIN 3/3 piggyback, graph future-notes comment, llm_with_bash rename, new L1 tools tests
+- last_reviewed_commit: 3a0dc2d
+- last_reviewed_at: 2026-06-12T16:00:00+02:00
+- last_review_context: review-w-auto-doc — transport-retry correction loop (bash_failure, script_extract, llm_fence_retry/run_fence_retry, route_after_bump, prompts); L1+L3 tests incl. scenario C missing fence; README + raw-log; user verified 112 pytest + E2E notebook
 - last_action: working-tree (staged)
-- raw_log_decision: skip (trivial)
+- raw_log_decision: add
 - adr_file_decision: skip (trivial)
 - user_value_log_decision: skip (trivial)
 - raw_log_status: done
@@ -12,4 +12,4 @@
 - findings_resolved: yes
 - doc_decisions_made: yes
 - ready_to_commit: yes
-- notes: Staged review + piggyback F1/F2/F3. F4 verified — pytest L1 + sysbox-bash-api-smoke green (user). Unstaged session7 notebook excluded. Post-commit 9f851c0 not re-reviewed. Sidecar plan-1 partial retained.
+- notes: Staged transport-retry slice per fence_script_extraction plan. Dedicated side nodes (minimal piggybacking). Unstaged session7 notebook excluded. Sidecar absent. Post-commit c5bee066 already reviewed prior slice.

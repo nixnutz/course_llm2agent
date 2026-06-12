@@ -7,6 +7,16 @@ The ``bash`` tool runs scripts in an isolated sandbox for this graph invoke only
 The environment is stateful within one invoke (files and installs persist across calls).
 Scripts are bounded by timeout and stdout/stderr size limits.
 Pass only the ``script`` argument. This is a lab setup, not production-grade isolation.
+
+Before each ``bash`` tool_call, self-review the ``script`` string: nested single/double
+quotes, awk ``'...'`` segments, and ``cat <<'EOF'`` heredocs must survive JSON encoding.
+If in doubt, simplify quoting or split into smaller scripts.
+"""
+
+FENCE_RETRY_SNIPPET = """
+The last bash run failed due to quote/heredoc parsing in the tool JSON transport.
+Reply with ONLY one markdown code fence labeled bash containing the full corrected script.
+Do not use tool_calls on this turn.
 """
 
 _tool_node_sysbox_bash_prompt = ChatPromptTemplate.from_messages(

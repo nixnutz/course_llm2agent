@@ -48,6 +48,9 @@ class ToolNodeSysboxBashState(BaseState):
     graph_invoke_id: str | None = Field(default=None)
     messages: Annotated[list[BaseMessage], session_message_reducer] = Field(default_factory=list)
 
+    transport_fence_retry_used: bool = Field(default=False)
+    awaiting_fence_retry: bool = Field(default=False)
+
     tool_round: int = Field(default=0)
     tool_errors: int = Field(default=0)
     max_tool_rounds: int = Field(default=MIN_MAX_TOOL_ROUNDS)

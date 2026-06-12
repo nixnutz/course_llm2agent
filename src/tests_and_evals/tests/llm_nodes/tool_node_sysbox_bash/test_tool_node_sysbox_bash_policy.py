@@ -12,7 +12,8 @@ from src.errors import PipelineValidationError, PolicyViolationError
 from src.llm_nodes.tool_node_sysbox_bash.graph import (
     _policy_exhausted,
     _validate_result_text_against_json,
-    route_after_llm_with_tools,
+    route_after_bump,
+    route_after_llm_with_bash,
 )
 from src.llm_nodes.tool_node_sysbox_bash.models import (
     MIN_MAX_TOOL_ERRORS,
@@ -24,7 +25,27 @@ _TODO_JSON = json.dumps({"items": [{"who": _WHO, "what": "feed the cat", "when":
 
 
 @pytest.mark.unit
-def test_route_after_llm_with_tools_tools_vs_finalize():
+def test_route_after_bump_routes_fence_retry_to_llm_fence_retry():
+    awaiting_fence = ToolNodeSysboxBashState(
+        sandbox_session_id="sess-1",
+        awaiting_fence_retry=True,
+        messages=[AIMessage(content="I'll resubmit the script")],
+    )
+    assert route_after_bump(awaiting_fence) == "llm_fence_retry"
+
+
+@pytest.mark.unit
+def test_route_after_llm_with_bash_does_not_route_fence_flag_to_tools():
+    awaiting_fence = ToolNodeSysboxBashState(
+        sandbox_session_id="sess-1",
+        awaiting_fence_retry=True,
+        messages=[AIMessage(content="I'll resubmit the script")],
+    )
+    assert route_after_llm_with_bash(awaiting_fence) == "finalize"
+
+
+@pytest.mark.unit
+def test_route_after_llm_with_bash_tools_vs_finalize():
     with_tool_calls = ToolNodeSysboxBashState(
         sandbox_session_id="sess-1",
         messages=[
@@ -41,13 +62,13 @@ def test_route_after_llm_with_tools_tools_vs_finalize():
             )
         ],
     )
-    assert route_after_llm_with_tools(with_tool_calls) == "tools"
+    assert route_after_llm_with_bash(with_tool_calls) == "run_tools"
 
     final_only = ToolNodeSysboxBashState(
         sandbox_session_id="sess-1",
         messages=[AIMessage(content=f"# {_WHO}\n- [ ] summary (by today)")],
     )
-    assert route_after_llm_with_tools(final_only) == "finalize"
+    assert route_after_llm_with_bash(final_only) == "finalize"
 
 
 @pytest.mark.unit
@@ -86,6 +107,6 @@ async def test_policy_exhausted_raises_policy_violation_error():
             )
         ],
     )
-    assert route_after_llm_with_tools(state) == "policy_exhausted"
+    assert route_after_llm_with_bash(state) == "policy_exhausted"
     with pytest.raises(PolicyViolationError, match="policy exhausted"):
         await _policy_exhausted(state)

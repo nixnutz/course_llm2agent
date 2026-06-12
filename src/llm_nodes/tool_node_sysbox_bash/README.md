@@ -5,7 +5,8 @@ Sandbox API. Does not replace `tool_node_loop`.
 
 ## What is in scope here
 
-- ReAct loop with custom `run_tools` (reads `state.sandbox_session_id`)
+- ReAct loop: `llm_with_bash` → `run_tools` → `bump_tool_policy`; optional transport-retry
+  branch `llm_fence_retry` → `run_fence_retry` (visible in `graph.py`)
 - Parent **bridge** owns sandbox lifecycle: `start_session` → subgraph → `finally end_session`
 - Subgraph deliverable `result_text` mapped to `GlobalState.todo_text` (no parent schema change)
 - L1+L3 mock exemplar tests under `src/tests_and_evals/tests/llm_nodes/tool_node_sysbox_bash/`
@@ -18,6 +19,7 @@ Sandbox API. Does not replace `tool_node_loop`.
 | **Cleanup** | `end_session` in bridge `finally` on normal subgraph completion/exception | Hard kernel kill between `start_session` and `try` may still leak — same class as service-level leaks |
 | **Trusted finalize** | Who-placeholder check only; word-count/reverse task is prompt guidance | See `tool_node_loop` pattern for placeholder audit |
 | **Non-zero bash exit** | `format_exec_result` prefixes `Error:` → `tool_errors` increments via `_tool_message_failed` | `exit_code=0` with stderr warnings still passes (lab) |
+| **Transport retry** | One free fence retry on `exit_code=2` + stderr parse/quote heuristics; `Transport retry:` offer does not increment `tool_errors` | After retry used, all failures count normally; happy path still `bind_tools` + `tool_calls` |
 
 Sandbox service limits (isolation, output caps, leaks, network): see
 [`container/sysbox-bash-image/README.md`](../../../container/sysbox-bash-image/README.md#known-limitations-accepted-for-the-lab).
