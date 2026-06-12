@@ -34,6 +34,19 @@ logger = get_logger(__name__, __file__)
 
 SUBGRAPH_NAME = "tool_node_sysbox_bash"
 
+# Future policy / exec-path notes (documented learning from session7 E2E; not implemented):
+#
+# 1) Script transport: LLMs often mangle nested quotes when filling bind_tools JSON
+#    (e.g. inline awk). A fence-based path (extract ```bash ... ``` from AIMessage
+#    content in run_tools / a thin pre-exec node) moves escaping to the bridge and
+#    keeps bash as the powerful surface — see design discussion, course wrap-up.
+#
+# 2) Failure taxonomy: today every non-zero exit / Error:-prefixed ToolMessage counts
+#    equally toward tool_errors. Session7 showed syntax errors (exit 2, stderr quoting)
+#    burning the budget before a fix retry. A follow-up could classify sandbox results
+#    (syntax vs runtime vs timeout) and either weight policy differently or let the LLM
+#    choose retry vs finalize from exit_code + stderr — measure in production first.
+
 
 def _tool_message_failed(msg: ToolMessage) -> bool:
     content = msg.content if isinstance(msg.content, str) else str(msg.content)
@@ -171,7 +184,7 @@ def build_tool_node_sysbox_bash_subgraph(
 
     builder = StateGraph(ToolNodeSysboxBashState)
     builder.add_node(
-        "llm_with_tools",
+        "llm_with_bash",
         get_tool_node_sysbox_bash_agent_node(
             model,
             chat_model_provider=chat_model_provider,
@@ -184,14 +197,14 @@ def build_tool_node_sysbox_bash_subgraph(
     builder.add_node("finalize", _finalize)
     builder.add_node("audit_placeholders", _audit_placeholders)
 
-    builder.add_edge(START, "llm_with_tools")
+    builder.add_edge(START, "llm_with_bash")
     builder.add_conditional_edges(
-        "llm_with_tools",
+        "llm_with_bash",
         route_after_llm_with_tools,
         {"tools": "tools", "policy_exhausted": "policy_exhausted", "finalize": "finalize"},
     )
     builder.add_edge("tools", "bump_tool_policy")
-    builder.add_edge("bump_tool_policy", "llm_with_tools")
+    builder.add_edge("bump_tool_policy", "llm_with_bash")
     builder.add_edge("finalize", "audit_placeholders")
     builder.add_edge("audit_placeholders", END)
     builder.add_edge("policy_exhausted", END)

@@ -16,8 +16,29 @@ def bash(script: str) -> str:
     return ""
 
 
+def _sandbox_run_failed(response: ExecResponse) -> bool:
+    if response.timed_out or response.output_limit_exceeded:
+        return True
+    return response.exit_code is not None and response.exit_code != 0
+
+
+def _sandbox_failure_summary(response: ExecResponse) -> str:
+    parts: list[str] = []
+    if response.timed_out:
+        parts.append("timed_out")
+    if response.output_limit_exceeded:
+        parts.append("output_limit_exceeded")
+    if response.exit_code is not None and response.exit_code != 0:
+        parts.append(f"exit_code={response.exit_code}")
+    return ", ".join(parts) if parts else "sandbox run failed"
+
+
 def format_exec_result(response: ExecResponse) -> str:
-    """Format a sandbox exec response for the LLM ToolMessage."""
+    """Format a sandbox exec response for the LLM ToolMessage.
+
+    Non-zero exit (and timeout/output-cap failures) are prefixed with ``Error:`` so
+    ``_tool_message_failed`` in the subgraph policy layer increments ``tool_errors``.
+    """
     lines = [
         f"exit_code={response.exit_code}",
         f"timed_out={str(response.timed_out).lower()}",
@@ -28,7 +49,10 @@ def format_exec_result(response: ExecResponse) -> str:
         "--- stderr ---",
         response.stderr,
     ]
-    return "\n".join(lines)
+    body = "\n".join(lines)
+    if _sandbox_run_failed(response):
+        return f"Error: bash {_sandbox_failure_summary(response)}\n\n{body}"
+    return body
 
 
 TOOLS = [bash]

@@ -91,6 +91,8 @@ try:
     assert_equal(result["metadata"]["tool_call_id"], "smoke-tool-call", "run correlation")
     assert_equal(result["metadata"]["termination_reason"], "completed", "echo termination")
     assert_absent(result["metadata"], "script", "metadata does not store script body")
+    for field in ("session_id", "run_id", "exit_code", "timed_out", "output_limit_exceeded", "elapsed_ms"):
+        assert_absent(result["metadata"], field, f"HTTP metadata omits duplicate {field}")
 
     call("POST", f"/sessions/{session_id}/exec", {"script": "echo state > state.txt"})
     result = call("POST", f"/sessions/{session_id}/exec", {"script": "cat state.txt"})

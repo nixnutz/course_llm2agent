@@ -17,6 +17,7 @@ Sandbox API. Does not replace `tool_node_loop`.
 | **`SBASH_BASE_URL`** | Required before bridge runs; healthy `sysbox_bash` expected | Fail-fast at bridge entry |
 | **Cleanup** | `end_session` in bridge `finally` on normal subgraph completion/exception | Hard kernel kill between `start_session` and `try` may still leak — same class as service-level leaks |
 | **Trusted finalize** | Who-placeholder check only; word-count/reverse task is prompt guidance | See `tool_node_loop` pattern for placeholder audit |
+| **Non-zero bash exit** | `format_exec_result` prefixes `Error:` → `tool_errors` increments via `_tool_message_failed` | `exit_code=0` with stderr warnings still passes (lab) |
 
 Sandbox service limits (isolation, output caps, leaks, network): see
 [`container/sysbox-bash-image/README.md`](../../../container/sysbox-bash-image/README.md#known-limitations-accepted-for-the-lab).

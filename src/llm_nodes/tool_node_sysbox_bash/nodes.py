@@ -1,4 +1,4 @@
-"""LangGraph nodes for tool_node_sysbox_bash (llm_with_tools + custom run_tools)."""
+"""LangGraph nodes for tool_node_sysbox_bash (llm_with_bash + custom run_tools)."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from ...llm_handle.local import (
     ClientCachePolicy,
     make_chat_openai_model_provider,
 )
-from .client import ExecCorrelation, SandboxClient, SandboxClientError
+from .client import ExecCorrelation, SandboxClient, SandboxClientError, log_exec_observability
 from .models import ToolNodeSysboxBashState
 from .prompts import _tool_node_sysbox_bash_prompt
 from .tools import TOOLS, format_exec_result
@@ -126,6 +126,7 @@ def get_run_tools_node(client: SandboxClient):
                     ),
                     timeout_seconds=state.max_script_seconds,
                 )
+                log_exec_observability(response)
                 content = format_exec_result(response)
             except SandboxClientError as exc:
                 content = f"Error: {exc}"

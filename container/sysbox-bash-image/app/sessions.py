@@ -35,6 +35,17 @@ SANDBOX_UID = 1001
 SANDBOX_GID = 1001
 TIMEOUT_EXIT_CODE = 124
 OUTPUT_LIMIT_EXIT_CODE = 137
+# Omitted from HTTP metadata only; still written to metadata.json for self-contained audit.
+_HTTP_METADATA_OMIT = frozenset(
+    {
+        "session_id",
+        "run_id",
+        "elapsed_ms",
+        "exit_code",
+        "timed_out",
+        "output_limit_exceeded",
+    }
+)
 
 
 class SessionNotFoundError(RuntimeError):
@@ -256,6 +267,7 @@ class SessionManager:
             exit_code = OUTPUT_LIMIT_EXIT_CODE
         else:
             exit_code = process.returncode
+        # Unversioned lab schema; metadata.json is the full audit record on disk.
         metadata = {
             "session_id": session_id,
             "run_id": run_id,
@@ -293,6 +305,9 @@ class SessionManager:
             "max_stderr_bytes": self.settings.max_stderr_bytes,
         }
         _write_json(metadata_path, metadata)
+        response_metadata = {
+            key: value for key, value in metadata.items() if key not in _HTTP_METADATA_OMIT
+        }
 
         return ExecResponse(
             session_id=session_id,
@@ -304,7 +319,7 @@ class SessionManager:
             output_limit_exceeded=output_limit_exceeded,
             elapsed_ms=elapsed_ms,
             metadata_path=str(metadata_path),
-            metadata=metadata,
+            metadata=response_metadata,
         )
 
     def delete_session(self, session_id: str) -> None:

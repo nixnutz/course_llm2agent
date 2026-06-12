@@ -58,6 +58,7 @@ class ExecResponse(BaseModel):
     output_limit_exceeded: bool
     elapsed_ms: int
     metadata_path: str
+    # Unversioned observability supplement from the Sandbox API; do not treat as a stable contract.
     metadata: dict[str, Any]
 
 
@@ -75,6 +76,15 @@ class ExecCorrelation:
     request_id: str | None = None
     tool_round: int | None = None
     tool_call_id: str | None = None
+
+
+def log_exec_observability(response: ExecResponse) -> None:
+    """Emit sandbox exec ``metadata`` at DEBUG.
+
+    Top-level ``ExecResponse`` fields are the execution contract; ``metadata`` is an
+    unversioned lab supplement (keys may change without notice).
+    """
+    logger.debug("sandbox exec metadata=%s", response.metadata)
 
 
 class SandboxClient:

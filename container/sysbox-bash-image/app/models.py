@@ -45,6 +45,8 @@ class ExecResponse(BaseModel):
     output_limit_exceeded: bool
     elapsed_ms: int
     metadata_path: str
+    # Unversioned observability supplement; keys may change. Execution contract is the
+    # typed fields above. On-disk metadata.json is self-contained (includes duplicates).
     metadata: dict[str, Any]
 
 

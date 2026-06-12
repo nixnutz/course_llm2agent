@@ -1,15 +1,15 @@
 ## branch: main
 - last_reviewed_commit: c9206a3
-- last_reviewed_at: 2026-06-10T23:45:00+02:00
-- last_review_context: review-w-auto-doc — Slice 5 closure committed (slice_5_sysbox_closure_39c84953.plan.md)
-- last_action: post-commit
-- raw_log_decision: add
-- adr_file_decision: add
-- user_value_log_decision: update existing
+- last_reviewed_at: 2026-06-12T14:30:00+02:00
+- last_review_context: review-w-auto-doc — staged only (11 files): HTTP metadata dedup, debug observability, format_exec_result Error prefix, prompt hardening, policy MIN 3/3 piggyback, graph future-notes comment, llm_with_bash rename, new L1 tools tests
+- last_action: working-tree (staged)
+- raw_log_decision: skip (trivial)
+- adr_file_decision: skip (trivial)
+- user_value_log_decision: skip (trivial)
 - raw_log_status: done
 - adr_file_status: done
 - user_value_log_status: done
 - findings_resolved: yes
 - doc_decisions_made: yes
-- ready_to_commit: n/a
-- notes: Slice 5 docs committed (ADR 0015, limitations, course-map). session7 notebook unstaged (author-owned Slice 4). Branch ahead of origin — push pending. Sidecar plan-1 partial — sidecar retained.
+- ready_to_commit: yes
+- notes: Staged review + piggyback F1/F2/F3. F4 verified — pytest L1 + sysbox-bash-api-smoke green (user). Unstaged session7 notebook excluded. Post-commit 9f851c0 not re-reviewed. Sidecar plan-1 partial retained.
