@@ -1,8 +1,8 @@
 ## branch: main
 - last_reviewed_commit: 3a0dc2d
-- last_reviewed_at: 2026-06-12T16:00:00+02:00
-- last_review_context: review-w-auto-doc — transport-retry correction loop (bash_failure, script_extract, llm_fence_retry/run_fence_retry, route_after_bump, prompts); L1+L3 tests incl. scenario C missing fence; README + raw-log; user verified 112 pytest + E2E notebook
-- last_action: working-tree (staged)
+- last_reviewed_at: 2026-06-17T12:00:00+02:00
+- last_review_context: review-w-auto-doc — staged LiteLLM cloud pacing (plan-1 hotfix + plan-2 Slices 1–4), cursor commands discuss-prosa/peer-code piggyback, session7 notebook smoke/prose trim; raw-log entries in staged diff; sidecar plan-1+plan-2 used
+- last_action: working-tree (staged only)
 - raw_log_decision: add
 - adr_file_decision: skip (trivial)
 - user_value_log_decision: skip (trivial)
@@ -12,4 +12,4 @@
 - findings_resolved: yes
 - doc_decisions_made: yes
 - ready_to_commit: yes
-- notes: Staged transport-retry slice per fence_script_extraction plan. Dedicated side nodes (minimal piggybacking). Unstaged session7 notebook excluded. Sidecar absent. Post-commit c5bee066 already reviewed prior slice.
+- notes: Staged-only review per user scope. F1 resolved: full notebook staged. F2 resolved: Phoenix callbacks line updated in README. F3 deferred (single-pod). Pending commits 784e4d1+066ffa5 not re-reviewed. stage_with_commit includes review-status.md.

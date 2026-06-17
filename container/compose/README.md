@@ -413,18 +413,53 @@ curl "https://generativelanguage.googleapis.com/v1beta/models?key=<api_key>"
 ```
 
 You can also verify availability/entitlements in your Google AI Studio web account.
-Gemini requests in this setup are rate-limited/throttled in LiteLLM config to align with free-tier limits (state: 04/2026):
-- `gemini-2.5-flash-lite`: `rpm: 12`, `tpm: 1000000`
-- `gemini-2.5-pro`: `rpm: 2`, `tpm: 32000`
-- router retry behavior: `num_retries: 2`
+Cloud provider requests are capped **below** published free-tier ceilings in `config/litellm/litellm.yaml`, with
+`router_settings.optional_pre_call_checks: [enforce_model_rate_limits]` so LiteLLM returns **429 before** hitting the
+upstream provider when the proxy budget is exhausted (state: 06/2026):
 
-Gemini overload strategy in this setup: retries are intentionally conservative so overload fails fast instead of creating
-large retry cascades under multi-client contention. This protects shared free-tier capacity and keeps latency more predictable.
+| Alias | rpm (proxy) | tpm (proxy) | Free-tier reference (approx.) |
+| --- | --- | --- | --- |
+| `gemini-2.5-flash-lite` | 10 | 900000 | ~15 RPM / 1M TPM |
+| `gemini-2.5-pro` | 1 | 28000 | ~2 RPM / 32k TPM |
+| `groq-llama-3.1-8b-instant` | 25 | 5500 | ~30 RPM / 6k TPM |
+| `groq-llama-3.3-70b` | 25 | 5500 | ~30 RPM / 6k TPM |
+| `mistral-large` / `mistral-large-old` / `mistral-small` | 2 each | 400000 each | ~2 RPM / 500k TPM **workspace-wide** |
 
-Important: these are global provider/key limits. They apply across all connected clients sharing this LiteLLM instance
-(CLI tools, apps, and agent frameworks). If one client consumes the budget, others will be throttled/retried as well.
-Fair-use recommendation: keep `gemini-2.5-pro` for interactive/high-value requests and route background/batch/agent traffic
-preferably to `gemini-2.5-flash-lite` to reduce contention on shared free-tier limits.
+Cloud models use `max_retries: 0`; router `num_retries: 0` — fail fast instead of retry storms on shared free-tier keys.
+
+Important: limits are **global per provider key/workspace**. All clients on this LiteLLM instance share the budget.
+Mistral Experiment is especially tight (~2 RPM for the whole workspace): a single LangGraph `invoke` with many LLM
+nodes may take several minutes when proxied through Mistral. Prefer Ollama for tight iteration loops.
+
+Fair-use recommendation: keep `gemini-2.5-pro` for interactive/high-value requests; use `gemini-2.5-flash-lite` or
+local Ollama for agent loops with many tool rounds.
+
+### Cloud pacing plugin (clean channel only)
+
+To reduce cloud 429 spikes during notebook/graph bursts, `litellm_clean` enables a custom callback plugin:
+
+- callback registration in `config/litellm/litellm.yaml`:
+  `litellm_settings.callbacks: ["arize_phoenix", "cloud_pacing_plugin.pacing_handler_instance"]`
+- `litellm_clean` loads `/app/cloud_pacing_plugin.py` and `/app/cloud_pacing.json` and runs with:
+  `CLOUD_PACING_ENABLED=1`, `CLOUD_PACING_CONFIG=/app/cloud_pacing.json`
+- `litellm_chaos` keeps the same mounted files for shared config compatibility but is explicitly disabled:
+  `CLOUD_PACING_ENABLED=0`
+
+The plugin applies RPM spacing before request dispatch (sleep in `async_pre_call_hook`), while
+`enforce_model_rate_limits` remains a hard ceiling. The hook paces both `completion` and `acompletion`
+call types (sync and async proxy paths for OpenAI-compatible chat clients). If pacing is too optimistic or TPM is exceeded, LiteLLM can still
+return 429.
+
+Known v1 limitation: RPM/group configuration is duplicated and must be kept in sync manually:
+
+- `config/litellm/cloud_pacing.json` (plugin wait intervals)
+- `config/litellm/litellm.yaml` (router `enforce_model_rate_limits`)
+
+If these drift, behavior becomes either too aggressive (429 despite pacing) or too conservative (unnecessary wait).
+
+Timeout note: pacing sleep is part of the same HTTP request. Effective client timeout must cover
+`wait + proxy + provider inference`. The common app default (`src/llm_handle/local.py`: 120s) is usually fine for
+Mistral at ~2 RPM (~30s spacing), but can be tighter for long-running cloud calls.
 
 ### Overload Protection (Ollama-only example scope)
 
@@ -561,9 +596,10 @@ Phoenix is complementary to LiteLLM logs in this setup:
 - LiteLLM logs: operational request/response and proxy behavior (`make logs`).
 - Phoenix traces: application or agent execution traces via OTEL/OpenInference.
 
-The LiteLLM proxy callback to Phoenix is enabled in `config/litellm/litellm.yaml` via
-`litellm_settings.callbacks: ["arize_phoenix"]`.
-For this callback, the LiteLLM container must receive:
+LiteLLM callbacks are registered in `config/litellm/litellm.yaml` via
+`litellm_settings.callbacks: ["arize_phoenix", "cloud_pacing_plugin.pacing_handler_instance"]`
+(cloud pacing is clean-channel only; see [Cloud pacing plugin](#cloud-pacing-plugin-clean-channel-only) above).
+For the Phoenix (`arize_phoenix`) callback, the LiteLLM container must receive:
 - `PHOENIX_COLLECTOR_HTTP_ENDPOINT` (self-hosted in this compose: `http://phoenix:6006/v1/traces`)
 - `PHOENIX_PROJECT_NAME` (recommended; in split-mode use distinct values for clean and chaos channels)
 - `PHOENIX_API_KEY` (required for Phoenix Cloud, optional for local self-hosted)

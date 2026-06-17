@@ -3,6 +3,7 @@
 # LiteLLM expects per-token rates: cost_per_token = (cost_per_1M) / 1_000_000.
 model_list:
   # Chat / completion via Ollama's chat endpoint
+  # release 11/2023
   - model_name: "ollama_chat/deepseek-coder:6.7b"
     litellm_params:
       model: "ollama_chat/deepseek-coder:6.7b"
@@ -14,6 +15,7 @@ model_list:
       input_cost_per_token: 5e-6
       output_cost_per_token: 5e-6
 
+  # release 01/2025 (R1-Distill-Qwen-7B)
   - model_name: "ollama_chat/deepseek-r1:7b"
     litellm_params:
       model: "ollama_chat/deepseek-r1:7b"
@@ -25,6 +27,7 @@ model_list:
       input_cost_per_token: 5e-6
       output_cost_per_token: 5e-6
 
+  # release 07/2024
   - model_name: "ollama_chat/llama3.1:8b"
     litellm_params:
       model: "ollama_chat/llama3.1:8b"
@@ -35,6 +38,7 @@ model_list:
       input_cost_per_token: 5e-6
       output_cost_per_token: 5e-6
 
+  # release 09/2024
   - model_name: "ollama_chat/llama3.2:1b"
     litellm_params:
       model: "ollama_chat/llama3.2:1b"
@@ -45,6 +49,7 @@ model_list:
       input_cost_per_token: 1.25e-6
       output_cost_per_token: 1.25e-6
 
+  # release 09/2024
   - model_name: "ollama_chat/llama3.2:3b"
     litellm_params:
       model: "ollama_chat/llama3.2:3b"
@@ -56,6 +61,7 @@ model_list:
       input_cost_per_token: 2.5e-6
       output_cost_per_token: 2.5e-6
 
+  # release 07/2024
   - model_name: "ollama_chat/mistral-nemo:12b"
     litellm_params:
       model: "ollama_chat/mistral-nemo:12b"
@@ -67,6 +73,7 @@ model_list:
       input_cost_per_token: 1.0e-5
       output_cost_per_token: 1.0e-5
 
+  # release 09/2023
   - model_name: "ollama_chat/mistral:7b"
     litellm_params:
       model: "ollama_chat/mistral:7b"
@@ -78,6 +85,7 @@ model_list:
       input_cost_per_token: 5e-6
       output_cost_per_token: 5e-6
 
+  # release 11/2024
   - model_name: "ollama_chat/qwen2.5-coder:7b"
     litellm_params:
       model: "ollama_chat/qwen2.5-coder:7b"
@@ -88,6 +96,7 @@ model_list:
       input_cost_per_token: 5e-6
       output_cost_per_token: 5e-6
 
+  # release 09/2024
   - model_name: "ollama_chat/qwen2.5:1.5b"
     litellm_params:
       model: "ollama_chat/qwen2.5:1.5b"
@@ -99,6 +108,7 @@ model_list:
       input_cost_per_token: 1.25e-6
       output_cost_per_token: 1.25e-6
 
+  # release 03/2026
   - model_name: "ollama_chat/qwen3.5:0.8b"
     litellm_params:
       model: "ollama_chat/qwen3.5:0.8b"
@@ -112,6 +122,7 @@ model_list:
       input_cost_per_token: 0.7e-6
       output_cost_per_token: 0.7e-6
 
+  # release 09/2024 (same weights as llama3.2:3b; stream alias)
   - model_name: "ollama_chat_stream/llama3.2:3b"
     litellm_params:
       model: "ollama_chat/llama3.2:3b"
@@ -125,6 +136,7 @@ model_list:
       output_cost_per_token: 2.5e-6
 
   # Embeddings
+  # release 02/2024 (nomic-embed-text-v1.5)
   - model_name: "ollama/nomic-embed-text:latest"
     litellm_params:
       model: "ollama/nomic-embed-text:latest"
@@ -135,6 +147,7 @@ model_list:
       # Small embedding model → same tier as 1b/1.5b chat (input tokens only)
       input_cost_per_token: 1.25e-6
 
+  # release 09/2023
   - model_name: "ollama/qllama/bge-small-en-v1.5:q4_k_m"
     litellm_params:
       model: "ollama/qllama/bge-small-en-v1.5:q4_k_m"
@@ -146,58 +159,74 @@ model_list:
       input_cost_per_token: 1.25e-6
 
   
+  # Cloud models — rpm/tpm capped below provider free-tier ceilings (see compose/README.md).
+  # Mistral limits are workspace-wide (all keys/models share one budget).
+
   # Gemini models
+  # release 06/2025 — free tier ~15 RPM / 1M TPM (flash-lite)
   - model_name: gemini-2.5-flash-lite
     litellm_params:
       model: gemini/gemini-2.5-flash-lite
       api_key: "os.environ/GEMINI_API_KEY"
-      rpm: 12 
-      tpm: 1000000
+      max_retries: 0
+      rpm: 10
+      tpm: 900000
 
-
+  # release 03/2025 (experimental); GA 06/2025 — free tier ~2 RPM / 32k TPM (pro)
   - model_name: gemini-2.5-pro
     litellm_params:
       model: gemini/gemini-2.5-pro
       api_key: "os.environ/GEMINI_API_KEY"
-      rpm: 2   
-      tpm: 32000
+      max_retries: 0
+      rpm: 1
+      tpm: 28000
 
-  # Groq models
+  # Groq models — free tier ~30 RPM / 6k TPM per model
+  # release 07/2024 (base: Llama 3.1 8B)
   - model_name: groq-llama-3.1-8b-instant
     litellm_params:
       model: groq/llama-3.1-8b-instant
       api_key: "os.environ/GROQ_API_KEY"
+      max_retries: 0
       rpm: 25
-      tpm: 5000
+      tpm: 5500
 
+  # release 12/2024 (base: Llama 3.3 70B)
   - model_name: groq-llama-3.3-70b
     litellm_params:
       model: groq/llama-3.3-70b-versatile
       api_key: "os.environ/GROQ_API_KEY"
+      max_retries: 0
       rpm: 25
-      tpm: 10000
+      tpm: 5500
 
-  # Mistral models
+  # Mistral models — Experiment/free ~2 RPM / 500k TPM (workspace, not per alias)
+  # release 12/2025 (rolling alias; currently Mistral Large 3)
   - model_name: mistral-large
     litellm_params:
       model: mistral/mistral-large-latest
       api_key: "os.environ/MISTRAL_API_KEY"
-      tpm: 40000
-      rpm: 60 
+      max_retries: 0
+      rpm: 2
+      tpm: 400000
 
+  # release 11/2024 (mistral-large-2411)
   - model_name: mistral-large-old
     litellm_params:
       model: mistral/mistral-large-2411
       api_key: "os.environ/MISTRAL_API_KEY"
-      tpm: 600000
-      rpm: 60
+      max_retries: 0
+      rpm: 2
+      tpm: 400000
 
+  # release 06/2025 (rolling alias; currently Mistral Small 3.2)
   - model_name: mistral-small
     litellm_params:
       model: mistral/mistral-small-latest
       api_key: "os.environ/MISTRAL_API_KEY"
-      tpm: 700000 
-      rpm: 60
+      max_retries: 0
+      rpm: 2
+      tpm: 400000
 
 
 litellm_settings:
@@ -206,7 +235,7 @@ litellm_settings:
   # true: strip unsupported OpenAI-style params (better compatibility with SDKs/notebooks).
   # false surfaces mis-sent params but breaks clients that always send fields Ollama rejects.
   drop_params: true
-  callbacks: ["arize_phoenix"]
+  callbacks: ["arize_phoenix", "cloud_pacing_plugin.pacing_handler_instance"]
 
 general_settings:
   store_model_in_db: true
@@ -215,6 +244,9 @@ general_settings:
   maximum_spend_logs_retention_interval: "1d"
 
 router_settings:
-  # Keep retries conservative to avoid retry storms on shared free-tier limits.
-  num_retries: 2
+  # Block before upstream when rpm/tpm budget is exhausted (429 from proxy, not provider).
+  optional_pre_call_checks:
+    - enforce_model_rate_limits
+  # No router-level retries on cloud paths; models use max_retries: 0 above.
+  num_retries: 0
   routing_strategy: "simple-shuffle" 

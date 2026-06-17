@@ -191,6 +191,8 @@ services:
         condition: service_started
     volumes:
       - ./config/litellm/litellm.yaml:/app/config.yaml:ro,z
+      - ./config/litellm/cloud_pacing_plugin.py:/app/cloud_pacing_plugin.py:ro,z
+      - ./config/litellm/cloud_pacing.json:/app/cloud_pacing.json:ro,z
     networks:
       - backend_core
     environment:
@@ -200,6 +202,8 @@ services:
       ROOT_REDIRECT_URL: "/ui"
       FORWARDED_ALLOW_IPS: "*"
       JSON_LOGS: "${JSON_LOGS}"
+      CLOUD_PACING_ENABLED: "1"
+      CLOUD_PACING_CONFIG: "/app/cloud_pacing.json"
       OLLAMA_API_BASE: "${OLLAMA_API_BASE_CLEAN}"
       LITELLM_DEFAULT_TIMEOUT: "${LITELLM_DEFAULT_TIMEOUT}"
       LITELLM_MASTER_KEY: "${LITELLM_MASTER_KEY}"
@@ -248,6 +252,8 @@ services:
         condition: service_started
     volumes:
       - ./config/litellm/litellm.yaml:/app/config.yaml:ro,z
+      - ./config/litellm/cloud_pacing_plugin.py:/app/cloud_pacing_plugin.py:ro,z
+      - ./config/litellm/cloud_pacing.json:/app/cloud_pacing.json:ro,z
     networks:
       - backend_core
     environment:
@@ -257,6 +263,8 @@ services:
       ROOT_REDIRECT_URL: "/ui"
       FORWARDED_ALLOW_IPS: "*"
       JSON_LOGS: "${JSON_LOGS}"
+      CLOUD_PACING_ENABLED: "0"
+      CLOUD_PACING_CONFIG: "${CLOUD_PACING_CONFIG:-/app/cloud_pacing.json}"
       OLLAMA_API_BASE: "${OLLAMA_API_BASE_CHAOS}"
       LITELLM_DEFAULT_TIMEOUT: "${LITELLM_DEFAULT_TIMEOUT}"
       LITELLM_MASTER_KEY: "${LITELLM_MASTER_KEY}"
@@ -481,6 +489,7 @@ services:
       - "${HOST_BIND_IP}:${DEV_STREAMLIT_PORT:-8501}:8501"
     volumes:
       - ../../src:/workspace/src:z
+      - ./config/litellm:/workspace/compose-config/litellm:ro,z
       - ./.state/certs:/certs:ro,z
       - ./scripts:/workspace/compose-scripts:ro,z
       - ./.state/keys:/workspace/compose-state/keys:ro,z
