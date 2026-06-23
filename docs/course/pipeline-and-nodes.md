@@ -25,10 +25,12 @@ flowchart LR
 | `pii_extract_node` | LLM detect + Python mask | Find emails, replace with placeholders (`E{n}_{salt}`) |
 | `todo_extract_node` | Subgraph (bridge) | Structured TODO list from masked text |
 | `todo_markdown_node` | Subgraph (bridge) | Markdown summary from TODO list |
-| `demask_node` | Deterministic | Restore placeholders to original emails in outputs |
+| `demask_node` | Deterministic | Restore placeholders in `final_result` (node-agnostic demask slot) |
 
 Shared state: `GlobalState` in `src/llm_nodes/global_state.py` (`messages`, `pii_email`,
-`todo_list`, `todo_markdown`).
+`todo_list`, `final_result`, `todo_markdown`, `todo_text`). Result bridges set `final_result`
+to the masked deliverable; `demask_node` restores only `final_result`. Node-specific fields
+(`todo_markdown`, `todo_text`) stay masked after demask.
 
 ## Subgraph and bridge pattern
 
@@ -38,7 +40,7 @@ smaller state types. **Bridges** in `src/llm_nodes/todo_extract/graph.py` and
 
 - Pass **masked text** and a **placeholder allowlist** (token strings only — no raw emails)
   into the subgraph.
-- Merge subgraph results back onto `GlobalState`.
+- Merge subgraph results back onto `GlobalState` (including `final_result` for demask).
 - Forward LangGraph `config` (thread id, tracing) into nested `ainvoke`.
 
 After each subgraph LLM step, **placeholder audit** checks output tokens against the
@@ -83,6 +85,7 @@ Nodes use `src/llm_handle/local.py` (`get_async_openai_client`, `openai_client_c
 | 5 | Phoenix tracing on current parent-graph sketch — `session5/graphtrace.ipynb` (temporary first-run exercise in getting started) |
 | 6 | ReAct tool loop with mock `greet` — `session6/tool_node_basics.ipynb` (`tool_node_loop`; notebook-led, not in parent sketch) |
 | 7 | ReAct tool loop with Sysbox `bash` — `session7/tool_node_sysbox.ipynb` (`tool_node_sysbox_bash`; E2E smoke; teaching prose author-owned) |
+| 8 | Sysbox `bash` + in-graph demask — `session8/presentation.ipynb` (custom parent graph; `final_result` after demask) |
 
 Index: `src/assorted/README.md`.
 

@@ -86,8 +86,10 @@ def make_todo_markdown_subgraph_runner(todo_graph: CompiledStateGraph):
                 f"Available keys: {sorted(sub_result.keys())}"
             )
 
+        todo_md = TODOMarkdown.model_validate(sub_result["todo_markdown"])
         return {
-            "todo_markdown": TODOMarkdown.model_validate(sub_result["todo_markdown"]),
+            "todo_markdown": todo_md,
+            "final_result": todo_md.markdown,
             "messages": sub_result.get("messages", []),
         }
 

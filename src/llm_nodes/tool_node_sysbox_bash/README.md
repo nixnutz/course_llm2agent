@@ -8,7 +8,7 @@ Sandbox API. Does not replace `tool_node_loop`.
 - ReAct loop: `llm_with_bash` → `run_tools` → `bump_tool_policy`; optional transport-retry
   branch `llm_fence_retry` → `run_fence_retry` (visible in `graph.py`)
 - Parent **bridge** owns sandbox lifecycle: `start_session` → subgraph → `finally end_session`
-- Subgraph deliverable `result_text` mapped to `GlobalState.todo_text` (no parent schema change)
+- Subgraph deliverable `result_text` mapped to `GlobalState.todo_text` and `GlobalState.final_result` (demask slot)
 - L1+L3 mock exemplar tests under `src/tests_and_evals/tests/llm_nodes/tool_node_sysbox_bash/`
 
 ## Bridge-specific limitations

@@ -304,6 +304,7 @@ def make_tool_node_sysbox_bash_subgraph_runner(
 
             return {
                 "todo_text": sub_result["result_text"],
+                "final_result": sub_result["result_text"],
                 "messages": sub_result.get("messages", []),
             }
         finally:

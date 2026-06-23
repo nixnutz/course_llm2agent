@@ -3,6 +3,7 @@
 - Status: Accepted
 - Date: 2026-06-02
 - Amended: 2026-06-04 (PII-in-graph compromise; parent `demask_node`)
+- Amended: 2026-06-22 (`GlobalState.final_result` restore target; node-agnostic demask)
 - OverheadSeconds: 0
 
 ## Context
@@ -21,7 +22,9 @@ Split responsibilities along determinism boundaries:
 - Deterministic Python (`src/llm_nodes/pii_email/mask.py`) builds the masked text by position-based splicing in the original input, assigns collision-free placeholders `E{n}_{salt}` (salt chosen so it does not occur in the input), deduplicates by `raw.strip().lower()` into `emails`, and keeps a per-span audit trail in `occurrences` (`Occurrence.email` is the mail-ready address per span).
 - Soft-fail markers (pipeline never aborts): `span_not_found` (warning, raw discarded), `normalization_failed` (error, span still masked with `email=None`), `leak_suspected` (warning).
 - After each TODO subgraph LLM step, deterministic `placeholder_audit` checks output strings against a bridge-derived `PlaceholderAllowlist` (token strings only, no raw emails in subgraph state); logs `placeholder_violation` on unknown tokens (Observe tier; egress policy in [ADR 0012](0012-course-error-mode-contract.md)).
-- **Restore (demask):** deterministic `demask_pii_emails(masked_text, pii)` runs only in **trusted** code — never in TODO subgraph LLM nodes. Session 5+ may call it from a parent-graph `demask_node` (no LLM) so Phoenix/reducer see one span per step; Session 4 may still demask in notebook code after `ainvoke`. Restore target in the course pipeline is **`todo_markdown.markdown`** only (not structured `todo_list` fields).
+- **Restore (demask):** deterministic `demask_pii_emails(masked_text, pii)` runs only in **trusted** code — never in TODO subgraph LLM nodes. Session 5+ may call it from a parent-graph `demask_node` (no LLM) so Phoenix/reducer see one span per step; Session 4 may still demask in notebook code after `ainvoke`. Restore target in the course pipeline is **`GlobalState.final_result`** (not structured `todo_list` fields).
+
+**Post-demask field semantics:** Result bridges set `final_result` to the masked deliverable string (alongside node-specific snapshots `todo_markdown` or `todo_text`). `demask_node` restores **only** `final_result`. Node-specific fields remain masked after demask; consumers needing restored egress text must read `final_result`.
 
 The `PIIEmail` state carries `text`, `salt`, `emails`, and `occurrences`.
 
@@ -31,7 +34,7 @@ The `PIIEmail` state carries `text`, `salt`, `emails`, and `occurrences`.
 
 **Why PII appears in-graph anyway:** masking requires reading human input once; `pii_email` (including `emails` for restore) must exist on `GlobalState` for that step. TODO subgraphs stay isolated via bridges — they do not receive raw emails.
 
-**Accepted compromise (Session 5+):** trusted **parent** nodes only: `pii_extract_node` (mask) and `demask_node` (restore markdown). Untrusted LLM nodes never see `PIIEmail.emails`.
+**Accepted compromise (Session 5+):** trusted **parent** nodes only: `pii_extract_node` (mask) and `demask_node` (restore `final_result`). Untrusted LLM nodes never see `PIIEmail.emails`.
 
 **If PII is in graph state, these rules apply:**
 

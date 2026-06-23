@@ -2,6 +2,7 @@
 
 - Status: Accepted
 - Date: 2026-06-10
+- Amended: 2026-06-22 (bridge also sets `GlobalState.final_result` for demask)
 - OverheadSeconds: 0
 
 ## Context
@@ -14,7 +15,7 @@ Add a separate LangGraph package `src/llm_nodes/tool_node_sysbox_bash/` (does no
 
 **Bridge-owned sandbox lifecycle:** `make_tool_node_sysbox_bash_subgraph_runner` requires `SBASH_BASE_URL`, calls `start_session`, passes `sandbox_session_id` into subgraph initial state, and calls `end_session` in a `finally` block. The compiled subgraph has no `start_sandbox` / `cleanup_sandbox` nodes.
 
-**State and I/O:** Subgraph input is `todo_list_json`; internal deliverable is `result_text`. The bridge maps `result_text` → `GlobalState.todo_text`. No `GlobalState` schema change in Slice 3.
+**State and I/O:** Subgraph input is `todo_list_json`; internal deliverable is `result_text`. The bridge maps `result_text` → `GlobalState.todo_text` (unchanged from Slice 3) and **additionally** sets `GlobalState.final_result` for node-agnostic demask ([ADR 0009](0009-pii-email-masking-pipeline.md)). The Slice 3 “no `GlobalState` schema change” statement applied at decision time; `final_result` is a later cross-cutting extension, not a contradiction.
 
 **Tools:** Custom `run_tools` reads `state.sandbox_session_id` and calls the HTTP client. `@tool bash` exists only for `bind_tools` schema; execution is not via prebuilt `ToolNode`. Tool failures surface as `ToolMessage` text (observe tier per [ADR 0012](0012-course-error-mode-contract.md)); `policy_exhausted` raises `PolicyViolationError`.
 

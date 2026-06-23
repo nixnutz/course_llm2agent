@@ -247,6 +247,7 @@ def make_tool_node_loop_subgraph_runner(tool_node_loop_graph: CompiledStateGraph
 
         return {
             "todo_text": sub_result["todo_text"],
+            "final_result": sub_result["todo_text"],
             "messages": sub_result.get("messages", []),
         }
 

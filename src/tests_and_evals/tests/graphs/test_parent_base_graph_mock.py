@@ -65,7 +65,7 @@ def make_reader(get_thread_id):
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_parent_graph_mock_e2e_restores_email_in_todo_markdown(mocker):
+async def test_parent_graph_mock_e2e_restores_email_in_final_result(mocker):
     mock_client = _patch_openai_for_parent_graph(mocker)
     bundle = build_parent_base_graph("test-model")
 
@@ -75,7 +75,7 @@ async def test_parent_graph_mock_e2e_restores_email_in_todo_markdown(mocker):
         )
         result = await session.ainvoke(bundle.graph, state)
 
-    markdown = result["todo_markdown"].markdown
-    assert "alice@example.com" in markdown
-    assert not _PLACEHOLDER_RE.search(markdown)
+    final_result = result["final_result"]
+    assert "alice@example.com" in final_result
+    assert not _PLACEHOLDER_RE.search(final_result)
     assert mock_client.chat.completions.create.await_count == 3

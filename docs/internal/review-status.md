@@ -1,15 +1,15 @@
 ## branch: main
-- last_reviewed_commit: 3a0dc2d
-- last_reviewed_at: 2026-06-17T12:00:00+02:00
-- last_review_context: review-w-auto-doc — staged LiteLLM cloud pacing (plan-1 hotfix + plan-2 Slices 1–4), cursor commands discuss-prosa/peer-code piggyback, session7 notebook smoke/prose trim; raw-log entries in staged diff; sidecar plan-1+plan-2 used
-- last_action: working-tree (staged only)
-- raw_log_decision: add
-- adr_file_decision: skip (trivial)
-- user_value_log_decision: skip (trivial)
+- last_reviewed_commit: b754e13
+- last_reviewed_at: 2026-06-23T12:00:00+02:00
+- last_review_context: review-w-auto-doc — plan-3 GlobalState.final_result demask slot + session8 WIP piggyback; F1–F3 resolved; 121 tests passed; committed
+- last_action: committed
+- raw_log_decision: update existing
+- adr_file_decision: update existing
+- user_value_log_decision: add
 - raw_log_status: done
 - adr_file_status: done
 - user_value_log_status: done
 - findings_resolved: yes
 - doc_decisions_made: yes
 - ready_to_commit: yes
-- notes: Staged-only review per user scope. F1 resolved: full notebook staged. F2 resolved: Phoenix callbacks line updated in README. F3 deferred (single-pod). Pending commits 784e4d1+066ffa5 not re-reviewed. stage_with_commit includes review-status.md.
+- notes: Committed b754e13. No Co-authored-by (commit-tree). session8 WIP with outputs. user-value-log pending approval.
