@@ -20,6 +20,7 @@ Sandbox API. Does not replace `tool_node_loop`.
 | **Trusted finalize** | Who-placeholder check only; word-count/reverse task is prompt guidance | See `tool_node_loop` pattern for placeholder audit |
 | **Non-zero bash exit** | `format_exec_result` prefixes `Error:` → `tool_errors` increments via `_tool_message_failed` | `exit_code=0` with stderr warnings still passes (lab) |
 | **Transport retry** | One free fence retry on `exit_code=2` + stderr parse/quote heuristics; `Transport retry:` offer does not increment `tool_errors` | After retry used, all failures count normally; happy path still `bind_tools` + `tool_calls` |
+| **Bash tool name** | **TODO / gap:** tool/schema say `bash`; session exec image is Python-based (`python:3.11-bookworm`) — not Bash-only | See exec image README; do not overstate “Bash sandbox” in teaching prose |
 
 Sandbox service limits (isolation, output caps, leaks, network): see
 [`container/sysbox-bash-image/README.md`](../../../container/sysbox-bash-image/README.md#known-limitations-accepted-for-the-lab).

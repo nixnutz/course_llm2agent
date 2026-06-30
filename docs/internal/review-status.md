@@ -1,7 +1,7 @@
 ## branch: main
-- last_reviewed_commit: b754e13
-- last_reviewed_at: 2026-06-23T12:00:00+02:00
-- last_review_context: review-w-auto-doc — plan-3 GlobalState.final_result demask slot + session8 WIP piggyback; F1–F3 resolved; 121 tests passed; committed
+- last_reviewed_commit: ac02ecd
+- last_reviewed_at: 2026-06-30T14:30:00+02:00
+- last_review_context: review-w-auto-doc — Sysbox Bash API network hardening (bind-host auto-detect + override validation, iptables docker0 DROP fail-closed, healthcheck hostname, api-smoke primary/supplementary probes); F1–F3 resolved; live smoke green
 - last_action: committed
 - raw_log_decision: update existing
 - adr_file_decision: update existing
@@ -12,4 +12,4 @@
 - findings_resolved: yes
 - doc_decisions_made: yes
 - ready_to_commit: yes
-- notes: Committed b754e13. No Co-authored-by (commit-tree). session8 WIP with outputs. user-value-log pending approval.
+- notes: Committed ac02ecd. make sysbox-bash-api-smoke green on fresh down/up (bind 10.201.0.2:8080, iptables DROP 172.17.0.0/16). user-value-log candidate pending approval. session8 notebook unstaged.

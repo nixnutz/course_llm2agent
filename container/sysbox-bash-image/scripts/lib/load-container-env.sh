@@ -13,6 +13,7 @@ _load_env_key() {
 
 for key in \
   SBASH_PORT \
+  SBASH_BIND_HOST \
   SBASH_EXEC_IMAGE_NAME \
   SBASH_EXEC_IMAGE_ARCHIVE \
   SBASH_SESSIONS_ROOT \

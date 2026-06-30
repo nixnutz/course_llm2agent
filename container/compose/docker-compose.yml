@@ -437,6 +437,7 @@ services:
       - ./.state/sysbox_bash/images:/var/lib/sysbox_bash/images:ro,z
     environment:
       SBASH_PORT: "${SBASH_PORT}"
+      SBASH_BIND_HOST: "${SBASH_BIND_HOST:-}"
       SBASH_EXEC_IMAGE_NAME: "${SBASH_EXEC_IMAGE_NAME}"
       SBASH_EXEC_IMAGE_ARCHIVE: "/var/lib/sysbox_bash/images/sysbox-bash-exec-image.tar"
       SBASH_SESSIONS_ROOT: "${SBASH_SESSIONS_ROOT}"
@@ -445,7 +446,7 @@ services:
       SBASH_MAX_STDERR_BYTES: "${SBASH_MAX_STDERR_BYTES}"
       SBASH_DEFAULT_TIMEOUT_SECONDS: "${SBASH_DEFAULT_TIMEOUT_SECONDS}"
     healthcheck:
-      test: [ "CMD-SHELL", "/opt/sysbox-bash-venv/bin/python -c \"import os, urllib.request; r=urllib.request.urlopen('http://localhost:' + os.environ['SBASH_PORT'] + '/health', timeout=2); exit(0 if r.status==200 else 1)\"" ]
+      test: [ "CMD-SHELL", "/opt/sysbox-bash-venv/bin/python -c \"import os, urllib.request; r=urllib.request.urlopen('http://sysbox_bash:' + os.environ['SBASH_PORT'] + '/health', timeout=2); exit(0 if r.status==200 else 1)\"" ]
       interval: "${HEALTHCHECK_INTERVAL}"
       start_interval: "${HEALTHCHECK_INTERVAL_BOOT:-3s}"
       timeout: 5s

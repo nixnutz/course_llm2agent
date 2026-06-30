@@ -9,7 +9,7 @@ COPY container/sysbox-bash-image/app/ /opt/sysbox-bash-app/
 
 RUN chmod +x /usr/local/lib/sysbox-bash/*.sh /usr/local/lib/sysbox-bash/lib/*.sh \
     && apt-get update \
-    && apt-get install -y --no-install-recommends python3 python3-pip python3-venv \
+    && apt-get install -y --no-install-recommends iptables python3 python3-pip python3-venv \
     && python3 -m venv /opt/sysbox-bash-venv \
     && /opt/sysbox-bash-venv/bin/pip install --no-cache-dir -r /opt/sysbox-bash-app/requirements.txt \
     && systemctl mask ssh.service ssh.socket 2>/dev/null || true \
