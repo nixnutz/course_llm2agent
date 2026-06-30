@@ -6,8 +6,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/lib/load-container-env.sh"
 # shellcheck source=lib/resolve-bind-host.sh
 source "${SCRIPT_DIR}/lib/resolve-bind-host.sh"
-# shellcheck source=lib/apply-session-api-firewall.sh
-source "${SCRIPT_DIR}/lib/apply-session-api-firewall.sh"
+# shellcheck source=lib/ensure-session-network.sh
+source "${SCRIPT_DIR}/lib/ensure-session-network.sh"
+# shellcheck source=lib/apply-session-network-firewall.sh
+source "${SCRIPT_DIR}/lib/apply-session-network-firewall.sh"
 
 cd /opt/sysbox-bash-app
 : "${SBASH_PORT:?Missing required environment variable: SBASH_PORT}"

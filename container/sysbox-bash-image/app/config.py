@@ -13,6 +13,16 @@ def _required_env(name: str) -> str:
     return raw
 
 
+DEFAULT_SESSION_NETWORK_NAME = "sbash_sessions"
+
+
+def _optional_env(name: str, default: str) -> str:
+    raw = os.environ.get(name)
+    if raw is None or raw == "":
+        return default
+    return raw
+
+
 def _int_from_env(name: str, *, minimum: int = 1) -> int:
     raw = _required_env(name)
     try:
@@ -34,6 +44,7 @@ class Settings:
     max_stderr_bytes: int
     default_timeout_seconds: int
     sessions_root: str
+    session_network_name: str
 
 
 def load_settings() -> Settings:
@@ -44,4 +55,7 @@ def load_settings() -> Settings:
         max_stderr_bytes=_int_from_env("SBASH_MAX_STDERR_BYTES"),
         default_timeout_seconds=_int_from_env("SBASH_DEFAULT_TIMEOUT_SECONDS"),
         sessions_root=_required_env("SBASH_SESSIONS_ROOT"),
+        session_network_name=_optional_env(
+            "SBASH_SESSION_NETWORK_NAME", DEFAULT_SESSION_NETWORK_NAME
+        ),
     )

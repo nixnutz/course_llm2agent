@@ -1,15 +1,15 @@
 ## branch: main
-- last_reviewed_commit: ac02ecd
-- last_reviewed_at: 2026-06-30T14:30:00+02:00
-- last_review_context: review-w-auto-doc — Sysbox Bash API network hardening (bind-host auto-detect + override validation, iptables docker0 DROP fail-closed, healthcheck hostname, api-smoke primary/supplementary probes); F1–F3 resolved; live smoke green
-- last_action: committed
+- last_reviewed_commit: d02d051
+- last_reviewed_at: 2026-06-30T18:00:00+02:00
+- last_review_context: review-w-auto-doc follow-up — F1–F3 resolved; plan-5 sidecar local (gitignored); make down/up + sysbox-bash-api-smoke green
+- last_action: staged-review
 - raw_log_decision: update existing
 - adr_file_decision: update existing
 - user_value_log_decision: add
 - raw_log_status: done
 - adr_file_status: done
-- user_value_log_status: done
+- user_value_log_status: pending
 - findings_resolved: yes
 - doc_decisions_made: yes
 - ready_to_commit: yes
-- notes: Committed ac02ecd. make sysbox-bash-api-smoke green on fresh down/up (bind 10.201.0.2:8080, iptables DROP 172.17.0.0/16). user-value-log candidate pending approval. session8 notebook unstaged.
+- notes: Staged phase-2 slice (15 files incl. review-status). F1–F3 fixed. Smoke green after down/up (ICC + host + API regressions). user-value-log candidate still optional at commit.

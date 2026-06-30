@@ -119,6 +119,8 @@ class SessionManager:
                 container_name,
                 "--hostname",
                 container_name,
+                "--network",
+                self.settings.session_network_name,
                 "--user",
                 "root",
                 "--label",

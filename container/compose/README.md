@@ -94,7 +94,7 @@ make sysbox-bash-api-smoke
 make sysbox-bash-sessions
 ```
 
-`sysbox-bash-api-smoke` exercises the API without LangGraph, including negative contract checks such as absent `GET /sessions`, over-default timeout rejection, script-size rejection, bounded stdout/stderr, and session-side API reachability blocks (primary: `backend_core` bind IP; supplementary: inner `docker0` gateway — a gateway block alone may reflect bind-only, not iptables). `sysbox-bash-sessions` lists active managed inner containers through host-side Compose/Docker inspection for lab recovery visibility; it is read-only and is not a Sandbox HTTP API endpoint.
+`sysbox-bash-api-smoke` exercises the API without LangGraph, including negative contract checks such as absent `GET /sessions`, over-default timeout rejection, script-size rejection, bounded stdout/stderr, and session-side network blocks (primary: `backend_core` bind IP; supplementary: session-bridge gateway; host non-API ports; session-to-session ICC). `sysbox-bash-sessions` lists active managed inner containers through host-side Compose/Docker inspection for lab recovery visibility; it is read-only and is not a Sandbox HTTP API endpoint.
 
 Accepted lab limitations (isolation, leaks, fairness, **Bash name vs Python exec runtime — TODO**): [`container/sysbox-bash-image/README.md`](../sysbox-bash-image/README.md#known-limitations-accepted-for-the-lab). ADR: [`docs/auto-doc/adr/0015-sysbox-bash-sandbox-http-api.md`](../../docs/auto-doc/adr/0015-sysbox-bash-sandbox-http-api.md).
 

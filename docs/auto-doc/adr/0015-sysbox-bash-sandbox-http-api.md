@@ -35,17 +35,20 @@ Keep Bash execution behind an **internal-only** FastAPI service owned by `sysbox
 
 - `SBASH_PORT`
 - `SBASH_BIND_HOST` (optional; default auto-detects the Compose `backend_core` IPv4 from `hostname`; manual values must pass the same startup guards — reject `0.0.0.0`, `127.0.0.1`, and inner `docker0` IP)
+- `SBASH_SESSION_NETWORK_NAME` (optional; default `sbash_sessions` — dedicated inner bridge with ICC disabled)
 - `SBASH_EXEC_IMAGE_NAME`, `SBASH_SESSIONS_ROOT`
 - `SBASH_MAX_SCRIPT_BYTES`, `SBASH_MAX_STDOUT_BYTES`, `SBASH_MAX_STDERR_BYTES`
 - `SBASH_DEFAULT_TIMEOUT_SECONDS`
 - Compose service-level CPU/memory limits on `sysbox_bash` (`SBASH_CPUS`, `SBASH_MEM_LIMIT`, …)
 
-**Lab network invariant (fixed):** session inner containers use the default inner `docker0`
-bridge. The API binds only the trusted Compose interface (auto-detected `backend_core` IPv4 via
-`hostname` → `sysbox_bash` → `eth0`, not `0.0.0.0`) and installs an idempotent `iptables`
-`INPUT DROP` for inner-bridge sources to `${SBASH_PORT}`. Trusted `dev` traffic on
-`backend_core` remains allowed; session containers keep outbound internet as an accepted lab
-limitation.
+**Lab network invariant (fixed):** session inner containers attach to a dedicated inner bridge
+(default `sbash_sessions`, ICC disabled via `com.docker.network.bridge.enable_icc=false`). The API
+binds only the trusted Compose interface (auto-detected `backend_core` IPv4 via `hostname` →
+`sysbox_bash` → `eth0`, not `0.0.0.0`) and installs an idempotent `iptables` `INPUT DROP` for
+the session-bridge CIDR (all ports, not port-specific). Trusted `dev` traffic on `backend_core`
+remains allowed; session containers keep outbound internet as an accepted lab limitation.
+Session → other `backend_core` Compose services (e.g. `postgres`, `litellm`) via NAT is not
+blocked — an accepted lab limit beyond sysbox host hardening.
 
 **Explicit rejects for v1:** production-grade auth, host port publish by default, HTTPS/Caddy
 routing on the internal path, session listing over HTTP, automatic session garbage collection.
@@ -58,14 +61,17 @@ This decision is currently in effect in production/dev workflow.
 
 - Contract verification stays `make sysbox-bash-api-smoke` (not pytest L4); see [ADR 0011](0011-course-test-scope-layers.md).
   Negative smoke asserts session containers cannot reach the API on the `backend_core`
-  bind IP (primary iptables invariant). A supplementary `docker0` gateway probe still
-  fails if the API is reachable there, but a pass may reflect bind-only blocking.
+  bind IP (primary invariant), cannot reach the host on non-API ports, and cannot reach
+  each other (ICC off). A supplementary session-bridge gateway probe still fails if the
+  API is reachable there, but a pass may reflect bind-only blocking.
 - Accepted lab limitations (isolation grade, leaks, fairness, network) are documented in the
   sysbox service README — not repeated here.
 - LangGraph session start/stop semantics remain in [ADR 0014](0014-tool-node-sysbox-bash-langgraph-bridge.md).
-- API startup waits briefly for inner `docker0` CIDR before applying session firewall rules;
-  `After=docker.service` plus `Restart=on-failure` cover longer inner-Docker timing glitches.
-- **iptables failure is fail-closed:** `run-api.sh` applies the session firewall before uvicorn;
-  insert is verified with `iptables -C`. Any firewall or bind error keeps the HTTP API down.
+- API startup ensures the session bridge exists, then waits briefly for its CIDR before
+  applying host firewall rules; `After=docker.service` plus `Restart=on-failure` cover longer
+  inner-Docker timing glitches.
+- **iptables failure is fail-closed:** `run-api.sh` ensures the session network and applies
+  the host firewall before uvicorn; insert is verified with `iptables -C`. Any firewall or
+  bind error keeps the HTTP API down.
 - **Lab assumption A1:** Sysbox system-container runtime is sufficient for `iptables INPUT`
   without extra Compose `cap_add`; portability to plain `runc` without review is not claimed.

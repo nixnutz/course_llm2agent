@@ -437,6 +437,7 @@ services:
       - ./.state/sysbox_bash/images:/var/lib/sysbox_bash/images:ro,z
     environment:
       SBASH_PORT: "${SBASH_PORT}"
+      SBASH_SESSION_NETWORK_NAME: "${SBASH_SESSION_NETWORK_NAME:-}"
       SBASH_BIND_HOST: "${SBASH_BIND_HOST:-}"
       SBASH_EXEC_IMAGE_NAME: "${SBASH_EXEC_IMAGE_NAME}"
       SBASH_EXEC_IMAGE_ARCHIVE: "/var/lib/sysbox_bash/images/sysbox-bash-exec-image.tar"

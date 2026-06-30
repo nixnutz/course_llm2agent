@@ -167,6 +167,114 @@ def assert_session_api_blocked_supplementary(session_id, script, target_desc):
     log_assert("dev-smoke", f"session cannot reach {target_desc} (supplementary)")
 
 
+def assert_session_host_blocked(session_id):
+    log_section("dev-smoke", "network probe: session to host (non-API ports)")
+    log_actor("dev-smoke", f"ask sysbox-api to exec host probe in session {session_id}")
+    log_actor("session", "run: TCP connect to default gateway on ports 22 and 9999 (must fail)")
+    script = """python3 - <<'PY'
+import socket
+import struct
+
+def default_gateway():
+    with open("/proc/net/route") as handle:
+        next(handle)
+        for line in handle:
+            parts = line.strip().split()
+            if parts[1] == "00000000":
+                gateway = int(parts[2], 16)
+                return socket.inet_ntoa(struct.pack("<L", gateway))
+    raise SystemExit("no default gateway")
+
+def host_blocked(host, port, timeout=2):
+    try:
+        socket.create_connection((host, port), timeout=timeout).close()
+        return False
+    except (OSError, TimeoutError):
+        return True
+
+host = default_gateway()
+for port in (22, 9999):
+    if not host_blocked(host, port):
+        print(f"FAIL_HOST_REACHABLE:{port}")
+        raise SystemExit(1)
+print("OK_HOST_BLOCKED")
+PY
+"""
+    result = call(
+        "POST",
+        f"/sessions/{session_id}/exec",
+        {"script": script},
+        intent="inject host non-API probe script",
+    )
+    assert_equal(result["exit_code"], 0, "host probe exit_code")
+    assert_equal(result["stdout"].strip(), "OK_HOST_BLOCKED", "host probe stdout")
+    log_actor("session", f"probe stdout={result['stdout'].strip()!r}")
+    log_assert("dev-smoke", "session cannot reach host on non-API ports")
+
+
+def assert_icc_blocked():
+    log_section("dev-smoke", "network probe: session to session (ICC)")
+    session_a = call(
+        "POST",
+        "/sessions",
+        {"caller_label": "api-smoke-icc-a"},
+        intent="create ICC probe session A",
+    )
+    session_b = call(
+        "POST",
+        "/sessions",
+        {"caller_label": "api-smoke-icc-b"},
+        intent="create ICC probe session B",
+    )
+    session_a_id = session_a["session_id"]
+    session_b_id = session_b["session_id"]
+    try:
+        log_actor("dev-smoke", f"resolve container IP in session {session_b_id}")
+        b_ip_result = call(
+            "POST",
+            f"/sessions/{session_b_id}/exec",
+            {
+                "script": """python3 - <<'PY'
+import socket
+print(socket.gethostbyname(socket.gethostname()))
+PY
+""",
+            },
+            intent="read session B container IP",
+        )
+        assert_equal(b_ip_result["exit_code"], 0, "session B IP probe exit_code")
+        b_ip = b_ip_result["stdout"].strip()
+        if not b_ip:
+            raise AssertionError("session B IP probe: empty stdout")
+        log_actor("session", f"session B IP={b_ip!r}")
+
+        log_actor("dev-smoke", f"ask session {session_a_id} to connect to session B")
+        icc_script = f"""python3 - <<'PY'
+import socket
+
+try:
+    socket.create_connection(({b_ip!r}, 80), timeout=2).close()
+    print("FAIL_ICC_REACHABLE")
+    raise SystemExit(1)
+except (OSError, TimeoutError):
+    print("OK_ICC_BLOCKED")
+PY
+"""
+        result = call(
+            "POST",
+            f"/sessions/{session_a_id}/exec",
+            {"script": icc_script},
+            intent="inject ICC probe script in session A",
+        )
+        assert_equal(result["exit_code"], 0, "ICC probe exit_code")
+        assert_equal(result["stdout"].strip(), "OK_ICC_BLOCKED", "ICC probe stdout")
+        log_actor("session", f"probe stdout={result['stdout'].strip()!r}")
+        log_assert("dev-smoke", "sessions cannot reach each other (ICC off)")
+    finally:
+        call("DELETE", f"/sessions/{session_a_id}", intent="delete ICC probe session A")
+        call("DELETE", f"/sessions/{session_b_id}", intent="delete ICC probe session B")
+
+
 def assert_outbound_optional(session_id):
     log_section("dev-smoke", "network probe (optional): session outbound internet")
     log_actor("dev-smoke", f"ask sysbox-api to exec outbound probe in session {session_id}")
@@ -304,8 +412,10 @@ try:
     assert_session_api_blocked_supplementary(
         session_id,
         GATEWAY_BLOCK_SCRIPT,
-        f"inner docker0 gateway tcp:{API_PORT}",
+        f"session-bridge gateway tcp:{API_PORT}",
     )
+    assert_session_host_blocked(session_id)
+    assert_icc_blocked()
     assert_outbound_optional(session_id)
 
     log_section("dev-smoke", "metadata shape (local check of last exec response)")
