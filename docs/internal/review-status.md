@@ -1,15 +1,15 @@
 ## branch: main
-- last_reviewed_commit: d02d051
-- last_reviewed_at: 2026-06-30T18:00:00+02:00
-- last_review_context: review-w-auto-doc follow-up — F1–F3 resolved; plan-5 sidecar local (gitignored); make down/up + sysbox-bash-api-smoke green
+- last_reviewed_commit: 967e70c
+- last_reviewed_at: 2026-07-01T15:00:00+02:00
+- last_review_context: review-w-auto-doc — F1 streamlit removal verified; notebook overhaul staged
 - last_action: staged-review
-- raw_log_decision: update existing
-- adr_file_decision: update existing
+- raw_log_decision: skip (trivial)
+- adr_file_decision: skip (trivial)
 - user_value_log_decision: add
-- raw_log_status: done
-- adr_file_status: done
-- user_value_log_status: pending
+- raw_log_status: n/a
+- adr_file_status: n/a
+- user_value_log_status: done
 - findings_resolved: yes
 - doc_decisions_made: yes
 - ready_to_commit: yes
-- notes: Staged phase-2 slice (15 files incl. review-status). F1–F3 fixed. Smoke green after down/up (ICC + host + API regressions). user-value-log candidate still optional at commit.
+- notes: F1 resolved — streamlit target/port/deps/docs removed (not repointed). F2 accepted. F3/F4 output churn accepted. O1 session8 deferred. Stage compose/Makefile/requirements.in with notebooks + review-status for commit.

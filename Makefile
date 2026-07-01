@@ -5,7 +5,7 @@
 	dev-container-smoke dev-container-smoke-wrapper dev-container-smoke-clean \
 	devcontainer-smoke devcontainer-smoke-wrapper devcontainer-smoke-clean \
 	keys-generate keys-overwrite keys-show keys-sync litellm-recreate ollama-expose \
-	phoenix-health smoke-chat smoke-embeddings state-init state-prune streamlit-run trust-certs-host \
+	phoenix-health smoke-chat smoke-embeddings state-init state-prune trust-certs-host \
 	dev-image-build dev-image-rebuild dev-image-reset-project-venv dev-container-restart review-manual \
 	sysbox-bash-api-smoke sysbox-bash-image-build sysbox-bash-image-rebuild sysbox-bash-service-restart sysbox-bash-sessions \
 	ruff ruff-check
@@ -42,10 +42,6 @@ help:
 	@echo "  make state-prune              Remove compose state contents"
 	@echo "  make trust-certs-host         Trust generated local certs on host"
 	@echo ""
-	@echo "Streamlit (delegated to container/compose):"
-	@echo "  make streamlit-run            Run a Streamlit app inside the dev container"
-	@echo "                                Vars: STREAMLIT_FILE STREAMLIT_ADDRESS STREAMLIT_PORT"
-	@echo ""
 	@echo "Development Environment (delegated to container/compose):"
 	@echo "  make dev-container-smoke      Run dev wrapper smoke tests"
 	@echo "  make dev-container-smoke-wrapper Alias for dev-container-smoke"
@@ -80,7 +76,7 @@ up:
 down ps top logs logs-all logs-init-keys logs-init-models certs-generate \
 dev-container-smoke dev-container-smoke-wrapper dev-container-smoke-clean \
 keys-generate keys-overwrite keys-show keys-sync litellm-recreate ollama-expose \
-phoenix-health smoke-chat smoke-embeddings state-init state-prune streamlit-run trust-certs-host ruff ruff-check:
+phoenix-health smoke-chat smoke-embeddings state-init state-prune trust-certs-host ruff ruff-check:
 	$(MAKE) -C $(COMPOSE_DIR) $@
 
 sysbox-bash-api-smoke sysbox-bash-sessions:

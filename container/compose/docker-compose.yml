@@ -488,7 +488,6 @@ services:
     working_dir: /workspace/src
     ports:
       - "${HOST_BIND_IP}:${DEV_JUPYTER_PORT:-8888}:8888"
-      - "${HOST_BIND_IP}:${DEV_STREAMLIT_PORT:-8501}:8501"
     volumes:
       - ../../src:/workspace/src:z
       - ./config/litellm:/workspace/compose-config/litellm:ro,z

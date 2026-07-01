@@ -12,7 +12,7 @@ endif
 # 4) Single non-group targets (if any) at the end
 # This is primarily for readability/discoverability and avoids accidental order drift.
 
-.PHONY: help preflight-up up up-no-preflight down ps top logs logs-all logs-init-keys logs-init-models certs-generate dev-container-smoke dev-container-smoke-clean dev-container-smoke-wrapper devcontainer-smoke devcontainer-smoke-clean devcontainer-smoke-wrapper keys-generate keys-overwrite keys-show keys-sync litellm-recreate ollama-expose phoenix-health smoke-chat smoke-embeddings state-init state-prune streamlit-run sysbox-bash-api-smoke sysbox-bash-sessions ruff ruff-check toxiproxy-bootstrap toxiproxy-reset trust-certs-host
+.PHONY: help preflight-up up up-no-preflight down ps top logs logs-all logs-init-keys logs-init-models certs-generate dev-container-smoke dev-container-smoke-clean dev-container-smoke-wrapper devcontainer-smoke devcontainer-smoke-clean devcontainer-smoke-wrapper keys-generate keys-overwrite keys-show keys-sync litellm-recreate ollama-expose phoenix-health smoke-chat smoke-embeddings state-init state-prune sysbox-bash-api-smoke sysbox-bash-sessions ruff ruff-check toxiproxy-bootstrap toxiproxy-reset trust-certs-host
 
 CURL_TLS_FLAGS ?= -k
 MIN_DOCKER_ENGINE_VERSION ?= 25.0.0
@@ -55,10 +55,6 @@ help:
 	@echo "    make smoke-embeddings      Run authenticated embeddings smoke test"
 	@echo "    make sysbox-bash-api-smoke Run Sandbox API smoke test through dev"
 	@echo "    make sysbox-bash-sessions  List active sysbox_bash sessions"
-	@echo ""
-	@echo "  Streamlit:"
-	@echo "    make streamlit-run          Run a Streamlit app inside the dev container"
-	@echo "                                Vars: STREAMLIT_FILE STREAMLIT_ADDRESS STREAMLIT_PORT"
 	@echo ""
 	@echo "  Code Quality:"
 	@echo "    make ruff-check               Run ruff lint (check only) on src/ Python files (no .ipynb)"
@@ -215,18 +211,6 @@ state-prune:
 	docker compose down
 	@mkdir -p ".state"
 	@find ".state" -mindepth 1 ! -name ".gitignore" -exec rm -rf {} +
-
-# STREAMLIT_FILE is interpreted relative to the dev container workdir
-# (/workspace/src), which corresponds to the repository's src/ folder on the
-# host. Override any of the variables on the command line as needed.
-STREAMLIT_FILE ?= assorted/session3/fake_agent_app.py
-STREAMLIT_ADDRESS ?= 0.0.0.0
-STREAMLIT_PORT ?= 8501
-
-streamlit-run:
-	./scripts/dev/cmd.sh streamlit run $(STREAMLIT_FILE) \
-		--server.address $(STREAMLIT_ADDRESS) \
-		--server.port $(STREAMLIT_PORT)
 
 ruff-check:
 	./scripts/dev/cmd.sh ruff check .
