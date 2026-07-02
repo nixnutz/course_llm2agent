@@ -58,6 +58,21 @@ Full story: [presentation (PDF)](docs/toolbert_lab.pdf) · pipeline map:
 [pipeline and nodes](docs/course/pipeline-and-nodes.md) · rationale:
 [engineering decisions](#engineering-decisions).
 
+## Code map
+
+Key modules behind the pipeline (for the planned **`course-deliverable`** git tag — the clean
+submission snapshot once the tag is created; `main` may drift after that):
+
+| Area | Entry point |
+|------|-------------|
+| Parent graph | [`src/graphs/parent_base_graph.py`](src/graphs/parent_base_graph.py) |
+| PII masking | [`src/llm_nodes/pii_email/`](src/llm_nodes/pii_email/) |
+| Placeholder audit (guard) | [`src/llm_nodes/placeholder_audit/`](src/llm_nodes/placeholder_audit/) |
+| TODO subgraphs | [`src/llm_nodes/todo_extract/`](src/llm_nodes/todo_extract/) |
+| Sysbox tool bridge | [`src/llm_nodes/tool_node_sysbox_bash/`](src/llm_nodes/tool_node_sysbox_bash/) |
+| Message reducer | [`src/reducer/`](src/reducer/) |
+| Demask | [`src/other_nodes/demask/`](src/other_nodes/demask/) |
+
 ## Course sessions (1–8)
 
 | Session | Focus | Notebooks |
@@ -92,22 +107,50 @@ Key choices are recorded as short [ADRs](docs/auto-doc/adr/README.md) — for ex
 Note: the full implementation plans are **not** in this repository. The ADRs are kept
 deliberately short — a lightweight side experiment in decision logging, not full design docs.
 
-## Tests and scope
+## Tests
 
 A layered pytest suite (unit → mocked parent-graph E2E → Toxiproxy chaos) lives under
 [`src/tests_and_evals`](src/tests_and_evals/README.md) — reminders and smoke checks, not
 exhaustive coverage. Run it inside the `dev` container.
 
-**Deliberate non-goals.** This is a course lab (~5 ECTS, roughly a 125 h budget), and the
-scope was set on purpose: **no CI**, no CONTRIBUTING, no production hardening. It is an
-*agent* course where the interesting problems turned out to be the engineering *around* the
-agent — so the depth went into state boundaries, guards, sandboxing, and observability rather
-than agent breadth or a polished use case. CI, richer evals, and monitoring are natural next
-steps, not part of this deliverable.
+## Learnings
+
+A tiny task exposed a large engineering surface. The main takeaways:
+
+- **Prompt engineering is not a safety boundary.** Small local models (3B/7B) especially need
+  **deterministic guards** — the LLM proposes, Python verifies.
+- **State boundaries matter.** Need-to-know subgraphs (masked text + a placeholder allowlist)
+  keep raw PII out of nodes that never need it.
+- **Observability is a debugging tool, not decoration.** A per-state-transition span tree is
+  what makes non-deterministic runs debuggable and auditable.
+- **Tool use is a systems problem.** Once an agent runs bash, isolation, timeouts, and cleanup
+  matter more than the prompt — sandboxing, not phrasing.
+- **Separate the agent from its home.** Keeping the agent and infrastructure layers apart lets
+  each evolve independently.
+
+## Scope and limitations
+
+This is a **local development lab**, scoped as a ~5 ECTS course project (~125 h budget). The
+focus was deliberately the engineering *around* a tiny agent — state boundaries, guards,
+sandboxing, observability — not agent breadth or a polished product.
+
+Consciously **out of scope**, and not to be mistaken for production:
+
+- **No CI/CD** for the agent or the lab, no CONTRIBUTING, no release automation.
+- **Not hardened:** the Sysbox sandbox is a lab prototype, *not* production-grade isolation;
+  Postgres has no backup/restore; services assume a trusted local network.
+- **Tests are reminders and smoke checks**, not exhaustive coverage or a frozen contract.
+
+None of this is accidental — it is the right scope for a single-developer learning lab. CI,
+richer evals, monitoring, and hardening are the natural next steps, not gaps in the deliverable.
 
 ## Beyond the course (session 9+)
 
-Follow-up experiments and ad-hoc notebooks may appear under `src/assorted/` without being part of the course deliverable (sessions 1–8).
+The planned **`course-deliverable` git tag** will mark the clean submission state — the polished
+sessions 1–8 deliverable this README describes. After that, `main` continues as a **private,
+living lab**: follow-up experiments and ad-hoc notebooks (session 9+) may appear under
+`src/assorted/`, and that part is allowed to be rough and unpolished. If you are evaluating
+this repository, read the tagged snapshot; treat everything after it as work in progress.
 
 ## Course description (OpenCampus.sh)
 
