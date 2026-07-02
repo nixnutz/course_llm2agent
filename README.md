@@ -1,4 +1,4 @@
-# Toolbert Lab - a home for a tiny agent
+# Toolbert Lab - home for a tiny agent
 
 This is an independent, single-person project built from scratch for the [OpenCampus.sh](https://www.opencampus.sh/) course [*From LLMs to Agents*](https://edu.opencampus.sh/course/632) — the course mandated no starter template or framework, so the architecture, infrastructure, and tooling choices (LangGraph, the Compose stack, the Sysbox sandbox) are my own. OpenCampus is a non-profit organization working in close collaboration with local universities. ECTS-Credits are granted for some of their projects.
 
