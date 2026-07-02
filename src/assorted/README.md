@@ -69,8 +69,8 @@ not polished teaching prose — but part of the deliverable.
 Follow-up experiments and ad-hoc notebooks may appear here without being part of the
 course deliverable (sessions 1–8).
 
-## Not indexed
+## Supplementary
 
 | Item | Note |
 |------|------|
-| [`session3/langchain_chat_template.ipynb`](session3/langchain_chat_template.ipynb) | Scratchpad notebook — not part of the course index; archive/delete/keep pending decision |
+| [`session3/langchain_chat_template.ipynb`](session3/langchain_chat_template.ipynb) | Session 3 home assignment — chat templates plus `reasoning_content` streaming (uses `deepseek-r1:7b`); supplementary to the indexed session 3 notebooks |

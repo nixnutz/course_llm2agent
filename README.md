@@ -1,6 +1,6 @@
 # Toolbert Lab - a home for a tiny agent
 
-This repository started as a project work for the [OpenCampus.sh](https://www.opencampus.sh/) course [*From LLMs to Agents*](https://edu.opencampus.sh/course/632). OpenCampus is a non-profit organization working in close collaboration with local universities. ECTS-Credits are granted for some of their projects.
+This is an independent, single-person project built from scratch for the [OpenCampus.sh](https://www.opencampus.sh/) course [*From LLMs to Agents*](https://edu.opencampus.sh/course/632) — the course mandated no starter template or framework, so the architecture, infrastructure, and tooling choices (LangGraph, the Compose stack, the Sysbox sandbox) are my own. OpenCampus is a non-profit organization working in close collaboration with local universities. ECTS-Credits are granted for some of their projects.
 
 [![Course presentation](docs/toolbert_lab.png)](docs/toolbert_lab.pdf)
 
@@ -15,10 +15,48 @@ Agents need a **home and supervision** — like kids at play, but for LLM graphs
 that home: a local Compose stack where you develop LangGraph agents in notebooks while
 infrastructure handles models, tracing, chaos testing, and (eventually) sandboxed tool execution.
 
-The agent task is **deliberately tiny** — extract TODOs from text, mask email PII, format, demask —
-so the course can focus on engineering mechanics: **state boundaries**, **deterministic guards**,
-**tracing**, and **tool sandboxing**. Session notebooks and the [presentation PDF](docs/toolbert_lab.pdf)
-carry the narrative; this repo is the runnable lab archive.
+Supervision here is concrete: state boundaries, deterministic guards, tracing, and sandboxed
+tool execution — the mechanics you need once an LLM stops being a chatbot and starts touching
+data and tools. The [presentation PDF](docs/toolbert_lab.pdf) and session notebooks carry the
+full narrative; this repo is the runnable lab archive. The next section shows what that focus
+looks like in practice.
+
+## Tiny agent, large engineering surface
+
+**The agent task is deliberately trivial** — a frontier model would do it in a single prompt:
+mask email PII → extract TODOs → format as Markdown → demask. That is the whole point.
+Shrinking the *task* to almost nothing keeps the focus on the *mechanics* the presentation
+asks about: where are the contracts and boundaries? What flows through global state? What can
+a tool node actually see and do?
+
+```mermaid
+flowchart LR
+  START --> pii_extract_node
+  pii_extract_node --> todo_extract_node
+  todo_extract_node --> todo_markdown_node
+  todo_markdown_node --> demask_node
+  demask_node --> END
+```
+
+The top-level graph stays small **on purpose**. The engineering lives in the boundaries,
+guards, and infrastructure around it:
+
+| Concern | How the lab handles it |
+|---------|------------------------|
+| **State & privacy boundaries** | TODO extraction runs in a *need-to-know* subgraph — it sees masked text and a placeholder allowlist, never raw PII |
+| **Deterministic guards** | Pydantic-typed state, PII-leak checks, placeholder audit after each LLM step (the LLM proposes, Python verifies) |
+| **Trusted demask** | A deterministic code path restores placeholders only in `final_result`, never in intermediate fields |
+| **Observability** | Reducer hooks + LiteLLM per-call logs + Phoenix span tree — every state transition is auditable |
+| **Tool sandboxing** | The bash tool runs in a Sysbox HTTP-bridged sandbox (sessions 7–8): isolation, timeouts, cleanup — a lab prototype, not production security |
+| **Chaos testing** | A clean vs. Toxiproxy chaos channel injects latency, timeouts, and provider faults |
+
+Every run is traced end-to-end, so those guards and boundaries are visible in practice:
+
+![Phoenix trace of a parent-graph run](src/assorted/session5/trace_example.png)
+
+Full story: [presentation (PDF)](docs/toolbert_lab.pdf) · pipeline map:
+[pipeline and nodes](docs/course/pipeline-and-nodes.md) · rationale:
+[engineering decisions](#engineering-decisions).
 
 ## Course sessions (1–8)
 
@@ -44,6 +82,29 @@ Full notebook index: [`src/assorted/README.md`](src/assorted/README.md).
 - [Compose stack](container/compose/README.md) — runtime, env, chaos channel
 - [Full documentation index](docs/README.md)
 
+## Engineering decisions
+
+Key choices are recorded as short [ADRs](docs/auto-doc/adr/README.md) — for example the
+[PII masking pipeline](docs/auto-doc/adr/0009-pii-email-masking-pipeline.md), the
+[course error-mode contract](docs/auto-doc/adr/0012-course-error-mode-contract.md), and the
+[Sysbox sandbox HTTP API](docs/auto-doc/adr/0015-sysbox-bash-sandbox-http-api.md).
+
+Note: the full implementation plans are **not** in this repository. The ADRs are kept
+deliberately short — a lightweight side experiment in decision logging, not full design docs.
+
+## Tests and scope
+
+A layered pytest suite (unit → mocked parent-graph E2E → Toxiproxy chaos) lives under
+[`src/tests_and_evals`](src/tests_and_evals/README.md) — reminders and smoke checks, not
+exhaustive coverage. Run it inside the `dev` container.
+
+**Deliberate non-goals.** This is a course lab (~5 ECTS, roughly a 125 h budget), and the
+scope was set on purpose: **no CI**, no CONTRIBUTING, no production hardening. It is an
+*agent* course where the interesting problems turned out to be the engineering *around* the
+agent — so the depth went into state boundaries, guards, sandboxing, and observability rather
+than agent breadth or a polished use case. CI, richer evals, and monitoring are natural next
+steps, not part of this deliverable.
+
 ## Beyond the course (session 9+)
 
 Follow-up experiments and ad-hoc notebooks may appear under `src/assorted/` without being part of the course deliverable (sessions 1–8).
@@ -51,7 +112,7 @@ Follow-up experiments and ad-hoc notebooks may appear under `src/assorted/` with
 ## Course description (OpenCampus.sh)
 
 > Adapted from the OpenCampus.sh course *From LLM to Agents* (instructor: [Henrik Horst](https://opencampus.sh)).  
-> This repository is an independent lab archive maintained by Ulf Wendel — not the official course repository.
+> This repository is an independent lab archive maintained by Ulf Wendel — not the official course repository. The course contributed concepts and a few minimal examples; the code, design, and infrastructure here are original to this repo.
 
 ### What you get
 

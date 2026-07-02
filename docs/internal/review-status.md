@@ -1,7 +1,7 @@
 ## branch: main
-- last_reviewed_commit: f9aa891
-- last_reviewed_at: 2026-07-02T09:38:00+02:00
-- last_review_context: review-w-auto-doc — pending commit marked handled; staged portfolio-public-readiness docs/notebook/assets reviewed
+- last_reviewed_commit: f7a911b
+- last_reviewed_at: 2026-07-02T10:51:00+02:00
+- last_review_context: review-w-auto-doc — pending commit f7a911b marked handled; staged portfolio-presentation edits reviewed (README tiny-task/large-surface + engineering-decisions + tests/scope, getting-started model-pull note, assorted Supplementary reclassification, langchain_chat_template cell)
 - last_action: staged-review
 - raw_log_decision: skip (trivial)
 - adr_file_decision: skip (trivial)
@@ -11,5 +11,5 @@
 - user_value_log_status: done
 - findings_resolved: yes
 - doc_decisions_made: yes
-- ready_to_commit: yes
-- notes: Pending commit f9aa891 marked as handled per user choice. Review scope was staged docs/notebook/assets (README/docs/session8/license/.gitignore). No blocking issues found; sidecar context treated as stale for this scope.
+- ready_to_commit: n/a
+- notes: Pending commit f7a911b marked handled per user choice. Scope = staged working tree only (no commit, no git tag this round per user). All referenced assets/links/anchors verified present; README mermaid matches pipeline-and-nodes.md; OLLAMA_MODELS instruction verified. User-value line appended (status pending). Sidecar plans 1–5 unrelated to this diff (stale for scope). When this slice is committed later, stage docs/internal/review-status.md + docs/auto-doc/value/user-value-log.md with it.

@@ -15,7 +15,8 @@ together:
 
 ### 1.1 Prerequisites
 
-- **Linux** — developed and tested on Linux only
+- **Linux** — developed on Linux (openSUSE Tumbleweed); not verified on other distributions
+  or operating systems
 - **Docker Engine** ≥ 25 and **Docker Compose** ≥ 2.20
 - **Sysbox** (`sysbox-runc`) — required for `make up` because the stack includes the
   `sysbox_bash` sandbox service. Course exercises that **use** the sandbox start in
@@ -90,6 +91,13 @@ If `llama3.2:3b` is too slow or will not run on your machine, see the
 Default model pull set in `.env.example`: `nomic-embed-text:latest` and `llama3.2:3b` only.
 Larger models such as `deepseek-r1:7b` remain available via optional `OLLAMA_MODELS` lines in
 `.env.example`.
+
+> **Some notebooks pin other models.** Individual course notebooks may set a different or
+> larger `MODEL` than the smoke-test default (for example `deepseek-r1:7b` for a reasoning
+> demo). If a notebook's model is not in your pull set, either change the notebook's `MODEL`
+> to one you already have, or add the model to `OLLAMA_MODELS` in `container/compose/.env`
+> and re-run `make up`. Only these notebooks need the extra pull — the first-run exercise
+> below runs on the default set.
 
 ## 5. First agent exercise — recommended (Cursor / VS Code)
 
