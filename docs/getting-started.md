@@ -17,7 +17,10 @@ together:
 
 - **Linux** — developed and tested on Linux only
 - **Docker Engine** ≥ 25 and **Docker Compose** ≥ 2.20
-- **Sysbox** (`sysbox-runc`) — required for the `sysbox_bash` sandbox service (`make up` checks via preflight)
+- **Sysbox** (`sysbox-runc`) — required for `make up` because the stack includes the
+  `sysbox_bash` sandbox service. Course exercises that **use** the sandbox start in
+  **session 7**; sessions 1–6 do not depend on sandbox notebooks or
+  `make sysbox-bash-api-smoke`.
 - **Git** — clone this repository
 - **Host tools** — terminal; a code editor (Cursor or VS Code recommended); a browser as fallback for JupyterLab
 - **Python / ML stack** — runs inside **`dev`**, not on the host
@@ -99,7 +102,7 @@ notebook — same runtime as any script under `src/`.
 3. Use the Jupyter URL from [section 7](#7-services-with-a-web-ui) (full default URI there;
    change if you edited `container/compose/.env`).
 4. Open [`src/assorted/session5/graphtrace.ipynb`](../src/assorted/session5/graphtrace.ipynb)
-   (temporary exercise on the **current WIP** parent-graph sketch). Run **cell 0 first**
+   (first-run exercise on the course parent-graph sketch). Run **cell 0 first**
    (tracing setup), then the rest top to bottom.
 5. **Success:** the agent invoke completes without error.
 

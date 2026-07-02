@@ -1,18 +1,21 @@
 # Error handling (course)
 
-How the **current work-in-progress** course pipeline reacts when something goes wrong.
-This is a **runtime behavior sketch** for labs and tests — not production compliance and
-not a coding style guide. Policy and graph shape may change as sessions land.
+How the **course reference** pipeline reacts when something goes wrong. This is a
+**runtime behavior sketch** for labs and tests — not production compliance and not a coding
+style guide.
 
-## Teaching default: Mode C
+## Observe inside the pipeline
 
-**Observe inside the pipeline:** log and trace problems; the graph may still complete when
-LLM output quality drifts. You audit behavior via application logs and Phoenix traces.
+**Log and trace problems; the graph may still complete** when LLM output quality drifts.
+You audit behavior via application logs and Phoenix traces.
 
-Stricter **egress** (for example fatal abort before `demask`) is documented but not
-implemented in the current parent-graph sketch (WIP).
+Stricter **egress** (for example fatal abort before `demask`) is documented in
+[ADR 0012](../auto-doc/adr/0012-course-error-mode-contract.md) as a future tightening — not
+implemented in the current parent-graph sketch.
 
-Normative contract: [ADR 0012 — course error-mode contract](../auto-doc/adr/0012-course-error-mode-contract.md).
+Normative contract:
+[ADR 0012 — course error-mode contract](../auto-doc/adr/0012-course-error-mode-contract.md)
+(teaching default **Mode C**: observe inside the pipeline).
 
 ## Three tiers
 
@@ -22,8 +25,8 @@ Normative contract: [ADR 0012 — course error-mode contract](../auto-doc/adr/00
 | **Observe** | Warning logs (+ trace); pipeline continues | `leak_suspected`, `placeholder_violation`, `span_not_found`, `normalization_failed` |
 | **Library** | Dependency errors propagate (not swallowed) | Network/API failures from LiteLLM, Ollama, httpx |
 
-Mode C means Guard and Observe use **log + trace** inside the graph; Library-tier failures
-still abort the run.
+Under this contract, Guard and Observe use **log + trace** inside the graph; Library-tier
+failures still abort the run (ADR 0012, Mode C).
 
 ### Guard exception types (`src/errors.py`)
 

@@ -4,8 +4,9 @@ Entry points for this repository, grouped by audience.
 
 ## Course (learners and implementers)
 
+- [Course presentation](toolbert_lab.pdf) — summary deck (sessions 1–8)
 - [Getting started](getting-started.md) — agent lab on Compose, `dev` runtime, first agent exercise
-- [Course docs hub](course/README.md) — WIP pipeline sketch, error handling, module pointers
+- [Course docs hub](course/README.md) — pipeline sketch, error handling, module pointers (sessions 1–8)
 - [Course notebooks](../src/assorted/README.md) — Jupyter sessions under `src/assorted`
 
 ## Runtime and operations
@@ -23,4 +24,4 @@ Entry points for this repository, grouped by audience.
 
 - [Auto-doc overview](auto-doc/README.md) — ADR and user-value logging process
 - [ADR index](auto-doc/adr/README.md) — summarized architecture decisions
-- [User value log](auto-doc/value/README.md) — review-gated outcome tracking
+- [User value log](auto-doc/value/user-value-log.md) — review-gated outcome tracking

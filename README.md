@@ -1,19 +1,57 @@
-# OpenCampus.sh - From LLM to Agents
+# Toolbert Lab - a home for a tiny agent
 
-This repository is my **work-in-progress scratchpad** for the OpenCampus.sh course
-**"From LLM to Agents"** — lab stack, agent experiments, and course graphs are still
-evolving.
+This repository started as a project work for the [OpenCampus.sh](https://www.opencampus.sh/) course [*From LLMs to Agents*](https://edu.opencampus.sh/course/632). OpenCampus is a non-profit organization working in close collaboration with local universities. ECTS-Credits are granted for some of their projects.
 
-## Documentation
+[![Course presentation](docs/toolbert_lab.png)](docs/toolbert_lab.pdf)
+
+**[Open full presentation (PDF)](docs/toolbert_lab.pdf)** — course summary (sessions 1–8).
+
+Course deliverable: **sessions 1–8** (session 8 is a rough end-to-end demo). This repository
+continues for experiments (**session 9+**).
+
+## Why this lab?
+
+Agents need a **home and supervision** — like kids at play, but for LLM graphs. Toolbert Lab is
+that home: a local Compose stack where you develop LangGraph agents in notebooks while
+infrastructure handles models, tracing, chaos testing, and (eventually) sandboxed tool execution.
+
+The agent task is **deliberately tiny** — extract TODOs from text, mask email PII, format, demask —
+so the course can focus on engineering mechanics: **state boundaries**, **deterministic guards**,
+**tracing**, and **tool sandboxing**. Session notebooks and the [presentation PDF](docs/toolbert_lab.pdf)
+carry the narrative; this repo is the runnable lab archive.
+
+## Course sessions (1–8)
+
+| Session | Focus | Notebooks |
+|---------|--------|-----------|
+| 1 | Chaos channel (Toxiproxy), home assignment | [`chaos.ipynb`](src/assorted/session1/chaos.ipynb), [`homeassignment.ipynb`](src/assorted/session1/homeassignment.ipynb) |
+| 2 | RAG basics (vector search in the lab) | [`rag_basics.ipynb`](src/assorted/session2/rag_basics.ipynb), [`rag_pgvector.ipynb`](src/assorted/session2/rag_pgvector.ipynb) |
+| 3 | LangGraph basics, message reducer | [`langgraph.ipynb`](src/assorted/session3/langgraph.ipynb), [`langgraph_messages.ipynb`](src/assorted/session3/langgraph_messages.ipynb) |
+| 4 | Parent graph assembly (PII → TODO → demask) | [`langgraph.ipynb`](src/assorted/session4/langgraph.ipynb) |
+| 5 | Phoenix tracing, reducer observability | [`graphtrace.ipynb`](src/assorted/session5/graphtrace.ipynb) |
+| 6 | Tool subgraph with safe mock tool | [`tool_node_basics.ipynb`](src/assorted/session6/tool_node_basics.ipynb) |
+| 7 | Sandbox infrastructure (Sysbox HTTP API) | [`tool_node_sysbox.ipynb`](src/assorted/session7/tool_node_sysbox.ipynb) |
+| 8 | End-to-end parent graph (rough) — Sysbox + in-graph demask | [`presentation.ipynb`](src/assorted/session8/presentation.ipynb) |
+
+Full notebook index: [`src/assorted/README.md`](src/assorted/README.md).
+
+## Lab and documentation
 
 - [Getting started](docs/getting-started.md) — start the agent lab, first Python exercise in `dev`
-- [Course pipeline and nodes](docs/course/pipeline-and-nodes.md) — WIP parent-graph sketch and modules
+- [Course pipeline and nodes](docs/course/pipeline-and-nodes.md) — parent-graph sketch and modules
 - [Error handling (course)](docs/course/error-handling.md) — Guard / Observe / Library
 - [Editor and agent workflow](docs/editor-and-agent-workflow.md) — Cursor, dev-cmd, contributors
 - [Compose stack](container/compose/README.md) — runtime, env, chaos channel
 - [Full documentation index](docs/README.md)
 
-## Original course description
+## Beyond the course (session 9+)
+
+Follow-up experiments and ad-hoc notebooks may appear under `src/assorted/` without being part of the course deliverable (sessions 1–8).
+
+## Course description (OpenCampus.sh)
+
+> Adapted from the OpenCampus.sh course *From LLM to Agents* (instructor: [Henrik Horst](https://opencampus.sh)).  
+> This repository is an independent lab archive maintained by Ulf Wendel — not the official course repository.
 
 ### What you get
 
@@ -53,4 +91,7 @@ Otherwise that is all for the "Taster" and "Beginner" path. For the more advance
 
 ## License
 
-This project is licensed under the Apache License 2.0. See `LICENSE` for details.
+Copyright 2026 Ulf Wendel. Licensed under the Apache License 2.0 — see [LICENSE](LICENSE).
+
+Repository code, docs, and lab materials: Apache 2.0 (see LICENSE).  
+The course description section above is third-party course marketing text from OpenCampus.sh.

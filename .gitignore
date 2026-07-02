@@ -5,4 +5,6 @@ src/.venv
 **/.env.local
 **/__pycache__/
 .DS_Store
+*.swp
+.*.swp
 docs/internal/adr-plan-sidecar.md

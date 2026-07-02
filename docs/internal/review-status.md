@@ -1,7 +1,7 @@
 ## branch: main
-- last_reviewed_commit: 967e70c
-- last_reviewed_at: 2026-07-01T15:00:00+02:00
-- last_review_context: review-w-auto-doc — F1 streamlit removal verified; notebook overhaul staged
+- last_reviewed_commit: f9aa891
+- last_reviewed_at: 2026-07-02T09:38:00+02:00
+- last_review_context: review-w-auto-doc — pending commit marked handled; staged portfolio-public-readiness docs/notebook/assets reviewed
 - last_action: staged-review
 - raw_log_decision: skip (trivial)
 - adr_file_decision: skip (trivial)
@@ -12,4 +12,4 @@
 - findings_resolved: yes
 - doc_decisions_made: yes
 - ready_to_commit: yes
-- notes: F1 resolved — streamlit target/port/deps/docs removed (not repointed). F2 accepted. F3/F4 output churn accepted. O1 session8 deferred. Stage compose/Makefile/requirements.in with notebooks + review-status for commit.
+- notes: Pending commit f9aa891 marked as handled per user choice. Review scope was staged docs/notebook/assets (README/docs/session8/license/.gitignore). No blocking issues found; sidecar context treated as stale for this scope.

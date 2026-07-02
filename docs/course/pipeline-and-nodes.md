@@ -1,15 +1,13 @@
 # Pipeline and nodes
 
-Map of the **current work-in-progress** parent-graph sketch in `src/graphs/`. The chain,
-modules, and session notebooks will change during the course — this is a teaching
-scratchpad, not a shipped agent product.
+Map of the **course reference** parent-graph arc (**sessions 1–8**). Session **8** is still rough
+but part of the deliverable: the full in-graph pipeline including Sysbox and demask. Session
+notebooks are the primary walkthrough; this page is an orientation map.
 
-Session notebooks remain the primary walkthrough; this page is an orientation map.
+## Parent graph chain
 
-## Parent graph chain (current sketch)
-
-Factory (WIP): `build_parent_base_graph()` in `src/graphs/parent_base_graph.py`. The graph
-assembly in code and in session notebooks may diverge until the course catches up.
+Factory: `build_parent_base_graph()` in `src/graphs/parent_base_graph.py`. The graph
+assembly in code and in session notebooks may diverge where notebooks are notebook-led.
 
 ```mermaid
 flowchart LR
@@ -71,21 +69,23 @@ Nodes use `src/llm_handle/local.py` (`get_async_openai_client`, `openai_client_c
 | PII email | `src/llm_nodes/pii_email/README.md` |
 | Placeholder audit | `src/llm_nodes/placeholder_audit/README.md` |
 | TODO extract / markdown | `src/llm_nodes/todo_extract/graph.py`, `todo_markdown/graph.py` |
-| Tool loop (mock `greet`) | `src/llm_nodes/tool_node_loop/` — Session 6; not in parent sketch yet |
-| Tool loop (Sysbox `bash`) | `src/llm_nodes/tool_node_sysbox_bash/README.md` — Session 7; HTTP → `sysbox_bash` |
+| Tool subgraph (mock tool) | `src/llm_nodes/tool_node_loop/` — Session 6; safe `greet()` mock; not in parent sketch yet |
+| Sandbox bridge (Sysbox) | `src/llm_nodes/tool_node_sysbox_bash/README.md` — Session 7; HTTP → `sysbox_bash` |
 | Demask | `src/other_nodes/demask/` |
-| Parent graph (WIP) | `src/graphs/parent_base_graph.py` |
+| Parent graph | `src/graphs/parent_base_graph.py` |
 
 ## Notebooks (by session)
 
 | Session | Focus |
 |---------|--------|
+| 1 | Chaos channel (Toxiproxy), home assignment |
+| 2 | RAG basics (pgvector in the lab) |
 | 3 | LangGraph basics, reducer messages |
 | 4 | Parent graph assembly (notebook-led; `src/graphs/` mirrors when synced) |
-| 5 | Phoenix tracing on current parent-graph sketch — `session5/graphtrace.ipynb` (temporary first-run exercise in getting started) |
-| 6 | ReAct tool loop with mock `greet` — `session6/tool_node_basics.ipynb` (`tool_node_loop`; notebook-led, not in parent sketch) |
-| 7 | ReAct tool loop with Sysbox `bash` — `session7/tool_node_sysbox.ipynb` (`tool_node_sysbox_bash`; E2E smoke; teaching prose author-owned) |
-| 8 | Sysbox `bash` + in-graph demask — `session8/presentation.ipynb` (custom parent graph; `final_result` after demask) |
+| 5 | Phoenix tracing on parent-graph sketch — `session5/graphtrace.ipynb` (first-run exercise in getting started) |
+| 6 | Tool subgraph with safe mock `greet` — `session6/tool_node_basics.ipynb` (`tool_node_loop`; notebook-led, not in parent sketch) |
+| 7 | Sandbox infrastructure (Sysbox HTTP API) — `session7/tool_node_sysbox.ipynb` (`tool_node_sysbox_bash`; teaching prose in notebook) |
+| 8 | End-to-end parent graph (rough) — full pipeline (PII → TODO → Sysbox bash → demask) — `session8/presentation.ipynb` |
 
 Index: `src/assorted/README.md`.
 

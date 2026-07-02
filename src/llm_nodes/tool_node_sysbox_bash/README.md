@@ -30,7 +30,7 @@ Sandbox service limits (isolation, output caps, leaks, network): see
 - **L1+L3 unit exemplars:** `pytest tests_and_evals/tests/llm_nodes/tool_node_sysbox_bash/ -m unit`
 - **API contract:** `make sysbox-bash-api-smoke` (not duplicated as pytest integration — fragile Sysbox host dependency; see [ADR 0011](../../../docs/auto-doc/adr/0011-course-test-scope-layers.md))
 - **Bridge `finally`:** deferred integration exemplar per Slice 3 plan
-- **Notebook E2E:** optional manual via `src/assorted/session7/tool_node_sysbox.ipynb` (author-owned prose in Slice 4)
+- **Notebook E2E:** optional manual via `src/assorted/session7/tool_node_sysbox.ipynb` (author-owned teaching prose in notebook)
 
 ## References
 
