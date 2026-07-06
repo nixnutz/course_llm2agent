@@ -421,7 +421,8 @@ upstream provider when the proxy budget is exhausted (state: 06/2026):
 | `gemini-2.5-flash-lite` | 10 | 900000 | ~15 RPM / 1M TPM |
 | `gemini-2.5-pro` | 1 | 28000 | ~2 RPM / 32k TPM |
 | `groq-llama-3.1-8b-instant` | 25 | 5500 | ~30 RPM / 6k TPM |
-| `groq-llama-3.3-70b` | 25 | 5500 | ~30 RPM / 6k TPM |
+| `groq-llama-3.3-70b` | 25 | 5500 | ~30 RPM / 6k TPM (Groq decommission ~08/2026) |
+| `groq-qwen3.6-27b` | 25 | 5500 | ~30 RPM / 6k TPM (reasoning model; proxy sets `reasoning_format: hidden`) |
 | `mistral-large` / `mistral-large-old` / `mistral-small` | 2 each | 400000 each | ~2 RPM / 500k TPM **workspace-wide** |
 
 Cloud models use `max_retries: 0`; router `num_retries: 0` — fail fast instead of retry storms on shared free-tier keys.
@@ -491,7 +492,7 @@ Model examples currently configured:
   `ollama_chat/mistral-nemo:12b`
 - Ollama embeddings: `ollama/nomic-embed-text:latest`
 - Gemini: `gemini-2.5-flash-lite`, `gemini-2.5-pro`
-- Groq: `groq-llama-3.3-70b`, `groq-llama-3.1-8b-instant`
+- Groq: `groq-qwen3.6-27b`, `groq-llama-3.3-70b` (until Groq decommission), `groq-llama-3.1-8b-instant`
 - Mistral API: `mistral-small`
 
 Optional larger Ollama preload set (commented example in `.env.example`):

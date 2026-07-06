@@ -1,15 +1,15 @@
 ## branch: main
-- last_reviewed_commit: 3197ba3
-- last_reviewed_at: 2026-07-02T11:27:00+02:00
-- last_review_context: review-w-auto-doc — pending commit 3197ba3 marked handled; staged-only README code-map and scope supplement reviewed
-- last_action: staged-review
-- raw_log_decision: skip (trivial)
+- last_reviewed_commit: d3ad52d
+- last_reviewed_at: 2026-07-06T17:20:00+02:00
+- last_review_context: review-w-auto-doc follow-up — F1/F2 verified, F4 docs updated, graphtrace re-run green on groq-qwen3.6-27b
+- last_action: staged-review-follow-up
+- raw_log_decision: add
 - adr_file_decision: skip (trivial)
-- user_value_log_decision: update existing
-- raw_log_status: n/a
+- user_value_log_decision: skip (trivial)
+- raw_log_status: done
 - adr_file_status: n/a
-- user_value_log_status: done
+- user_value_log_status: n/a
 - findings_resolved: yes
 - doc_decisions_made: yes
 - ready_to_commit: yes
-- notes: Scope was staged-only README update (code map, learnings, scope/limitations, course-deliverable tag wording). Commit 3197ba3 marked handled per user choice. O1 resolved by changing wording to planned/future tense so no existing tag is implied. stage_with_commit: docs/internal/review-status.md
+- notes: F1 resolved — nbconvert execute green (Graph invocation completed). F2 verified — groq-qwen3.6-27b + llama 70b on clean+chaos /v1/models; reasoning_format hidden returns JSON without redacted_thinking. F3 withdrawn — no model-list unit tests in repo by design. F4 done — README + getting-started updated. stage_with_commit: docs/internal/review-status.md docs/auto-doc/adr/raw-log.md container/compose/README.md docs/getting-started.md

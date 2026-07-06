@@ -203,7 +203,8 @@ When local `llama3.2:3b` is too slow or does not run:
    | `gemini-2.5-flash-lite` | Gemini | Default cloud choice — faster, higher free-tier quota |
    | `gemini-2.5-pro` | Gemini | Stronger, lower rate limits |
    | `groq-llama-3.1-8b-instant` | Groq | Fast small cloud model |
-   | `groq-llama-3.3-70b` | Groq | Larger Groq option |
+   | `groq-qwen3.6-27b` | Groq | Larger Groq option (successor on free tier; reasoning hidden at proxy) |
+   | `groq-llama-3.3-70b` | Groq | Larger Groq option until Groq decommissions it (~08/2026) |
 
    Example in a notebook cell: `MODEL = "gemini-2.5-flash-lite"`. Calls still go through
    the same LiteLLM base URL and `MODEL_API_KEY_DEV` inside `dev` — only the model name

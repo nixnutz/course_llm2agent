@@ -191,7 +191,7 @@ model_list:
       rpm: 25
       tpm: 5500
 
-  # release 12/2024 (base: Llama 3.3 70B)
+  # release 12/2024 (base: Llama 3.3 70B), decommissioned by Groq on 08/2026
   - model_name: groq-llama-3.3-70b
     litellm_params:
       model: groq/llama-3.3-70b-versatile
@@ -199,6 +199,16 @@ model_list:
       max_retries: 0
       rpm: 25
       tpm: 5500
+
+  # release 04/2026 (base: Qwen 3.6 27B)
+  - model_name: groq-qwen3.6-27b
+    litellm_params:
+      model: groq/qwen/qwen3.6-27b
+      api_key: "os.environ/GROQ_API_KEY"
+      max_retries: 0
+      rpm: 25
+      tpm: 5500
+      reasoning_format: "hidden" # hide reasoning in output - code does not handle it yet
 
   # Mistral models — Experiment/free ~2 RPM / 500k TPM (workspace, not per alias)
   # release 12/2025 (rolling alias; currently Mistral Large 3)
